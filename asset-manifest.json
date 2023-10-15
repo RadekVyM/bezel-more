@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/bezel-more/static/css/main.45503ba0.css",
-    "main.js": "/bezel-more/static/js/main.1d53a992.js",
+    "main.js": "/bezel-more/static/js/main.13ee499b.js",
     "static/js/565.b1942b80.chunk.js": "/bezel-more/static/js/565.b1942b80.chunk.js",
     "static/js/787.fda5e6e6.chunk.js": "/bezel-more/static/js/787.fda5e6e6.chunk.js",
     "index.html": "/bezel-more/index.html",
     "main.45503ba0.css.map": "/bezel-more/static/css/main.45503ba0.css.map",
-    "main.1d53a992.js.map": "/bezel-more/static/js/main.1d53a992.js.map",
+    "main.13ee499b.js.map": "/bezel-more/static/js/main.13ee499b.js.map",
     "565.b1942b80.chunk.js.map": "/bezel-more/static/js/565.b1942b80.chunk.js.map",
     "787.fda5e6e6.chunk.js.map": "/bezel-more/static/js/787.fda5e6e6.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.45503ba0.css",
-    "static/js/main.1d53a992.js"
+    "static/js/main.13ee499b.js"
   ]
 }
