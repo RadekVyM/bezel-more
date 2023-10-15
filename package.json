@@ -1,6 +1,7 @@
 {
   "name": "bezel-more",
   "version": "0.1.0",
+  "homepage": "",
   "private": true,
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.7",
@@ -18,6 +19,7 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
+    "upload": "json -I -f package.json -e 'this.homepage=\"https://radekvym.github.io/bezel-more\"' && npm run deploy && json -I -f package.json -e 'this.homepage=\"\"'",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
     "start": "react-scripts start",
