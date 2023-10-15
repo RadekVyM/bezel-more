@@ -1,26 +1,33 @@
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { fetchFile, toBlobURL } from '@ffmpeg/util'
 
-export async function convertToGif(ffmpeg, videoFile, bezel, filterComplexConfig) {
-    // https://www.ffmpeg.org/ffmpeg.html
-    // https://ffmpeg.org/ffmpeg-filters.html
-    // https://github.com/leandromoreira/ffmpeg-libav-tutorial
-    // https://ffmpegwasm.netlify.app/docs/getting-started/usage/
+// https://www.ffmpeg.org/ffmpeg.html
+// https://ffmpeg.org/ffmpeg-filters.html
+// https://github.com/leandromoreira/ffmpeg-libav-tutorial
+// https://ffmpegwasm.netlify.app/docs/getting-started/usage/
 
+export async function convertToGifWithBezel(ffmpeg, videoFile, bezel, filterComplexConfig) {
     const videoName = videoFile.name;
     const bezelName = 'bezel.png';
+    const bezelMaskName = bezel.mask.split('/').slice(0, -1)[0];
     const gifName = videoName.split('.').slice(0, -1).join('.') + '.gif';
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
     await ffmpeg.writeFile(bezelName, await fetchFile(bezel.image));
+    await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezel.mask));
 
     const width = bezel.width <= bezel.height ? bezel.width * (filterComplexConfig.size / bezel.height) : filterComplexConfig.size;
     const height = bezel.width <= bezel.height ? filterComplexConfig.size : bezel.height * (filterComplexConfig.size / bezel.width);
     const videoScale = bezel.contentScale;
 
+    const start = filterComplexConfig.start || 0;
+    const end = filterComplexConfig.end || 1;
+    const length = end - start;
+
     await ffmpeg.exec([
         '-i', videoName,
         '-i', bezelName,
+        '-i', bezelMaskName,
         '-filter_complex',
         `[0:v]
         scale=w=${width * videoScale}:h=${height * videoScale}:force_original_aspect_ratio=decrease:flags=lanczos[scaled-video];
@@ -30,13 +37,41 @@ export async function convertToGif(ffmpeg, videoFile, bezel, filterComplexConfig
         [1:v]
         scale=w=${width}:h=${height}:force_original_aspect_ratio=decrease:flags=lanczos[scaled-bezel];
         [padded-video][scaled-bezel]
-        overlay=0:0:enable='between(t,0,${filterComplexConfig.length})'[merged];
-        [merged]
+        overlay=0:0[merged];
+        [2:v][merged]scale2ref[scaled-mask][merged-2];
+        [merged-2][scaled-mask]alphamerge,
         fps=${filterComplexConfig.fps},
         split[s0][s1];
         [s0]palettegen=max_colors=${filterComplexConfig.maxColors}[p];
         [s1][p]paletteuse=dither=bayer`,
-        '-t', `${filterComplexConfig.length}`, '-ss', '0.0', '-f', 'gif', gifName
+        '-t', `${length}`, '-ss', `${start}`, '-f', 'gif', gifName
+    ]);
+
+    return await ffmpeg.readFile(gifName);
+}
+
+export async function convertToGif(ffmpeg, videoFile, filterComplexConfig) {
+    const videoName = videoFile.name;
+    const gifName = videoName.split('.').slice(0, -1).join('.') + '.gif';
+
+    await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
+
+    const start = filterComplexConfig.start || 0;
+    const end = filterComplexConfig.end || 1;
+    const length = end - start;
+
+    await ffmpeg.exec([
+        '-i', videoName,
+        '-filter_complex',
+        `[0:v]
+        format=rgba,
+        scale=w=${filterComplexConfig.size}:h=${filterComplexConfig.size}:force_original_aspect_ratio=decrease:flags=lanczos[scaled-video];
+        [scaled-video]
+        fps=${filterComplexConfig.fps},
+        split[s0][s1];
+        [s0]palettegen=max_colors=${filterComplexConfig.maxColors}[p];
+        [s1][p]paletteuse=dither=bayer`,
+        '-t', `${length}`, '-ss', `${start}`, '-f', 'gif', gifName
     ]);
 
     return await ffmpeg.readFile(gifName);
