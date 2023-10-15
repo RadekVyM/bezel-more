@@ -32,6 +32,7 @@ export default function VideoLoader({ video, setVideo, onDurationLoad }) {
                 }
                 <input
                     type='file'
+                    accept='video/*'
                     className={withVideo ?
                         `block w-full text-sm text-gray-600 dark:text-gray-400
                         file:mr-4 file:py-2 file:px-4
