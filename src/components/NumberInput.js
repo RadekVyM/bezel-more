@@ -12,7 +12,7 @@ export default function NumberInput({ id, label, min, max, unit, inputClassName,
                 className='relative'>
                 <input
                     {...rest}
-                    className={cn('py-2 px-3 block w-full border-gray-200 rounded-md text-sm dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100', inputClassName)}
+                    className={cn('py-2 px-3 block w-full border-gray-200 rounded-md text-sm disabled:text-gray-500 dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100', inputClassName)}
                     id={id}
                     type='number'
                     min={min} max={max}

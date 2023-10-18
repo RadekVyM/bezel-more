@@ -1,6 +1,6 @@
 # bezel-more
 
-Simple **video to GIF** converter that allows you to add a **device bezel** to your screen recordings.
+Simple **video to GIF/WebP** converter that allows you to add a **device bezel** to your screen recordings.
 
 <p align="center">
     <a href="https://radekvym.github.io/bezel-more/">

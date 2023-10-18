@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import { bezels } from './bezels'
+import { supportedFormats } from './supportedFormats'
 import { convertToGifWithBezel, convertToGif } from './services/video/gif'
+import { convertToWebpWithBezel, convertToWebp } from './services/video/webp'
 import Button from './components/Button'
 import VideoLoader from './components/VideoLoader'
 import ConversionConfiguration from './components/ConversionConfiguration'
@@ -17,9 +19,9 @@ export default function App() {
     const [ready, setReady] = useState(false);
     const [converting, setConverting] = useState(false);
     const [video, setVideo] = useState(null);
-    const [gif, setGif] = useState(null);
-    const [gifSize, setGifSize] = useState(0);
-    const [filterComplexConfig, setFilterComplexConfig] = useState({
+    const [result, setResult] = useState(null);
+    const [resultSize, setResultSize] = useState(0);
+    const [config, setConfig] = useState({
         fps: 20,
         scale: 480,
         maxColors: 255,
@@ -28,7 +30,9 @@ export default function App() {
         end: 10
     });
     const [bezelKey, setBezelKey] = useState(bezels.iphone.key);
+    const [formatKey, setFormatKey] = useState(supportedFormats.webp.key);
     const [withBezel, setWithBezel] = useState(true);
+    const [progress, setProgress] = useState(null);
 
     useEffect(() => {
         loadFFmpeg();
@@ -42,6 +46,7 @@ export default function App() {
         });
         ffmpeg.on('progress', ({ progress, time }) => {
             console.log(`progress: ${progress} time: ${time}`);
+            setProgress({ progress, time });
         });
         // toBlobURL is used to bypass CORS issue, urls with the same
         // domain can be used directly.
@@ -52,29 +57,34 @@ export default function App() {
         setReady(true);
     }
 
-    async function convert () {
+    async function convert() {
         setConverting(true);
-        setGif(null);
+        setResult(null);
 
         const bezel = Object.values(bezels).filter((b) => b.key == bezelKey)[0];
+        const format = Object.values(supportedFormats).filter((f) => f.key == formatKey)[0];
+
+        const convertWithBezel = getConvertWithBezel(formatKey);
+        const convertWithoutBezel = getConvertWithoutBezel(formatKey);
 
         try {
             const data = withBezel ?
-                await convertToGifWithBezel(ffmpegRef.current, video, bezel, filterComplexConfig) :
-                await convertToGif(ffmpegRef.current, video, filterComplexConfig);
-            const gifUrl = URL.createObjectURL(new Blob([data.buffer], { type: 'image/gif' }));
+                await convertWithBezel(ffmpegRef.current, video, bezel, config) :
+                await convertWithoutBezel(ffmpegRef.current, video, config);
+            const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
 
-            setGif(gifUrl);
-            setGifSize(data.byteLength);
+            setResult(resultUrl);
+            setResultSize(data.byteLength);
         }
         catch(error) {
             // TODO: Display an error message
             console.error(error);
 
-            setGif(null);
-            setGifSize(0);
+            setResult(null);
+            setResultSize(0);
         }
-
+        
+        setProgress(null);
         setConverting(false);
     }
   
@@ -91,7 +101,7 @@ export default function App() {
                     <VideoLoader
                         video={video}
                         setVideo={setVideo}
-                        onDurationLoad={(duration => setFilterComplexConfig((old) => ({ ...old, end: duration })))}/>
+                        onDurationLoad={(duration => setConfig((old) => ({ ...old, end: duration })))}/>
                 </div>
 
                 <Button
@@ -109,15 +119,20 @@ export default function App() {
                 <div>
                     <SectionHeading>Output</SectionHeading>
 
-                    <Result gif={gif} gifSize={gifSize} />
+                    <Result
+                        gif={result}
+                        gifSize={resultSize}
+                        progress={progress}/>
                 </div>
             </div>
 
             <SectionHeading>Configuration</SectionHeading>
 
             <ConversionConfiguration
-                filterComplexConfig={filterComplexConfig}
-                setFilterComplexConfig={setFilterComplexConfig}
+                filterConfig={config}
+                setFilterConfig={setConfig}
+                format={formatKey}
+                setFormat={setFormatKey}
                 bezel={bezelKey}
                 setBezel={setBezelKey}
                 withBezel={withBezel}
@@ -144,7 +159,7 @@ function SectionHeading({ children, className }) {
     )
 }
 
-function Result({ gif, gifSize }) {
+function Result({ gif, gifSize, progress }) {
     return (
         <div
             className='flex flex-col gap-6'>
@@ -157,10 +172,17 @@ function Result({ gif, gifSize }) {
                             className='flex flex-col items-center justify-center pt-5 pb-6 w-full text-gray-500 dark:text-gray-400'>
                             <MdOutlineVideoLibrary
                                 className='w-8 h-8 mb-4'/>
-                            <p
-                                className='mb-2 text-sm'>
-                                No results yet
-                            </p>
+                            {
+                                progress && progress.progress <= 1 ?
+                                    <p
+                                        className='text-sm font-semibold'>
+                                        {progress.progress.toLocaleString(undefined, { style: 'percent' })}
+                                    </p> :
+                                    <p
+                                        className='text-sm'>
+                                        No results yet
+                                    </p>
+                            }
                         </div>
                 }
             </ContentContainer>
@@ -178,4 +200,22 @@ function Result({ gif, gifSize }) {
             </div>
         </div>
     )
+}
+
+function getConvertWithBezel(format) {
+    switch (format) {
+        case supportedFormats.gif.key:
+            return convertToGifWithBezel;
+        case supportedFormats.webp.key:
+            return convertToWebpWithBezel;
+    }
+}
+
+function getConvertWithoutBezel(format) {
+    switch (format) {
+        case supportedFormats.gif.key:
+            return convertToGif;
+        case supportedFormats.webp.key:
+            return convertToWebp;
+    }
 }

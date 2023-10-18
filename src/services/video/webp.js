@@ -1,16 +1,13 @@
 import { fetchFile, toBlobURL } from '@ffmpeg/util'
 import { getBezelSize } from '../../utils/size'
 
-// https://www.ffmpeg.org/ffmpeg.html
-// https://ffmpeg.org/ffmpeg-filters.html
-// https://github.com/leandromoreira/ffmpeg-libav-tutorial
-// https://ffmpegwasm.netlify.app/docs/getting-started/usage/
+// https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
-export async function convertToGifWithBezel(ffmpeg, videoFile, bezel, config) {
+export async function convertToWebpWithBezel(ffmpeg, videoFile, bezel, config) {
     const videoName = videoFile.name;
     const bezelName = 'bezel.png';
     const bezelMaskName = bezel.mask.split('/').slice(0, -1)[0];
-    const gifName = videoName.split('.').slice(0, -1).join('.') + '.gif';
+    const webpFileName = videoName.split('.').slice(0, -1).join('.') + '.webp';
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
     await ffmpeg.writeFile(bezelName, await fetchFile(bezel.image));
@@ -39,24 +36,27 @@ export async function convertToGifWithBezel(ffmpeg, videoFile, bezel, config) {
         overlay=0:0[merged];
         [2:v][merged]scale2ref[scaled-mask][merged-2];
         [merged-2][scaled-mask]alphamerge,
-        fps=${config.fps},
-        split[s0][s1];
-        [s0]palettegen=max_colors=${config.maxColors}[p];
-        [s1][p]paletteuse=dither=bayer`,
-        '-t', `${length}`, '-ss', `${start}`, '-f', 'gif', gifName
+        fps=${config.fps}`,
+        '-vcodec', 'libwebp',
+        '-lossless', '1',
+        '-loop', '0',
+        '-preset', 'picture',
+        '-an', '-vsync', '0',
+        '-s', `${width}:${height}`,
+        '-t', `${length}`, '-ss', `${start}`, webpFileName
     ]);
 
-    return await ffmpeg.readFile(gifName);
+    return await ffmpeg.readFile(webpFileName);
 }
 
-export async function convertToGif(ffmpeg, videoFile, filterComplexConfig) {
+export async function convertToWebp(ffmpeg, videoFile, config) {
     const videoName = videoFile.name;
-    const gifName = videoName.split('.').slice(0, -1).join('.') + '.gif';
+    const webpFileName = videoName.split('.').slice(0, -1).join('.') + '.webp';
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
 
-    const start = filterComplexConfig.start || 0;
-    const end = filterComplexConfig.end || 1;
+    const start = config.start || 0;
+    const end = config.end || 1;
     const length = end - start;
 
     await ffmpeg.exec([
@@ -64,14 +64,16 @@ export async function convertToGif(ffmpeg, videoFile, filterComplexConfig) {
         '-filter_complex',
         `[0:v]
         format=rgba,
-        scale=w=${filterComplexConfig.size}:h=${filterComplexConfig.size}:force_original_aspect_ratio=decrease:flags=lanczos[scaled-video];
+        scale=w=${config.size}:h=${config.size}:force_original_aspect_ratio=decrease:flags=lanczos[scaled-video];
         [scaled-video]
-        fps=${filterComplexConfig.fps},
-        split[s0][s1];
-        [s0]palettegen=max_colors=${filterComplexConfig.maxColors}[p];
-        [s1][p]paletteuse=dither=bayer`,
-        '-t', `${length}`, '-ss', `${start}`, '-f', 'gif', gifName
+        fps=${config.fps}`,
+        '-vcodec', 'libwebp',
+        '-lossless', '1',
+        '-loop', '0',
+        '-preset', 'picture',
+        '-an', '-vsync', '0',
+        '-t', `${length}`, '-ss', `${start}`, webpFileName
     ]);
 
-    return await ffmpeg.readFile(gifName);
+    return await ffmpeg.readFile(webpFileName);
 }
