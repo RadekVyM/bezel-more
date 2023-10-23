@@ -29,7 +29,7 @@ export default function App() {
         start: 0,
         end: 10
     });
-    const [bezelKey, setBezelKey] = useState(bezels.iphone.key);
+    const [bezelKey, setBezelKey] = useState(bezels.iphone_15_black.key);
     const [formatKey, setFormatKey] = useState(supportedFormats.webp.key);
     const [withBezel, setWithBezel] = useState(true);
     const [progress, setProgress] = useState(null);
