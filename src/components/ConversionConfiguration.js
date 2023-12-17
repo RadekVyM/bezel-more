@@ -6,113 +6,166 @@ import { supportedFormats } from '../supportedFormats'
 import { cn } from '../utils/tailwind'
 
 export default function ConversionConfiguration({
-    filterConfig,
-    setFilterConfig,
-    format,
-    setFormat,
-    bezel,
-    setBezel,
-    withBezel,
-    setWithBezel,
+    conversionConfig,
+    updateConversionConfig,
     className
 }) {
     return (
         <div
             className={cn('flex flex-col gap-4', className)}>
-            <div
-                className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                <NumberInput
-                    label='Start'
-                    id='start'
-                    unit='seconds'
-                    inputClassName='pr-[4.5rem]'
-                    min={0} step={0.1}
-                    value={filterConfig.start}
-                    onChange={(e) => setFilterConfig((old) => ({ ...old, start: e.target.value }))}/>
-                <NumberInput
-                    label='End'
-                    id='end'
-                    unit='seconds'
-                    inputClassName='pr-[4.5rem]'
-                    min={0} step={0.1}
-                    value={filterConfig.end}
-                    onChange={(e) => setFilterConfig((old) => ({ ...old, end: e.target.value }))}/>
-                <NumberInput
-                    label='FPS'
-                    id='fps'
-                    min={5} max={60} step={1}
-                    value={filterConfig.fps}
-                    onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
-                    onChange={(e) => setFilterConfig((old) => ({ ...old, fps: e.target.value }))}/>
-                <NumberInput
-                    label='Max Colors'
-                    id='max-colors'
-                    min={32} max={255} step={1}
-                    value={filterConfig.maxColors}
-                    disabled={format == supportedFormats.webp.key}
-                    onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
-                    onChange={(e) => setFilterConfig((old) => ({ ...old, maxColors: e.target.value }))}/>
-                <NumberInput
-                    label='Size'
-                    id='size'
-                    unit='px'
-                    inputClassName='pr-8'
-                    min={1}
-                    value={filterConfig.size}
-                    onChange={(e) => setFilterConfig((old) => ({ ...old, size: e.target.value }))}/>
-            </div>
+            <NumberInputs
+                conversionConfig={conversionConfig}
+                updateConversionConfig={updateConversionConfig}/>
+
+            <FormatSelection
+                conversionConfig={conversionConfig}
+                updateConversionConfig={updateConversionConfig}/>
+
+            <h3 className='font-bold text-xl'>Bezel</h3>
 
             <div>
                 <CheckInput
                     id='use-bezel-check'
                     className='rounded'
                     type='checkbox'
-                    defaultChecked={withBezel}
-                    onChange={(e) => setWithBezel(e.target.checked)}/>
+                    defaultChecked={conversionConfig.withBezel}
+                    onChange={(e) => updateConversionConfig({ withBezel: e.target.checked })}/>
                 <CheckInputLabel htmlFor='use-bezel-check' className='pl-3'>Use bezel</CheckInputLabel>
             </div>
 
-            <fieldset>
-                <legend className='block text-sm font-medium mb-2'>Bezel Type</legend>
-
-                {Object.values(bezels).map(b =>
-                    <div
-                        key={b.key}
-                        className='mb-2'>
-                        <CheckInput
-                            type='radio'
-                            name='bezel'
-                            id={b.key}
-                            value={b.key}
-                            checked={bezel === b.key}
-                            onChange={(e) => setBezel(e.currentTarget.value)}/>
-                        <CheckInputLabel
-                            htmlFor={b.key}>
-                            {b.title}
-                        </CheckInputLabel>
-                    </div>)}
-            </fieldset>
-            
-            <fieldset>
-                <legend className='block text-sm font-medium mb-2'>Output Format</legend>
-
-                {Object.values(supportedFormats).map(f =>
-                    <div
-                        key={f.key}
-                        className='mb-2'>
-                        <CheckInput
-                            type='radio'
-                            name='format'
-                            id={f.key}
-                            value={f.key}
-                            checked={format === f.key}
-                            onChange={(e) => setFormat(e.currentTarget.value)}/>
-                        <CheckInputLabel
-                            htmlFor={f.key}>
-                            {f.title}
-                        </CheckInputLabel>
-                    </div>)}
-            </fieldset>
+            <BezelSelection
+                conversionConfig={conversionConfig}
+                updateConversionConfig={updateConversionConfig}/>
         </div>
+    )
+}
+
+function BezelSelection({ className, conversionConfig, updateConversionConfig }) {
+    return (
+        <div
+            className={cn(className, 'grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-2')}
+            aria-labelledby='bezel-selection-legend'
+            role='radiogroup'>
+            <p id='bezel-selection-legend' className='block text-sm font-medium col-start-1 col-end-[-1]'>Bezel Type</p>
+
+            {Object.values(bezels).map(b =>
+                <article
+                    key={b.key}
+                    className='p-4 w-full
+                        grid grid-cols-[auto_1fr] grid-rows-[auto_1fr] gap-x-3 gap-y-5 items-center
+                        cursor-pointer isolate
+                        border border-gray-200 rounded-md
+                        disabled:text-gray-500 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:border-gray-700 dark:hover:bg-gray-800'
+                    tabIndex={0}
+                    role='radio'
+                    aria-checked={conversionConfig.bezelKey === b.key}
+                    onClick={() => updateConversionConfig({ bezelKey: b.key })}
+                    onKeyUp={(e) => e.key === 'Enter' && updateConversionConfig({ bezelKey: b.key })}>
+                    <h4
+                        className='row-start-2 row-end-3 col-start-2 col-end-3 text-xs dark:text-gray-100'>
+                        {b.title}
+                    </h4>
+                    <div
+                        className='row-start-1 row-end-2 col-start-1 col-end-3 justify-self-center
+                            max-h-60 w-full h-full
+                            bg-[linear-gradient(0deg,rgba(34,193,195,1)_0%,rgba(253,187,45,1)_100%)]'
+                        style={{
+                            maskImage: `url("${b.mask}")`,
+                            WebkitMaskImage: `url("${b.mask}")`,
+                            maskRepeat: 'no-repeat',
+                            maskPosition: 'center',
+                            maskSize: 'contain',
+                            maskMode: 'luminance'
+                        }}
+                        loading='lazy'
+                        src={b.image}/>
+                    <img
+                        className='row-start-1 row-end-2 col-start-1 col-end-3 justify-self-center max-h-60 z-10'
+                        loading='lazy'
+                        src={b.image}/>
+                    <div
+                        aria-hidden
+                        className={cn('w-5 h-5 flex justify-center items-center',
+                            'row-start-2 row-end-3 col-start-1 col-end-2',
+                            'rounded-full bg-black',
+                            conversionConfig.bezelKey === b.key ?
+                                'bg-black dark:bg-gray-700 before:content-[""] before:block before:w-2 before:h-2 before:aspect-square before:bg-white before:rounded-full' :
+                                'border bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600')}>
+                    </div>
+                </article>)}
+        </div>
+    )
+}
+
+function NumberInputs({ className, updateConversionConfig, conversionConfig }) {
+    return (
+        <div
+            className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}>
+            <NumberInput
+                label='Start'
+                id='start'
+                unit='seconds'
+                inputClassName='pr-[4.5rem]'
+                min={0} step={0.1}
+                value={conversionConfig.start}
+                onChange={(e) => updateConversionConfig({ start: e.target.value })}/>
+            <NumberInput
+                label='End'
+                id='end'
+                unit='seconds'
+                inputClassName='pr-[4.5rem]'
+                min={0} step={0.1}
+                value={conversionConfig.end}
+                onChange={(e) => updateConversionConfig({ end: e.target.value })}/>
+            <NumberInput
+                label='FPS'
+                id='fps'
+                min={5} max={60} step={1}
+                value={conversionConfig.fps}
+                onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
+                onChange={(e) => updateConversionConfig({ fps: e.target.value })}/>
+            <NumberInput
+                label='Size'
+                id='size'
+                unit='px'
+                inputClassName='pr-8'
+                min={1}
+                value={conversionConfig.size}
+                onChange={(e) => updateConversionConfig({ size: e.target.value })}/>
+            <NumberInput
+                label='Max Colors'
+                id='max-colors'
+                min={32} max={255} step={1}
+                value={conversionConfig.maxColors}
+                disabled={conversionConfig.formatKey === supportedFormats.webp.key}
+                onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
+                onChange={(e) => updateConversionConfig({ maxColors: e.target.value })}/>
+        </div>
+    )
+}
+
+function FormatSelection({ className, updateConversionConfig, conversionConfig }) {
+    return (
+        <fieldset
+            className={className}>
+            <legend className='block text-sm font-medium mb-2'>Output Format</legend>
+
+            {Object.values(supportedFormats).map(f =>
+                <div
+                    key={f.key}
+                    className='mb-2'>
+                    <CheckInput
+                        type='radio'
+                        name='format'
+                        id={f.key}
+                        value={f.key}
+                        checked={conversionConfig.formatKey === f.key}
+                        onChange={(e) => updateConversionConfig({ formatKey: e.currentTarget.value })}/>
+                    <CheckInputLabel
+                        htmlFor={f.key}>
+                        {f.title}
+                    </CheckInputLabel>
+                </div>)}
+        </fieldset>
     )
 }

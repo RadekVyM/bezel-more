@@ -1,4 +1,4 @@
-import { fetchFile, toBlobURL } from '@ffmpeg/util'
+import { fetchFile } from '@ffmpeg/util'
 import { getBezelSize } from '../../utils/size'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379

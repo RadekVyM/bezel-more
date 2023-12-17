@@ -13,6 +13,7 @@ import ContentContainer from './components/ContentContainer'
 import Loading from './components/Loading'
 import { MdOutlineVideoLibrary, MdEast } from 'react-icons/md'
 import { cn } from './utils/tailwind'
+import useConversionConfig from './hooks/useConversionConfig'
 
 export default function App() {
     const ffmpegRef = useRef(new FFmpeg());
@@ -21,17 +22,7 @@ export default function App() {
     const [video, setVideo] = useState(null);
     const [result, setResult] = useState(null);
     const [resultSize, setResultSize] = useState(0);
-    const [config, setConfig] = useState({
-        fps: 20,
-        scale: 480,
-        maxColors: 255,
-        size: 480,
-        start: 0,
-        end: 10
-    });
-    const [bezelKey, setBezelKey] = useState(bezels.iphone_15_black.key);
-    const [formatKey, setFormatKey] = useState(supportedFormats.webp.key);
-    const [withBezel, setWithBezel] = useState(true);
+    const [conversionConfig, updateConversionConfig] = useConversionConfig();
     const [progress, setProgress] = useState(null);
 
     useEffect(() => {
@@ -61,16 +52,16 @@ export default function App() {
         setConverting(true);
         setResult(null);
 
-        const bezel = Object.values(bezels).filter((b) => b.key == bezelKey)[0];
-        const format = Object.values(supportedFormats).filter((f) => f.key == formatKey)[0];
+        const bezel = Object.values(bezels).filter((b) => b.key === conversionConfig.bezelKey)[0];
+        const format = Object.values(supportedFormats).filter((f) => f.key === conversionConfig.formatKey)[0];
 
-        const convertWithBezel = getConvertWithBezel(formatKey);
-        const convertWithoutBezel = getConvertWithoutBezel(formatKey);
+        const convertWithBezel = getConvertWithBezel(conversionConfig.formatKey);
+        const convertWithoutBezel = getConvertWithoutBezel(conversionConfig.formatKey);
 
         try {
-            const data = withBezel ?
-                await convertWithBezel(ffmpegRef.current, video, bezel, config) :
-                await convertWithoutBezel(ffmpegRef.current, video, config);
+            const data = conversionConfig.withBezel ?
+                await convertWithBezel(ffmpegRef.current, video, bezel, conversionConfig) :
+                await convertWithoutBezel(ffmpegRef.current, video, conversionConfig);
             const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
 
             setResult(resultUrl);
@@ -101,7 +92,7 @@ export default function App() {
                     <VideoLoader
                         video={video}
                         setVideo={setVideo}
-                        onDurationLoad={(duration => setConfig((old) => ({ ...old, end: duration })))}/>
+                        onDurationLoad={(duration => updateConversionConfig({ start: 0, end: duration }))}/>
                 </div>
 
                 <Button
@@ -129,14 +120,8 @@ export default function App() {
             <SectionHeading>Configuration</SectionHeading>
 
             <ConversionConfiguration
-                filterConfig={config}
-                setFilterConfig={setConfig}
-                format={formatKey}
-                setFormat={setFormatKey}
-                bezel={bezelKey}
-                setBezel={setBezelKey}
-                withBezel={withBezel}
-                setWithBezel={setWithBezel}/>
+                conversionConfig={conversionConfig}
+                updateConversionConfig={updateConversionConfig} />
         </main>) :
         (<main
             className='min-h-screen w-full grid place-content-center'>
@@ -167,7 +152,7 @@ function Result({ gif, gifSize, progress }) {
                 className='flex items-center p-5 w-full h-[37rem]'>
                 {
                     gif ?
-                        <img className='max-h-full m-auto' src={gif} /> :
+                        <img className='max-h-full m-auto' src={gif} alt='Result' /> :
                         <div
                             className='flex flex-col items-center justify-center pt-5 pb-6 w-full text-gray-500 dark:text-gray-400'>
                             <MdOutlineVideoLibrary
