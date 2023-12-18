@@ -4,6 +4,9 @@ name: upload
 on:
   workflow_dispatch:
 
+env:
+  CI: ""
+
 defaults:
   run:
     shell: pwsh
@@ -35,7 +38,12 @@ jobs:
       - name: Modify homepage in package.json
         run: json -I -f package.json -e 'this.homepage=\"https://radekvym.github.io/bezel-more\"'
 
+      - name: Install and build
+        run: |
+          npm ci
+          npm run build
+
       - name: Deploy
-        run: npm run deploy
-        env:
-          CI: ""
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: build # The folder the action should deploy.
