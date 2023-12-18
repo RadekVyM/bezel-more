@@ -33,7 +33,7 @@ jobs:
         run: npm install -g json
 
       - name: Modify homepage in package.json
-        run: json -I -f package.json -e 'this.homepage="https://radekvym.github.io/bezel-more"'
+        run: json -I -f package.json -e 'this.homepage=\"https://radekvym.github.io/bezel-more\"'
 
       - name: Deploy
         run: npm run deploy
