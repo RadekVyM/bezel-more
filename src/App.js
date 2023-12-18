@@ -2,7 +2,7 @@ import './App.css'
 import { useEffect, useRef, useState } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
-import { bezels } from './bezels'
+import { BEZELS } from './bezels'
 import { supportedFormats } from './supportedFormats'
 import { convertToGifWithBezel, convertToGif } from './services/video/gif'
 import { convertToWebpWithBezel, convertToWebp } from './services/video/webp'
@@ -52,7 +52,7 @@ export default function App() {
         setConverting(true);
         setResult(null);
 
-        const bezel = Object.values(bezels).filter((b) => b.key === conversionConfig.bezelKey)[0];
+        const bezel = Object.values(BEZELS).filter((b) => b.key === conversionConfig.bezelKey)[0];
         const format = Object.values(supportedFormats).filter((f) => f.key === conversionConfig.formatKey)[0];
 
         const convertWithBezel = getConvertWithBezel(conversionConfig.formatKey);

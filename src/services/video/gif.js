@@ -1,5 +1,6 @@
 import { fetchFile } from '@ffmpeg/util'
 import { getBezelSize } from '../../utils/size'
+import { bezelImage, bezelMask } from '../../bezels'
 
 // https://www.ffmpeg.org/ffmpeg.html
 // https://ffmpeg.org/ffmpeg-filters.html
@@ -9,12 +10,12 @@ import { getBezelSize } from '../../utils/size'
 export async function convertToGifWithBezel(ffmpeg, videoFile, bezel, config) {
     const videoName = videoFile.name;
     const bezelName = 'bezel.png';
-    const bezelMaskName = bezel.mask.split('/').slice(0, -1)[0];
+    const bezelMaskName = bezelMask(bezel.modelKey).split('/').slice(0, -1)[0];
     const gifName = videoName.split('.').slice(0, -1).join('.') + '.gif';
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
-    await ffmpeg.writeFile(bezelName, await fetchFile(bezel.image));
-    await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezel.mask));
+    await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
+    await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezelMask(bezel.modelKey)));
 
     const [width, height] = getBezelSize(bezel, config.size);
     const videoScale = bezel.contentScale;

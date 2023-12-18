@@ -1,6 +1,6 @@
 import { useReducer } from 'react'
 import { supportedFormats } from '../supportedFormats'
-import { bezels } from '../bezels'
+import { BEZELS } from '../bezels'
 
 export default function useConversionConfig() {
     return useReducer(
@@ -17,7 +17,7 @@ export default function useConversionConfig() {
             end: 10,
             withBezel: true,
             formatKey: supportedFormats.webp.key,
-            bezelKey: bezels.iphone_15_black.key
+            bezelKey: BEZELS.iphone_15_black.key
         }
     );
 }

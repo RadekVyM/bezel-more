@@ -1,7 +1,7 @@
 import NumberInput from './NumberInput'
 import CheckInput from './CheckInput'
 import CheckInputLabel from './CheckInputLabel'
-import { bezels } from '../bezels'
+import { BEZELS, bezelSmallImage, bezelMask } from '../bezels'
 import { supportedFormats } from '../supportedFormats'
 import { cn } from '../utils/tailwind'
 
@@ -48,7 +48,7 @@ function BezelSelection({ className, conversionConfig, updateConversionConfig })
             role='radiogroup'>
             <p id='bezel-selection-legend' className='block text-sm font-medium col-start-1 col-end-[-1]'>Bezel Type</p>
 
-            {Object.values(bezels).map(b =>
+            {Object.values(BEZELS).map(b =>
                 <article
                     key={b.key}
                     className='p-4 w-full
@@ -70,19 +70,18 @@ function BezelSelection({ className, conversionConfig, updateConversionConfig })
                             max-h-60 w-full h-full
                             bg-[linear-gradient(0deg,rgba(34,193,195,1)_0%,rgba(253,187,45,1)_100%)]'
                         style={{
-                            maskImage: `url("${b.mask}")`,
-                            WebkitMaskImage: `url("${b.mask}")`,
+                            maskImage: `url("${bezelMask(b.modelKey)}")`,
+                            WebkitMaskImage: `url("${bezelMask(b.modelKey)}")`,
                             maskRepeat: 'no-repeat',
                             maskPosition: 'center',
                             maskSize: 'contain',
                             maskMode: 'luminance'
-                        }}
-                        loading='lazy'
-                        src={b.image}/>
+                        }} />
                     <img
                         className='row-start-1 row-end-2 col-start-1 col-end-3 justify-self-center max-h-60 z-10'
                         loading='lazy'
-                        src={b.image}/>
+                        src={bezelSmallImage(b.key)}
+                        alt={`${b.title} bezel`} />
                     <div
                         aria-hidden
                         className={cn('w-5 h-5 flex justify-center items-center',

@@ -1,0 +1,39 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+
+name: upload
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+      permissions:
+        # Give the default GITHUB_TOKEN write permission to commit and push the
+        # added or changed files to the repository.
+        contents: write
+      
+      steps:
+        - name: Checkout the main branch
+          uses: actions/checkout@v4
+          with:
+            ref: main
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v4
+          
+        - name: Install all packages
+          run: npm install
+
+        - name: Install the json package
+          run: npm install -g json
+
+        - name: Modify homepage in package.json
+          run: json -I -f package.json -e 'this.homepage="https://radekvym.github.io/bezel-more"'
+
+        - name: Deploy
+          run: npm run deploy
