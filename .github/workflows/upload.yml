@@ -12,28 +12,28 @@ jobs:
   upload:
     runs-on: ubuntu-latest
 
-      permissions:
-        # Give the default GITHUB_TOKEN write permission to commit and push the
-        # added or changed files to the repository.
-        contents: write
-      
-      steps:
-        - name: Checkout the main branch
-          uses: actions/checkout@v4
-          with:
-            ref: main
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
 
-        - name: Setup Node.js
-          uses: actions/setup-node@v4
-          
-        - name: Install all packages
-          run: npm install
+    steps:
+      - name: Checkout the main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
 
-        - name: Install the json package
-          run: npm install -g json
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
 
-        - name: Modify homepage in package.json
-          run: json -I -f package.json -e 'this.homepage="https://radekvym.github.io/bezel-more"'
+      - name: Install all packages
+        run: npm install
 
-        - name: Deploy
-          run: npm run deploy
+      - name: Install the json package
+        run: npm install -g json
+
+      - name: Modify homepage in package.json
+        run: json -I -f package.json -e 'this.homepage="https://radekvym.github.io/bezel-more"'
+
+      - name: Deploy
+        run: npm run deploy
