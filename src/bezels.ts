@@ -1,6 +1,15 @@
 const BEZEL_IMAGE_EXTENSION = '.png';
 const BEZEL_IMAGES_DIRECOTORY_PATH = 'images/bezels';
 
+export type Bezel = {
+    readonly key: string,
+    readonly modelKey: string,
+    readonly title: string,
+    readonly width: number,
+    readonly height: number,
+    readonly contentScale: number
+}
+
 export const BEZELS = {
     iphone_15_black: {
         key: 'iphone_15_black',
@@ -186,7 +195,9 @@ export const BEZELS = {
         height: 1920,
         contentScale: 0.970
     },
-} as const;
+} as {
+    [key: string]: Bezel
+};
 
 export function bezelImage(bezelKey: string) {
     return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}${BEZEL_IMAGE_EXTENSION}`

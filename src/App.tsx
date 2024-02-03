@@ -3,9 +3,8 @@ import { useEffect, useRef, useState } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import { BEZELS } from './bezels'
-import { SupportedFormat, supportedFormats } from './supportedFormats'
-import { convertToGifWithBezel, convertToGif } from './services/video/gif'
-import { convertToWebpWithBezel, convertToWebp } from './services/video/webp'
+import { supportedFormats } from './supportedFormats'
+import { convertWithBezel, convertWithoutBezel } from './services/video/converters'
 import Button from './components/Button'
 import VideoLoader from './components/VideoLoader'
 import ConversionConfiguration from './components/ConversionConfiguration'
@@ -68,13 +67,14 @@ export default function App() {
         const bezel = Object.values(BEZELS).filter((b) => b.key === conversionConfig.bezelKey)[0];
         const format = Object.values(supportedFormats).filter((f) => f.key === conversionConfig.formatKey)[0];
 
-        const convertWithBezel = getConvertWithBezel(conversionConfig.formatKey);
-        const convertWithoutBezel = getConvertWithoutBezel(conversionConfig.formatKey);
-
         try {
-            const data = conversionConfig.withBezel ?
+            if (!video)
+                throw new Error('No file selected');
+
+            const data = (conversionConfig.withBezel ?
                 await convertWithBezel(ffmpegRef.current, video, bezel, conversionConfig) :
-                await convertWithoutBezel(ffmpegRef.current, video, conversionConfig);
+                await convertWithoutBezel(ffmpegRef.current, video, conversionConfig)) as any;
+
             const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
 
             setResult(resultUrl);
@@ -198,22 +198,4 @@ function Result({ gif, gifSize, progress }: ResultProps) {
             </div>
         </div>
     )
-}
-
-function getConvertWithBezel(format: SupportedFormat) {
-    switch (format) {
-        case supportedFormats.gif.key:
-            return convertToGifWithBezel;
-        case supportedFormats.webp.key:
-            return convertToWebpWithBezel;
-    }
-}
-
-function getConvertWithoutBezel(format: SupportedFormat) {
-    switch (format) {
-        case supportedFormats.gif.key:
-            return convertToGif;
-        case supportedFormats.webp.key:
-            return convertToWebp;
-    }
 }
