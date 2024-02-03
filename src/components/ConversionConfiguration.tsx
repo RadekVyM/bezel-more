@@ -2,24 +2,49 @@ import NumberInput from './NumberInput'
 import CheckInput from './CheckInput'
 import CheckInputLabel from './CheckInputLabel'
 import { BEZELS, bezelSmallImage, bezelMask } from '../bezels'
-import { supportedFormats } from '../supportedFormats'
+import { SupportedFormat, supportedFormats } from '../supportedFormats'
 import { cn } from '../utils/tailwind'
+import { ConversionConfig } from '../services/video/ConversionConfig'
+
+type ConversionConfigurationProps = {
+    conversionConfig: ConversionConfig,
+    updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
+    className?: string
+}
+
+type NumberInputsProps = {
+    conversionConfig: ConversionConfig,
+    updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
+    className?: string
+}
+
+type BezelSelectionProps = {
+    conversionConfig: ConversionConfig,
+    updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
+    className?: string
+}
+
+type FormatSelectionProps = {
+    conversionConfig: ConversionConfig,
+    updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
+    className?: string
+}
 
 export default function ConversionConfiguration({
     conversionConfig,
     updateConversionConfig,
     className
-}) {
+}: ConversionConfigurationProps) {
     return (
         <div
             className={cn('flex flex-col gap-4', className)}>
             <NumberInputs
                 conversionConfig={conversionConfig}
-                updateConversionConfig={updateConversionConfig}/>
+                updateConversionConfig={updateConversionConfig} />
 
             <FormatSelection
                 conversionConfig={conversionConfig}
-                updateConversionConfig={updateConversionConfig}/>
+                updateConversionConfig={updateConversionConfig} />
 
             <h3 className='font-bold text-xl'>Bezel</h3>
 
@@ -29,18 +54,18 @@ export default function ConversionConfiguration({
                     className='rounded'
                     type='checkbox'
                     defaultChecked={conversionConfig.withBezel}
-                    onChange={(e) => updateConversionConfig({ withBezel: e.target.checked })}/>
+                    onChange={(e) => updateConversionConfig({ withBezel: e.target.checked })} />
                 <CheckInputLabel htmlFor='use-bezel-check' className='pl-3'>Use bezel</CheckInputLabel>
             </div>
 
             <BezelSelection
                 conversionConfig={conversionConfig}
-                updateConversionConfig={updateConversionConfig}/>
+                updateConversionConfig={updateConversionConfig} />
         </div>
     )
 }
 
-function BezelSelection({ className, conversionConfig, updateConversionConfig }) {
+function BezelSelection({ className, conversionConfig, updateConversionConfig }: BezelSelectionProps) {
     return (
         <div
             className={cn(className, 'grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-2')}
@@ -96,7 +121,7 @@ function BezelSelection({ className, conversionConfig, updateConversionConfig })
     )
 }
 
-function NumberInputs({ className, updateConversionConfig, conversionConfig }) {
+function NumberInputs({ className, updateConversionConfig, conversionConfig }: NumberInputsProps) {
     return (
         <div
             className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}>
@@ -107,7 +132,7 @@ function NumberInputs({ className, updateConversionConfig, conversionConfig }) {
                 inputClassName='pr-[4.5rem]'
                 min={0} step={0.1}
                 value={conversionConfig.start}
-                onChange={(e) => updateConversionConfig({ start: e.target.value })}/>
+                onChange={(e) => updateConversionConfig({ start: parseFloat(e.target.value) })} />
             <NumberInput
                 label='End'
                 id='end'
@@ -115,14 +140,14 @@ function NumberInputs({ className, updateConversionConfig, conversionConfig }) {
                 inputClassName='pr-[4.5rem]'
                 min={0} step={0.1}
                 value={conversionConfig.end}
-                onChange={(e) => updateConversionConfig({ end: e.target.value })}/>
+                onChange={(e) => updateConversionConfig({ end: parseFloat(e.target.value) })} />
             <NumberInput
                 label='FPS'
                 id='fps'
                 min={5} max={60} step={1}
                 value={conversionConfig.fps}
                 onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
-                onChange={(e) => updateConversionConfig({ fps: e.target.value })}/>
+                onChange={(e) => updateConversionConfig({ fps: parseFloat(e.target.value) })} />
             <NumberInput
                 label='Size'
                 id='size'
@@ -130,7 +155,7 @@ function NumberInputs({ className, updateConversionConfig, conversionConfig }) {
                 inputClassName='pr-8'
                 min={1}
                 value={conversionConfig.size}
-                onChange={(e) => updateConversionConfig({ size: e.target.value })}/>
+                onChange={(e) => updateConversionConfig({ size: parseFloat(e.target.value) })} />
             <NumberInput
                 label='Max Colors'
                 id='max-colors'
@@ -138,12 +163,12 @@ function NumberInputs({ className, updateConversionConfig, conversionConfig }) {
                 value={conversionConfig.maxColors}
                 disabled={conversionConfig.formatKey === supportedFormats.webp.key}
                 onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
-                onChange={(e) => updateConversionConfig({ maxColors: e.target.value })}/>
+                onChange={(e) => updateConversionConfig({ maxColors: parseFloat(e.target.value) })} />
         </div>
     )
 }
 
-function FormatSelection({ className, updateConversionConfig, conversionConfig }) {
+function FormatSelection({ className, updateConversionConfig, conversionConfig }: FormatSelectionProps) {
     return (
         <fieldset
             className={className}>
@@ -159,7 +184,7 @@ function FormatSelection({ className, updateConversionConfig, conversionConfig }
                         id={f.key}
                         value={f.key}
                         checked={conversionConfig.formatKey === f.key}
-                        onChange={(e) => updateConversionConfig({ formatKey: e.currentTarget.value })}/>
+                        onChange={(e) => updateConversionConfig({ formatKey: e.currentTarget.value as SupportedFormat })} />
                     <CheckInputLabel
                         htmlFor={f.key}>
                         {f.title}

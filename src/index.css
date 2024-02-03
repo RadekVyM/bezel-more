@@ -3,20 +3,20 @@
 @tailwind utilities;
 
 body {
-    margin: 0;
-    font-family: 'Gabarito', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  font-family: "Gabarito", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-    @apply text-gray-950 dark:text-gray-50 bg-white dark:bg-black;
+  @apply text-gray-950 dark:text-gray-50 bg-white dark:bg-black;
 }
 
 .dropzone-file-area:has(+ .dropzone-file-input:hover) {
-    @apply bg-gray-100 dark:bg-gray-800;
-} 
+  @apply bg-gray-100 dark:bg-gray-800;
+}
 
 .handwritten {
-    font-family: 'Caveat', cursive;
+  font-family: "Caveat", cursive;
 }

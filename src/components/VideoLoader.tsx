@@ -2,14 +2,25 @@ import { useMemo } from 'react'
 import { MdOutlineUploadFile } from 'react-icons/md'
 import ContentContainer from './ContentContainer'
 
-export default function VideoLoader({ video, setVideo, onDurationLoad }) {
+type VideoLoaderPorps = {
+    video: File | null | undefined,
+    setVideo: (video: File | null | undefined) => void,
+    onDurationLoad: (duration: number) => void
+}
+
+type VideoProps = {
+    video: File,
+    onDurationLoad: (duration: number) => void
+}
+
+export default function VideoLoader({ video, setVideo, onDurationLoad }: VideoLoaderPorps) {
     const withVideo = !!video;
 
     return (
         <div
             className={`grid gap-6 ${withVideo ? 'grid-rows-[1fr,auto]' : ''}`}>
             {
-                withVideo && <Video video={video} onDurationLoad={onDurationLoad}/>
+                withVideo && <Video video={video} onDurationLoad={onDurationLoad} />
             }
 
             <div
@@ -23,7 +34,7 @@ export default function VideoLoader({ video, setVideo, onDurationLoad }) {
                             flex flex-col items-center justify-center
                             pt-5 pb-6 w-full cursor-pointer'>
                         <MdOutlineUploadFile
-                            className='w-8 h-8 mb-4 text-gray-500 dark:text-gray-400'/>
+                            className='w-8 h-8 mb-4 text-gray-500 dark:text-gray-400' />
                         <p
                             className='mb-2 text-sm text-gray-500 dark:text-gray-400'>
                             <span className='font-semibold'>Click to upload</span> or drag and drop
@@ -44,17 +55,17 @@ export default function VideoLoader({ video, setVideo, onDurationLoad }) {
                         'dropzone-file-input row-start-1 row-end-2 col-start-1 col-end-2 rounded-lg opacity-0 cursor-pointer'}
                     onChange={(e) => {
                         const item = e.target.files?.item(0);
-    
+
                         if (item) {
                             setVideo(item);
                         }
-                    }}/>
+                    }} />
             </div>
         </div>
     )
 }
 
-function Video({ video, onDurationLoad }) {
+function Video({ video, onDurationLoad }: VideoProps) {
     const url = useMemo(() => URL.createObjectURL(video), [video]);
 
     return (
@@ -62,7 +73,7 @@ function Video({ video, onDurationLoad }) {
             className='h-[37rem] row-start-1 row-end-2 w-full'>
             <video
                 preload='metadata'
-                onLoadedMetadata={((e) => onDurationLoad && onDurationLoad(e.target.duration))}
+                onLoadedMetadata={((e) => onDurationLoad && onDurationLoad((e.target as HTMLVideoElement).duration))}
                 className='rounded-lg h-full w-full'
                 controls loop autoPlay
                 src={url}>

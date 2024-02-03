@@ -1,6 +1,12 @@
 import { cn } from '../utils/tailwind'
 
-export default function ContentContainer({ className, children, hoverable }) {
+type ContentContainerProps = {
+    hoverable?: boolean,
+    children: React.ReactNode,
+    className?: string
+}
+
+export default function ContentContainer({ className, children, hoverable }: ContentContainerProps) {
     return (
         <div
             className={cn(

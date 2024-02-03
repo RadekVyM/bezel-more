@@ -1,10 +1,11 @@
 import { useReducer } from 'react'
 import { supportedFormats } from '../supportedFormats'
 import { BEZELS } from '../bezels'
+import { ConversionConfig } from '../services/video/ConversionConfig'
 
 export default function useConversionConfig() {
     return useReducer(
-        (state, newState) => ({
+        (state: ConversionConfig, newState: Partial<ConversionConfig>) => ({
             ...state,
             ...newState,
         }),

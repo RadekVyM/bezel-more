@@ -186,16 +186,16 @@ export const BEZELS = {
         height: 1920,
         contentScale: 0.970
     },
-};
+} as const;
 
-export function bezelImage(bezelKey) {
+export function bezelImage(bezelKey: string) {
     return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}${BEZEL_IMAGE_EXTENSION}`
 }
 
-export function bezelSmallImage(bezelKey) {
+export function bezelSmallImage(bezelKey: string) {
     return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_small${BEZEL_IMAGE_EXTENSION}`
 }
 
-export function bezelMask(bezelKey) {
+export function bezelMask(bezelKey: string) {
     return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_mask${BEZEL_IMAGE_EXTENSION}`
 }

@@ -1,6 +1,13 @@
 import { cn } from '../utils/tailwind'
 
-export default function NumberInput({ id, label, min, max, unit, inputClassName, value, onChange, ...rest }) {
+type NumberInputProps = {
+    label?: string,
+    unit?: string,
+    inputClassName?: string,
+    className?: string
+} & React.InputHTMLAttributes<HTMLInputElement>
+
+export default function NumberInput({ id, label, min, max, unit, inputClassName, value, onChange, ...rest }: NumberInputProps) {
     return (
         <div>
             <label
@@ -17,7 +24,7 @@ export default function NumberInput({ id, label, min, max, unit, inputClassName,
                     type='number'
                     min={min} max={max}
                     value={value}
-                    onChange={onChange}/>
+                    onChange={onChange} />
                 {
                     unit &&
                     <div

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import { BEZELS } from './bezels'
-import { supportedFormats } from './supportedFormats'
+import { SupportedFormat, supportedFormats } from './supportedFormats'
 import { convertToGifWithBezel, convertToGif } from './services/video/gif'
 import { convertToWebpWithBezel, convertToWebp } from './services/video/webp'
 import Button from './components/Button'
@@ -15,15 +15,28 @@ import { MdOutlineVideoLibrary, MdEast } from 'react-icons/md'
 import { cn } from './utils/tailwind'
 import useConversionConfig from './hooks/useConversionConfig'
 
+type SectionHeadingProps = {
+    children: React.ReactNode,
+    className?: string
+}
+
+type ResultProps = {
+    gif: string | null,
+    gifSize: number,
+    progress: ConversionProgress | null
+}
+
+type ConversionProgress = { progress: number, time: number }
+
 export default function App() {
     const ffmpegRef = useRef(new FFmpeg());
     const [ready, setReady] = useState(false);
     const [converting, setConverting] = useState(false);
-    const [video, setVideo] = useState(null);
-    const [result, setResult] = useState(null);
+    const [video, setVideo] = useState<File | null | undefined>(null);
+    const [result, setResult] = useState<string | null>(null);
     const [resultSize, setResultSize] = useState(0);
     const [conversionConfig, updateConversionConfig] = useConversionConfig();
-    const [progress, setProgress] = useState(null);
+    const [progress, setProgress] = useState<ConversionProgress | null>(null);
 
     useEffect(() => {
         loadFFmpeg();
@@ -67,22 +80,22 @@ export default function App() {
             setResult(resultUrl);
             setResultSize(data.byteLength);
         }
-        catch(error) {
+        catch (error) {
             // TODO: Display an error message
             console.error(error);
 
             setResult(null);
             setResultSize(0);
         }
-        
+
         setProgress(null);
         setConverting(false);
     }
-  
+
     return ready ? (
         <main
             className='min-h-screen max-w-screen-xl w-full mx-auto px-4 pb-12'>
-            <PageHeading/>
+            <PageHeading />
 
             <div
                 className='grid grid-rows-[1fr,auto,1fr] grid-cols-[1fr] sm:grid-rows-[1fr] sm:grid-cols-[1fr,auto,1fr] justify-items-stretch sm:items-stretch mb-10'>
@@ -92,7 +105,7 @@ export default function App() {
                     <VideoLoader
                         video={video}
                         setVideo={setVideo}
-                        onDurationLoad={(duration => updateConversionConfig({ start: 0, end: duration }))}/>
+                        onDurationLoad={(duration => updateConversionConfig({ start: 0, end: duration }))} />
                 </div>
 
                 <Button
@@ -102,18 +115,18 @@ export default function App() {
                     <span className='mr-2'>Convert</span>
                     {
                         !converting ?
-                            <MdEast className='inline-block w-4 h-4'/> :
-                            <Loading/>
+                            <MdEast className='inline-block w-4 h-4' /> :
+                            <Loading />
                     }
                 </Button>
-                
+
                 <div>
                     <SectionHeading>Output</SectionHeading>
 
                     <Result
                         gif={result}
                         gifSize={resultSize}
-                        progress={progress}/>
+                        progress={progress} />
                 </div>
             </div>
 
@@ -126,7 +139,7 @@ export default function App() {
         (<main
             className='min-h-screen w-full grid place-content-center'>
             <Loading
-                className='h-10 w-10 border-4'/>
+                className='h-10 w-10 border-4' />
         </main>)
 }
 
@@ -138,13 +151,13 @@ function PageHeading() {
     )
 }
 
-function SectionHeading({ children, className }) {
+function SectionHeading({ children, className }: SectionHeadingProps) {
     return (
         <h2 className={cn('font-bold text-3xl mb-4', className)}>{children}</h2>
     )
 }
 
-function Result({ gif, gifSize, progress }) {
+function Result({ gif, gifSize, progress }: ResultProps) {
     return (
         <div
             className='flex flex-col gap-6'>
@@ -156,7 +169,7 @@ function Result({ gif, gifSize, progress }) {
                         <div
                             className='flex flex-col items-center justify-center pt-5 pb-6 w-full text-gray-500 dark:text-gray-400'>
                             <MdOutlineVideoLibrary
-                                className='w-8 h-8 mb-4'/>
+                                className='w-8 h-8 mb-4' />
                             {
                                 progress && progress.progress <= 1 ?
                                     <p
@@ -174,8 +187,8 @@ function Result({ gif, gifSize, progress }) {
             <div
                 className='flex items-center gap-4'>
                 <Button
-                    href={gif}
-                    download={gif}
+                    href={gif || undefined}
+                    download={gif || undefined}
                     disabled={!gif}>
                     Download
                 </Button>
@@ -187,7 +200,7 @@ function Result({ gif, gifSize, progress }) {
     )
 }
 
-function getConvertWithBezel(format) {
+function getConvertWithBezel(format: SupportedFormat) {
     switch (format) {
         case supportedFormats.gif.key:
             return convertToGifWithBezel;
@@ -196,7 +209,7 @@ function getConvertWithBezel(format) {
     }
 }
 
-function getConvertWithoutBezel(format) {
+function getConvertWithoutBezel(format: SupportedFormat) {
     switch (format) {
         case supportedFormats.gif.key:
             return convertToGif;

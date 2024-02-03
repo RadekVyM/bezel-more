@@ -11,4 +11,6 @@ export const supportedFormats = {
         suffix: '.gif',
         type: 'image/gif',
     }
-}
+} as const;
+
+export type SupportedFormat = 'webp' | 'gif'
