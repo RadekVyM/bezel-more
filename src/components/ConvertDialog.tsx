@@ -1,18 +1,19 @@
 import { createPortal } from 'react-dom'
 import { ConversionConfig } from '../services/video/ConversionConfig'
-import { BEZELS, getBezel } from '../bezels'
+import { getBezel } from '../bezels'
 import { supportedFormats } from '../supportedFormats'
 import { forwardRef, useState } from 'react'
 import { convertWithBezel, convertWithoutBezel } from '../services/video/converters'
 import ContentContainer from './ContentContainer'
-import { MdClose, MdEast, MdOutlineVideoLibrary } from 'react-icons/md'
+import { MdOutlineVideoLibrary } from 'react-icons/md'
 import Button from './Button'
 import { ConversionProgress } from '../types/ConversionProgress'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import Loading from './Loading'
 import { cn } from '../utils/tailwind'
-import SectionHeading from './SectionHeading'
 import ConversionConfiguration from './ConversionConfiguration'
+import { TiArrowRight } from 'react-icons/ti'
+import ContentDialog from './ContentDialog'
 
 type ConvertDialogProps = {
     conversionConfig: ConversionConfig,
@@ -21,6 +22,7 @@ type ConvertDialogProps = {
     progress: ConversionProgress | null,
     animation: string,
     className?: string,
+    slideInFromBottom?: boolean,
     hide: () => void,
     updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
     resetProgress: () => void
@@ -38,6 +40,7 @@ type DialogContentProps = {
 
 type ResultProps = {
     resultUrl: string | null,
+    fileName: string | null,
     resultSize: number,
     progress: ConversionProgress | null,
     className?: string
@@ -50,12 +53,16 @@ type ConvertButtonProps = {
     className?: string
 }
 
-const ConvertDialog = forwardRef<HTMLDialogElement, ConvertDialogProps>(({ hide, animation, className, conversionConfig, ffmpeg, video, progress, updateConversionConfig, resetProgress }, ref) => {
+const ConvertDialog = forwardRef<HTMLDialogElement, ConvertDialogProps>(({ hide, animation, className, conversionConfig, ffmpeg, video, progress, slideInFromBottom, updateConversionConfig, resetProgress }, ref) => {
     return (
         createPortal(
-            <dialog
+            <ContentDialog
                 ref={ref}
-                className={cn(className, animation, 'w-full max-w-[30rem] h-full max-h-full ml-auto mr-0 px-6 pt-8 pb-6 thin-scrollbar')}>
+                heading={'Convert'}
+                animation={animation}
+                slideInFromBottom={slideInFromBottom}
+                hide={hide}
+                className={className}>
                 <DialogContent
                     conversionConfig={conversionConfig}
                     updateConversionConfig={updateConversionConfig}
@@ -64,7 +71,7 @@ const ConvertDialog = forwardRef<HTMLDialogElement, ConvertDialogProps>(({ hide,
                     progress={progress}
                     resetProgress={resetProgress}
                     hide={hide} />
-            </dialog>,
+            </ContentDialog>,
             document.querySelector('body') as Element)
     )
 });
@@ -74,12 +81,15 @@ export default ConvertDialog;
 
 function DialogContent({ conversionConfig, ffmpeg, video, progress, updateConversionConfig, resetProgress, hide }: DialogContentProps) {
     const [result, setResult] = useState<string | null>(null);
+    const [resultFileName, setResultFileName] = useState<string | null>(null);
     const [resultSize, setResultSize] = useState(0);
     const [converting, setConverting] = useState(false);
 
     async function convert() {
         setConverting(true);
         setResult(null);
+        setResultFileName(null);
+        setResultSize(0);
 
         const bezel = getBezel(conversionConfig.bezelKey);
         const format = Object.values(supportedFormats).filter((f) => f.key === conversionConfig.formatKey)[0];
@@ -96,6 +106,7 @@ function DialogContent({ conversionConfig, ffmpeg, video, progress, updateConver
 
             setResult(resultUrl);
             setResultSize(data.byteLength);
+            setResultFileName(video.name + format.suffix);
         }
         catch (error) {
             // TODO: Display an error message
@@ -103,6 +114,7 @@ function DialogContent({ conversionConfig, ffmpeg, video, progress, updateConver
 
             setResult(null);
             setResultSize(0);
+            setResultFileName(null);
         }
 
         resetProgress();
@@ -110,17 +122,7 @@ function DialogContent({ conversionConfig, ffmpeg, video, progress, updateConver
     }
 
     return (
-        <article>
-            <header
-                className='flex justify-between items-start'>
-                <SectionHeading>Convert</SectionHeading>
-                <Button
-                    className='p-1'
-                    onClick={() => hide()}>
-                    <MdClose className='w-5 h-5' />
-                </Button>
-            </header>
-
+        <>
             <ConversionConfiguration
                 conversionConfig={conversionConfig}
                 updateConversionConfig={updateConversionConfig} />
@@ -134,8 +136,9 @@ function DialogContent({ conversionConfig, ffmpeg, video, progress, updateConver
             <Result
                 resultUrl={result}
                 resultSize={resultSize}
-                progress={progress} />
-        </article>
+                progress={progress}
+                fileName={resultFileName} />
+        </>
     )
 }
 
@@ -148,14 +151,14 @@ function ConvertButton({ convert, disabled, converting, className }: ConvertButt
             <span className='mr-2'>Convert</span>
             {
                 !converting ?
-                    <MdEast className='inline-block w-4 h-4' /> :
+                    <TiArrowRight className='inline-block w-5 h-5' /> :
                     <Loading />
             }
         </Button>
     )
 }
 
-function Result({ resultUrl, resultSize, progress, className }: ResultProps) {
+function Result({ resultUrl, fileName, resultSize, progress, className }: ResultProps) {
     return (
         <div
             className={cn('flex flex-col gap-6', className)}>
@@ -186,7 +189,7 @@ function Result({ resultUrl, resultSize, progress, className }: ResultProps) {
                 className='flex items-center gap-4'>
                 <Button
                     href={resultUrl || undefined}
-                    download={resultUrl || undefined}
+                    download={fileName || undefined}
                     disabled={!resultUrl}>
                     Download
                 </Button>

@@ -23,6 +23,7 @@
     "react-scripts": "5.0.1",
     "tailwind-merge": "^1.14.0",
     "typescript": "^4.9.5",
+    "usehooks-ts": "^2.12.1",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

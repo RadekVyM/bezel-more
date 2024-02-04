@@ -21,7 +21,8 @@ body {
   box-sizing: border-box;
 }
 
-body {
+body,
+dialog {
   @apply text-gray-950 dark:text-gray-50 bg-white dark:bg-black;
 }
 

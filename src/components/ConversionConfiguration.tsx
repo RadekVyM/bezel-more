@@ -42,7 +42,6 @@ export default function ConversionConfiguration({
     )
 }
 
-
 function NumberInputs({ className, updateConversionConfig, conversionConfig }: NumberInputsProps) {
     return (
         <div
