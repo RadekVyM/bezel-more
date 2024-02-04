@@ -2,15 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  padding: 0;
+  margin: 0;
+  height: 100vh;
+  max-height: 100vh;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
 body {
   margin: 0;
+  padding: 0;
   font-family: "Gabarito", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 body {
   @apply text-gray-950 dark:text-gray-50 bg-white dark:bg-black;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
 }
 
 .dropzone-file-area:has(+ .dropzone-file-input:hover) {
@@ -19,4 +38,29 @@ body {
 
 .handwritten {
   font-family: "Caveat", cursive;
+}
+
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #9ca3af transparent;
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  --thumb: #9ca3af;
+
+  background: var(--thumb);
+  border-radius: 0.2rem;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  --thumb: #9ca3af;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }

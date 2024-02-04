@@ -8,7 +8,7 @@ type ButtonProps = {
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 
 export default function Button({ children, className, href, download, ...rest }: ButtonProps) {
-    const styling = 'rounded-md text-sm font-semibold px-4 py-2 bg-black dark:bg-gray-50 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 disabled:bg-gray-400 dark:disabled:bg-gray-600';
+    const styling = 'rounded-lg text-sm font-semibold px-4 py-2 bg-black dark:bg-gray-50 text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 disabled:bg-gray-400 dark:disabled:bg-gray-600';
 
     return (
         <>

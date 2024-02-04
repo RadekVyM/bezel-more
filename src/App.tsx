@@ -2,38 +2,24 @@ import './App.css'
 import { useEffect, useRef, useState } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
-import { BEZELS } from './bezels'
-import { supportedFormats } from './supportedFormats'
-import { convertWithBezel, convertWithoutBezel } from './services/video/converters'
-import Button from './components/Button'
-import VideoLoader from './components/VideoLoader'
+import VideoPreviewer from './components/VideoPreviewer'
 import ConversionConfiguration from './components/ConversionConfiguration'
-import ContentContainer from './components/ContentContainer'
 import Loading from './components/Loading'
-import { MdOutlineVideoLibrary, MdEast } from 'react-icons/md'
-import { cn } from './utils/tailwind'
 import useConversionConfig from './hooks/useConversionConfig'
-
-type SectionHeadingProps = {
-    children: React.ReactNode,
-    className?: string
-}
-
-type ResultProps = {
-    gif: string | null,
-    gifSize: number,
-    progress: ConversionProgress | null
-}
-
-type ConversionProgress = { progress: number, time: number }
+import { ConversionProgress } from './types/ConversionProgress'
+import ConvertDialog from './components/ConvertDialog'
+import Button from './components/Button'
+import useDialog from './hooks/useDialog'
+import SectionHeading from './components/SectionHeading'
+import { BEZELS, getBezel } from './bezels'
+import BezelSelection from './components/BezelSelection'
 
 export default function App() {
+    const [convertDialogRef, isConvertDialogOpen, convertDialogAnimation, showConvertDialog, hideConvertDialog] =
+        useDialog('backdrop:animate-fadeIn animate-slideLeftIn', 'backdrop:animate-fadeOut animate-slideRightOut');
     const ffmpegRef = useRef(new FFmpeg());
     const [ready, setReady] = useState(false);
-    const [converting, setConverting] = useState(false);
     const [video, setVideo] = useState<File | null | undefined>(null);
-    const [result, setResult] = useState<string | null>(null);
-    const [resultSize, setResultSize] = useState(0);
     const [conversionConfig, updateConversionConfig] = useConversionConfig();
     const [progress, setProgress] = useState<ConversionProgress | null>(null);
 
@@ -60,81 +46,44 @@ export default function App() {
         setReady(true);
     }
 
-    async function convert() {
-        setConverting(true);
-        setResult(null);
-
-        const bezel = Object.values(BEZELS).filter((b) => b.key === conversionConfig.bezelKey)[0];
-        const format = Object.values(supportedFormats).filter((f) => f.key === conversionConfig.formatKey)[0];
-
-        try {
-            if (!video)
-                throw new Error('No file selected');
-
-            const data = (conversionConfig.withBezel ?
-                await convertWithBezel(ffmpegRef.current, video, bezel, conversionConfig) :
-                await convertWithoutBezel(ffmpegRef.current, video, conversionConfig)) as any;
-
-            const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
-
-            setResult(resultUrl);
-            setResultSize(data.byteLength);
-        }
-        catch (error) {
-            // TODO: Display an error message
-            console.error(error);
-
-            setResult(null);
-            setResultSize(0);
-        }
-
-        setProgress(null);
-        setConverting(false);
-    }
-
     return ready ? (
         <main
-            className='min-h-screen max-w-screen-xl w-full mx-auto px-4 pb-12'>
-            <PageHeading />
-
-            <div
-                className='grid grid-rows-[1fr,auto,1fr] grid-cols-[1fr] sm:grid-rows-[1fr] sm:grid-cols-[1fr,auto,1fr] justify-items-stretch sm:items-stretch mb-10'>
-                <div>
-                    <SectionHeading>Input</SectionHeading>
-
-                    <VideoLoader
-                        video={video}
-                        setVideo={setVideo}
-                        onDurationLoad={(duration => updateConversionConfig({ start: 0, end: duration }))} />
-                </div>
+            className='w-full h-full max-h-full mx-auto px-6 grid grid-rows-[auto_1fr] grid-cols-[minmax(20rem,2fr)_3fr] gap-x-5'>
+            <header
+                className='row-start-1 row-end-2 col-start-1 col-end-3 flex justify-between items-center pt-8 pb-10'>
+                <PageHeading />
 
                 <Button
-                    className='self-center justify-self-center m-6 flex items-center'
-                    onClick={convert}
-                    disabled={converting || !video}>
-                    <span className='mr-2'>Convert</span>
-                    {
-                        !converting ?
-                            <MdEast className='inline-block w-4 h-4' /> :
-                            <Loading />
-                    }
+                    onClick={() => showConvertDialog()}>
+                    Convert
                 </Button>
+            </header>
 
-                <div>
-                    <SectionHeading>Output</SectionHeading>
-
-                    <Result
-                        gif={result}
-                        gifSize={resultSize}
-                        progress={progress} />
-                </div>
+            <div
+                className='h-full max-h-full overflow-auto thin-scrollbar pb-8 pr-2'>
+                <SectionHeading>Bezels</SectionHeading>
+                <BezelSelection
+                    conversionConfig={conversionConfig}
+                    updateConversionConfig={updateConversionConfig} />
             </div>
 
-            <SectionHeading>Configuration</SectionHeading>
+            <VideoPreviewer
+                video={video}
+                setVideo={setVideo}
+                bezel={getBezel(conversionConfig.bezelKey)}
+                showBezel={conversionConfig.withBezel}
+                onDurationLoad={(duration => updateConversionConfig({ start: 0, end: duration }))} />
 
-            <ConversionConfiguration
+            <ConvertDialog
+                ref={convertDialogRef}
+                hide={hideConvertDialog}
+                animation={convertDialogAnimation}
                 conversionConfig={conversionConfig}
-                updateConversionConfig={updateConversionConfig} />
+                updateConversionConfig={updateConversionConfig}
+                ffmpeg={ffmpegRef.current}
+                video={video}
+                progress={progress}
+                resetProgress={() => setProgress(null)} />
         </main>) :
         (<main
             className='min-h-screen w-full grid place-content-center'>
@@ -145,57 +94,8 @@ export default function App() {
 
 function PageHeading() {
     return (
-        <h1 title='bezel-more' className='font-bold text-xl mt-4 mb-14'>
+        <h1 title='bezel-more' className='font-bold text-xl'>
             bezel<span aria-hidden className='line-through text-gray-400 dark:text-gray-600'>-less</span><span className='handwritten text-2xl'>-more</span>
         </h1>
-    )
-}
-
-function SectionHeading({ children, className }: SectionHeadingProps) {
-    return (
-        <h2 className={cn('font-bold text-3xl mb-4', className)}>{children}</h2>
-    )
-}
-
-function Result({ gif, gifSize, progress }: ResultProps) {
-    return (
-        <div
-            className='flex flex-col gap-6'>
-            <ContentContainer
-                className='flex items-center p-5 w-full h-[37rem]'>
-                {
-                    gif ?
-                        <img className='max-h-full m-auto' src={gif} alt='Result' /> :
-                        <div
-                            className='flex flex-col items-center justify-center pt-5 pb-6 w-full text-gray-500 dark:text-gray-400'>
-                            <MdOutlineVideoLibrary
-                                className='w-8 h-8 mb-4' />
-                            {
-                                progress && progress.progress <= 1 ?
-                                    <p
-                                        className='text-sm font-semibold'>
-                                        {progress.progress.toLocaleString(undefined, { style: 'percent' })}
-                                    </p> :
-                                    <p
-                                        className='text-sm'>
-                                        No results yet
-                                    </p>
-                            }
-                        </div>
-                }
-            </ContentContainer>
-            <div
-                className='flex items-center gap-4'>
-                <Button
-                    href={gif || undefined}
-                    download={gif || undefined}
-                    disabled={!gif}>
-                    Download
-                </Button>
-                <span className='text-sm text-gray-600 dark:text-gray-400'>
-                    {`${(gifSize / 1000000).toLocaleString(undefined, { style: 'unit', unit: 'megabyte', minimumFractionDigits: 2, maximumFractionDigits: 3 })}`}
-                </span>
-            </div>
-        </div>
     )
 }

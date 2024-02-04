@@ -1,0 +1,1 @@
+export type ConversionProgress = { progress: number, time: number }
