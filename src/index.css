@@ -6,7 +6,9 @@ html {
   padding: 0;
   margin: 0;
   height: 100vh;
+  height: 100dvh;
   max-height: 100vh;
+  max-height: 100dvh;
   box-sizing: border-box;
   overflow: hidden;
 }
