@@ -6,7 +6,7 @@ Simple **video to GIF/WebP** converter that allows you to add a **device bezel**
     <a href="https://radekvym.github.io/bezel-more/">
         <picture>
             <source srcset="./images/bezel-more-dark.png" media="(prefers-color-scheme: dark)">
-            <img src="./images/bezel-more-light.png" width="700">
+            <img src="./images/bezel-more-light.png">
         </picture>
     </a>
 </p>
@@ -15,7 +15,7 @@ Simple **video to GIF/WebP** converter that allows you to add a **device bezel**
     <a href="https://radekvym.github.io/bezel-more/">
         <picture>
             <source srcset="./images/bezel-more-convert-dark.png" media="(prefers-color-scheme: dark)">
-            <img src="./images/bezel-more-convert-light.png" width="700">
+            <img src="./images/bezel-more-convert-light.png">
         </picture>
     </a>
 </p>
