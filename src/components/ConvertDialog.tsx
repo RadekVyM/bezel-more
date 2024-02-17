@@ -1,4 +1,3 @@
-import { createPortal } from 'react-dom'
 import { ConversionConfig } from '../services/video/ConversionConfig'
 import { getBezel } from '../bezels'
 import { supportedFormats } from '../supportedFormats'
@@ -55,24 +54,22 @@ type ConvertButtonProps = {
 
 const ConvertDialog = forwardRef<HTMLDialogElement, ConvertDialogProps>(({ hide, animation, className, conversionConfig, ffmpeg, video, progress, slideInFromBottom, updateConversionConfig, resetProgress }, ref) => {
     return (
-        createPortal(
-            <ContentDialog
-                ref={ref}
-                heading={'Convert'}
-                animation={animation}
-                slideInFromBottom={slideInFromBottom}
-                hide={hide}
-                className={className}>
-                <DialogContent
-                    conversionConfig={conversionConfig}
-                    updateConversionConfig={updateConversionConfig}
-                    ffmpeg={ffmpeg}
-                    video={video}
-                    progress={progress}
-                    resetProgress={resetProgress}
-                    hide={hide} />
-            </ContentDialog>,
-            document.querySelector('body') as Element)
+        <ContentDialog
+            ref={ref}
+            heading={'Convert'}
+            animation={animation}
+            slideInFromBottom={slideInFromBottom}
+            hide={hide}
+            className={className}>
+            <DialogContent
+                conversionConfig={conversionConfig}
+                updateConversionConfig={updateConversionConfig}
+                ffmpeg={ffmpeg}
+                video={video}
+                progress={progress}
+                resetProgress={resetProgress}
+                hide={hide} />
+        </ContentDialog>
     )
 });
 
