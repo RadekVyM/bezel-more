@@ -17,7 +17,7 @@ export default function ResultPreviewer({ resultUrl, fileName, resultSize, progr
         <div
             className={cn('flex flex-col gap-6', className)}>
             <div
-                className='flex-1 flex items-center w-full'>
+                className='flex-1 flex items-center w-full overflow-hidden'>
                 {
                     resultUrl ?
                         <img className='max-h-full m-auto' src={resultUrl} alt='Result' /> :

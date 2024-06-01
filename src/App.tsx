@@ -208,7 +208,7 @@ function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer }: MainSc
             }
 
             <Container
-                className='h-full max-h-full p-5'>
+                className='h-full max-h-full p-5 overflow-hidden'>
                 <ComponentSwitch
                     selectedKey={selectedStep}>
                     <div key='edit' className='h-full'>{videoPreviewer}</div>
@@ -219,8 +219,8 @@ function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer }: MainSc
             <Tabs
                 className={cn('col-start-1', isLarge ? 'col-end-3' : 'col-end-2')}
                 tabs={[
-                    { key: 'edit', title: 'Edit', icon: <IoOptions className='w-4 h-4' />, onClick: () => setSelectedStep('edit') },
-                    { key: 'convert', title: 'Convert', icon: <RiLoopLeftLine className='w-4 h-4' />, onClick: () => setSelectedStep('convert') },
+                    { key: 'edit', title: 'Edit', icon: <IoOptions className='w-5 h-5' />, onClick: () => setSelectedStep('edit') },
+                    { key: 'convert', title: 'Convert', icon: <RiLoopLeftLine className='w-5 h-5' />, onClick: () => setSelectedStep('convert') },
                 ]}
                 selectedTabKey={selectedStep}/>
             
