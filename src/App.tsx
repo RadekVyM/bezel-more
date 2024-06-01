@@ -58,6 +58,10 @@ type MainScaffoldProps = {
     resultPreviewer: React.ReactNode,
 }
 
+type JustOneProps = {
+    ffmpeg: FFmpeg
+}
+
 type Step = 'edit' | 'convert';
 
 export default function App() {
@@ -92,6 +96,23 @@ export default function App() {
     }
 
     return ready ? (
+        <JustOne
+            ffmpeg={ffmpegRef.current}/>
+        ) :
+        (<main
+            className='min-h-screen w-full grid place-content-center bg-surface text-on-surface'>
+            <Loading
+                className='h-10 w-10 border-4' />
+        </main>)
+}
+
+function JustOne({ ffmpeg }: JustOneProps) {
+    const [video, setVideo] = useState<File | null | undefined>(null);
+    const [progress, setProgress] = useState<ConversionProgress | null>(null);
+    const [conversionConfig, updateConversionConfig] = useConversionConfig();
+    const { convert, converting, result, resultFileName, resultSize } = useConvert(conversionConfig, ffmpeg, video, () => setProgress(null));
+
+    return (
         <MainScaffold
             edit={
                 <Edit
@@ -124,12 +145,7 @@ export default function App() {
                     progress={progress}
                     fileName={resultFileName} />
             }/>
-        ) :
-        (<main
-            className='min-h-screen w-full grid place-content-center bg-surface text-on-surface'>
-            <Loading
-                className='h-10 w-10 border-4' />
-        </main>)
+    )
 }
 
 function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer }: MainScaffoldProps) {

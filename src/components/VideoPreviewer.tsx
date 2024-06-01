@@ -1,4 +1,4 @@
-import { RefObject, forwardRef, useMemo, useRef, useState } from 'react'
+import { RefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { MdOutlineUploadFile } from 'react-icons/md'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
@@ -64,6 +64,7 @@ export default function VideoPreviewer({ video, bezel, showBezel, className, onD
 
 function VideoPlayer({ className, video, bezel, showBezel, onDurationLoad }: VideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const [duration, setDuration] = useState(0);
     const [time, setTime] = useState(0);
     const [isPuased, setIsPaused] = useState(true);
@@ -71,12 +72,12 @@ function VideoPlayer({ className, video, bezel, showBezel, onDurationLoad }: Vid
 
     return (
         <div
-            className={cn('grid grid-rows-[1fr_auto] gap-6', className)}>
+            className={cn('grid grid-rows-[1fr_auto] gap-6 overflow-hidden', className)}>
             <Video
                 ref={videoRef}
                 bezel={bezel}
                 showBezel={showBezel}
-                className='h-full row-start-1 row-end-2 w-full relative pb-5'
+                className='h-full row-start-1 row-end-2 col-start-1 col-end-1 w-full relative overflow-hidden'
                 video={video}
                 loop={loop}
                 onTimeUpdate={() => setTime(videoRef.current?.currentTime || 0)}
@@ -101,6 +102,10 @@ function VideoPlayer({ className, video, bezel, showBezel, onDurationLoad }: Vid
 }
 
 function VideoControls({ className, videoRef, duration, time, isPuased, loop, switchLoop }: VideoControlsProps) {
+    function onPlayClick() {
+        isPuased ? videoRef.current?.play() : videoRef.current?.pause()
+    }
+
     return (
         <div
             className={cn(className, 'flex flex-col gap-2')}>
@@ -120,7 +125,7 @@ function VideoControls({ className, videoRef, duration, time, isPuased, loop, sw
                     </Button>
                     <Button
                         className='px-0 py-1 w-10'
-                        onClick={() => isPuased ? videoRef.current?.play() : videoRef.current?.pause()}
+                        onClick={onPlayClick}
                         title='Play/Pause'>
                         {isPuased ? <FaPlay className='mx-auto' /> : <FaPause className='mx-auto' />}
                     </Button>
@@ -143,60 +148,176 @@ function VideoControls({ className, videoRef, duration, time, isPuased, loop, sw
     )
 }
 
-const Video = forwardRef<HTMLVideoElement, VideoProps>(({ video, className, bezel, showBezel, ...rest }, ref) => {
+const Video = forwardRef<HTMLVideoElement | null, VideoProps>(({ video, className, bezel, showBezel, onLoadedMetadata, onPlay, onTimeUpdate, ...rest }, ref) => {
+    const fps = 60;
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
+    const bezelRef = useRef<{ image: HTMLImageElement, maskImage: HTMLImageElement, bezel: Bezel, showBezel: boolean, dimensions: { width: number, height: number } } | null>(null);
+    const lastRenderRef = useRef<Date>(new Date());
     const url = useMemo(() => URL.createObjectURL(video), [video]);
-    const [containerRef, containerSize] = useElementSize();
-    const [width, height] = getSize(bezel, containerSize);
+    const [dimensions, setDimensions] = useState({ width: 1, height: 1 });
+
+    useImperativeHandle(ref, () => videoRef.current!);
+
+    useEffect(() => {
+        const currentImageSrc = bezelImage(bezel.key);
+        const currentMaskSrc = bezelMask(bezel.modelKey);
+
+        if (bezelRef.current) {
+            bezelRef.current.bezel = bezel;
+            bezelRef.current.showBezel = showBezel;
+            bezelRef.current.dimensions = {...dimensions};
+
+            if (bezelRef.current.image.src !== currentImageSrc) {
+                bezelRef.current.image = new Image(bezel.width, bezel.height);
+                bezelRef.current.image.src = currentImageSrc;
+                bezelRef.current.image.onload = () => renderVideo();
+                bezelRef.current.maskImage = new Image(bezel.width, bezel.height);
+                bezelRef.current.maskImage.src = currentMaskSrc;
+                bezelRef.current.maskImage.onload = () => renderVideo();
+            }
+            else {
+                renderVideo();
+            }
+
+            return;
+        }
+
+        const image = new Image(bezel.width, bezel.height);
+        image.src = currentImageSrc;
+        image.onload = () => renderVideo();
+
+        const mask = new Image(bezel.width, bezel.height);
+        mask.src = currentMaskSrc;
+        mask.onload = () => renderVideo();
+
+        bezelRef.current = {
+            bezel,
+            showBezel,
+            image,
+            maskImage: mask,
+            dimensions: {...dimensions}
+        };
+
+        renderVideo();
+    }, [bezel, showBezel, dimensions]);
+
+    function renderVideo() {
+        if (!videoRef.current || !canvasRef.current || !bezelRef.current) {
+            return;
+        }
+
+        const factWidth = bezelRef.current.bezel.width / bezelRef.current.dimensions.width;
+        const factHeight = bezelRef.current.bezel.height / bezelRef.current.dimensions.height;
+        const scale = bezelRef.current.showBezel ?
+            (bezelRef.current.bezel.contentScale * Math.min(factWidth, factHeight)) :
+            1;
+
+        const width = bezelRef.current.dimensions.width * scale;
+        const height = bezelRef.current.dimensions.height * scale;
+        const x = bezelRef.current.showBezel ? (bezelRef.current.bezel.width - width) / 2 : 0;
+        const y = bezelRef.current.showBezel ? (bezelRef.current.bezel.height - height) / 2 : 0;
+
+        const context = canvasRef.current.getContext('2d');
+
+        context?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+        // TOOD: This can probably be optimized (I do not have to create a new canvas) if I create another mask images with transparency
+        const second = document.createElement('canvas');
+        second.width = canvasRef.current.width;
+        second.height = canvasRef.current.height;
+
+        const secondContext = second.getContext('2d');
+
+        if (bezelRef.current.showBezel) {
+            secondContext?.drawImage(bezelRef.current.maskImage, 0, 0, bezelRef.current.maskImage.naturalWidth, bezelRef.current.maskImage.naturalHeight);
+        }
+
+        if (secondContext && context) {
+            const imgData = secondContext.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+            for (let i = 0; i < imgData.data.length; i += 4)
+            {
+                // Make black pixels transparent
+                const isBlack = (imgData.data[i + 0] === 0 && imgData.data[i + 1] === 0 && imgData.data[i + 2] === 0);
+
+                imgData.data[i + 3] = isBlack ?
+                    0 :
+                    255;
+                
+                imgData.data[i + 0] = 0;
+                imgData.data[i + 1] = 0;
+                imgData.data[i + 2] = 0;
+            }
+
+            context.putImageData(imgData, 0, 0);
+            context.globalCompositeOperation = 'source-atop';
+        }
+
+        context?.drawImage(videoRef.current, x, y, width, height);
+
+        if (context) {
+            context.globalCompositeOperation = 'source-over';
+        }
+
+        if (bezelRef.current.showBezel) {
+            context?.drawImage(bezelRef.current.image, 0, 0, bezelRef.current.image.naturalWidth, bezelRef.current.image.naturalHeight);
+        }
+    }
+
+    function renderVideoLoop() {
+        renderVideo();
+
+        if (!videoRef.current || !canvasRef.current || !bezelRef.current || videoRef.current?.paused || videoRef.current?.ended) {
+            return;
+        }
+
+        const lastRenderMs = lastRenderRef.current.getTime();
+        const nowMs = new Date().getTime();
+        const difference = (1000 / fps) - (nowMs - lastRenderMs);
+        
+        lastRenderRef.current = new Date();
+
+        if (difference > 0) {
+            setTimeout(() => requestAnimationFrame(renderVideoLoop), difference);
+        }
+        else {
+            requestAnimationFrame(renderVideoLoop);
+        }
+    }
 
     return (
         <div
-            className={className}>
-            <div
-                ref={containerRef}
-                className={cn('h-full w-full relative', showBezel && 'bg-black')}
-                style={showBezel ? {
-                    maskImage: `url("${bezelMask(bezel.modelKey)}")`,
-                    WebkitMaskImage: `url("${bezelMask(bezel.modelKey)}")`,
-                    maskRepeat: 'no-repeat',
-                    maskPosition: 'center',
-                    maskSize: 'contain',
-                    maskMode: 'luminance'
-                } : undefined}>
-                <video
-                    {...rest}
-                    ref={ref}
-                    disablePictureInPicture
-                    disableRemotePlayback
-                    muted
-                    playsInline
-                    preload='metadata'
-                    className='absolute inset-0 max-w-full max-h-full m-auto object-fit'
-                    style={showBezel ? { scale: `${bezel.contentScale}`, width: width, height: height } : undefined}
-                    width={showBezel ? width : undefined}
-                    height={showBezel ? height : undefined}
-                    src={url}>
-                </video>
-                {
-                    showBezel &&
-                    <img
-                        src={bezelImage(bezel.key)}
-                        alt='Bezel'
-                        aria-hidden
-                        className='absolute inset-0 max-w-full max-h-full m-auto object-contain'
-                        style={{ width: width, height: height }}
-                        width={showBezel ? width : undefined}
-                        height={showBezel ? height : undefined} />
-                }
-            </div>
+            className={cn('h-full w-full relative', className)}>
+            <video
+                {...rest}
+                ref={videoRef}
+                onLoadedMetadata={(e) => {
+                    setDimensions({ width: videoRef.current?.videoWidth || 1, height: videoRef.current?.videoHeight || 1, });
+                    onLoadedMetadata && onLoadedMetadata(e);
+                }}
+                onPlay={(e) => {
+                    renderVideoLoop();
+                    onPlay && onPlay(e);
+                }}
+                onTimeUpdate={(e) => {
+                    // This is needed to have seeking working
+                    renderVideo();
+                    onTimeUpdate && onTimeUpdate(e);
+                }}
+                disablePictureInPicture
+                disableRemotePlayback
+                muted
+                playsInline
+                preload='metadata'
+                className='hidden'
+                src={url}>
+            </video>
+            <canvas
+                ref={canvasRef}
+                className='max-h-full max-w-full m-auto'
+                width={showBezel ? bezel.width : dimensions.width}
+                height={showBezel ? bezel.height : dimensions.height}/>
         </div>
     )
 });
-
-function getSize(bezel: Bezel, size: { width: number, height: number }): [number, number] {
-    const bezelScale = bezel.width / bezel.height;
-    const sizes = bezelScale > size.width / size.height ?
-        size.width / bezelScale :
-        size.height;
-
-    return getBezelSize(bezel, sizes)
-}
