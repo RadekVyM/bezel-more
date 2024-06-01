@@ -25,7 +25,7 @@ body {
 
 body,
 dialog {
-  @apply text-gray-950 dark:text-gray-50 bg-white dark:bg-black;
+  @apply text-on-surface-container bg-surface-container;
 }
 
 #root {
@@ -33,10 +33,6 @@ dialog {
   padding: 0;
   height: 100%;
   box-sizing: border-box;
-}
-
-.dropzone-file-area:has(+ .dropzone-file-input:hover) {
-  @apply bg-gray-100 dark:bg-gray-800;
 }
 
 .handwritten {

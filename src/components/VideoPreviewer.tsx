@@ -2,18 +2,17 @@ import { RefObject, forwardRef, useMemo, useRef, useState } from 'react'
 import { MdOutlineUploadFile } from 'react-icons/md'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
-import ContentContainer from './ContentContainer'
 import { Bezel, bezelImage, bezelMask } from '../bezels'
 import { cn } from '../utils/tailwind'
 import Button from './Button'
 import { useElementSize } from 'usehooks-ts'
 import { getBezelSize } from '../utils/size'
 
-type VideoLoaderPorps = {
+type VideoPreviewerPorps = {
     showBezel: boolean,
     bezel: Bezel,
     video: File | null | undefined,
-    setVideo: (video: File | null | undefined) => void,
+    className?: string,
     onDurationLoad: (duration: number) => void
 }
 
@@ -21,6 +20,7 @@ type VideoPlayerProps = {
     showBezel: boolean,
     bezel: Bezel,
     video: File,
+    className?: string,
     onDurationLoad: (duration: number) => void
 }
 
@@ -41,64 +41,28 @@ type VideoControlsProps = {
     switchLoop: () => void
 }
 
-export default function VideoPreviewer({ video, bezel, showBezel, setVideo, onDurationLoad }: VideoLoaderPorps) {
+export default function VideoPreviewer({ video, bezel, showBezel, className, onDurationLoad }: VideoPreviewerPorps) {
     const withVideo = !!video;
 
-    return (
+    return withVideo ?
+        <VideoPlayer
+            bezel={bezel}
+            showBezel={showBezel}
+            video={video}
+            className={className}
+            onDurationLoad={onDurationLoad} /> :
         <div
-            className={`grid gap-6 mb-6 ${withVideo ? 'grid-rows-[1fr_auto_auto]' : ''}`}>
-            <div
-                className={withVideo ?
-                    '' :
-                    'grid'}>
-                {
-                    !withVideo &&
-                    <ContentContainer
-                        className='dropzone-file-area row-start-1 row-end-2 col-start-1 col-end-2
-                            flex flex-col items-center justify-center
-                            pt-5 pb-6 w-full cursor-pointer'>
-                        <MdOutlineUploadFile
-                            className='w-8 h-8 mb-4 text-gray-500 dark:text-gray-400' />
-                        <p
-                            className='mb-2 text-sm text-gray-500 dark:text-gray-400'>
-                            <span className='font-semibold'>Click to upload</span> or drag and drop
-                        </p>
-                    </ContentContainer>
-                }
-                <input
-                    type='file'
-                    accept='video/*'
-                    className={withVideo ?
-                        `block w-full text-sm text-gray-600 dark:text-gray-400
-                        file:mr-4 file:py-1 file:px-3
-                        file:rounded-md file:border-0
-                        file:text-sm file:font-semibold
-                        file:cursor-pointer
-                        file:bg-black file:text-white dark:file:bg-gray-50 dark:file:text-black
-                        hover:file:bg-gray-800 dark:hover:file:bg-gray-200` :
-                        'dropzone-file-input row-start-1 row-end-2 col-start-1 col-end-2 rounded-lg opacity-0 cursor-pointer'}
-                    onChange={(e) => {
-                        const item = e.target.files?.item(0);
-
-                        if (item) {
-                            setVideo(item);
-                        }
-                    }} />
-            </div>
-
-            {
-                withVideo &&
-                <VideoPlayer
-                    bezel={bezel}
-                    showBezel={showBezel}
-                    video={video}
-                    onDurationLoad={onDurationLoad} />
-            }
+            className={cn('grid place-content-center justify-items-center text-on-surface-container-muted', className)}>
+            <MdOutlineUploadFile
+                className='w-8 h-8 mb-4' />
+            <p
+                className='mb-2 text-sm'>
+                No video uploaded
+            </p>
         </div>
-    )
 }
 
-function VideoPlayer({ video, bezel, showBezel, onDurationLoad }: VideoPlayerProps) {
+function VideoPlayer({ className, video, bezel, showBezel, onDurationLoad }: VideoPlayerProps) {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const [duration, setDuration] = useState(0);
     const [time, setTime] = useState(0);
@@ -106,12 +70,13 @@ function VideoPlayer({ video, bezel, showBezel, onDurationLoad }: VideoPlayerPro
     const [loop, setLoop] = useState(false);
 
     return (
-        <>
+        <div
+            className={cn('grid grid-rows-[1fr_auto] gap-6', className)}>
             <Video
                 ref={videoRef}
                 bezel={bezel}
                 showBezel={showBezel}
-                className='h-full row-start-1 row-end-2 w-full relative'
+                className='h-full row-start-1 row-end-2 w-full relative pb-5'
                 video={video}
                 loop={loop}
                 onTimeUpdate={() => setTime(videoRef.current?.currentTime || 0)}
@@ -131,7 +96,7 @@ function VideoPlayer({ video, bezel, showBezel, onDurationLoad }: VideoPlayerPro
                 time={time}
                 loop={loop}
                 switchLoop={() => setLoop((oldLoop) => !oldLoop)} />
-        </>
+        </div>
     )
 }
 
@@ -163,7 +128,7 @@ function VideoControls({ className, videoRef, duration, time, isPuased, loop, sw
                 <span className='self-center'>{time.toFixed(2)} / {duration.toFixed(2)}</span>
             </div>
             <input
-                className='accent-black dark:accent-white'
+                className='accent-on-surface-container'
                 type='range'
                 min={0}
                 max={duration}
@@ -184,11 +149,11 @@ const Video = forwardRef<HTMLVideoElement, VideoProps>(({ video, className, beze
     const [width, height] = getSize(bezel, containerSize);
 
     return (
-        <ContentContainer
-            className={cn(className, 'p-5')}>
+        <div
+            className={className}>
             <div
                 ref={containerRef}
-                className='h-full w-full relative'
+                className={cn('h-full w-full relative', showBezel && 'bg-black')}
                 style={showBezel ? {
                     maskImage: `url("${bezelMask(bezel.modelKey)}")`,
                     WebkitMaskImage: `url("${bezelMask(bezel.modelKey)}")`,
@@ -223,7 +188,7 @@ const Video = forwardRef<HTMLVideoElement, VideoProps>(({ video, className, beze
                         height={showBezel ? height : undefined} />
                 }
             </div>
-        </ContentContainer>
+        </div>
     )
 });
 

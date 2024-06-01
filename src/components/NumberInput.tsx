@@ -12,14 +12,14 @@ export default function NumberInput({ id, label, min, max, unit, inputClassName,
         <div>
             <label
                 htmlFor={id}
-                className='block text-sm font-medium mb-2 dark:text-white'>
+                className='block text-sm font-medium mb-2 text-on-surface'>
                 {label}
             </label>
             <div
                 className='relative'>
                 <input
                     {...rest}
-                    className={cn('py-2 px-3 block w-full border-gray-200 rounded-md text-sm disabled:text-gray-500 dark:bg-slate-900 dark:border-gray-700 dark:text-gray-100', inputClassName)}
+                    className={cn('py-2 px-3 block w-full border border-outline rounded-md bg-surface-container text-on-surface-container disabled:text-on-surface-muted', inputClassName)}
                     id={id}
                     type='number'
                     min={min} max={max}
@@ -29,7 +29,7 @@ export default function NumberInput({ id, label, min, max, unit, inputClassName,
                     unit &&
                     <div
                         className='absolute inset-y-0 right-0 flex items-center pointer-events-none z-20 pr-3'>
-                        <span className='text-gray-500 dark:text-gray-400 text-sm'>{unit}</span>
+                        <span className='text-on-surface-muted text-sm'>{unit}</span>
                     </div>
                 }
             </div>

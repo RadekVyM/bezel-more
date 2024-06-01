@@ -47,22 +47,6 @@ function NumberInputs({ className, updateConversionConfig, conversionConfig }: N
         <div
             className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}>
             <NumberInput
-                label='Start'
-                id='start'
-                unit='seconds'
-                inputClassName='pr-[4.5rem]'
-                min={0} step={0.1}
-                value={conversionConfig.start}
-                onChange={(e) => updateConversionConfig({ start: parseFloat(e.target.value) })} />
-            <NumberInput
-                label='End'
-                id='end'
-                unit='seconds'
-                inputClassName='pr-[4.5rem]'
-                min={0} step={0.1}
-                value={conversionConfig.end}
-                onChange={(e) => updateConversionConfig({ end: parseFloat(e.target.value) })} />
-            <NumberInput
                 label='FPS'
                 id='fps'
                 min={5} max={60} step={1}

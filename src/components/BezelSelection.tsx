@@ -36,21 +36,21 @@ export default function BezelSelection({ className, conversionConfig, updateConv
                         className='p-4 w-full
                         grid grid-cols-[auto_1fr] grid-rows-[auto_1fr] gap-x-3 gap-y-5 items-center
                         cursor-pointer isolate
-                        border border-gray-200 rounded-md
-                        disabled:text-gray-500 bg-white hover:bg-slate-50 dark:bg-slate-900 dark:border-gray-700 dark:hover:bg-gray-800'
+                        border border-outline rounded-md
+                        disabled:text-on-surface-container-muted bg-surface-container hover:bg-surface-dim-container'
                         tabIndex={0}
                         role='radio'
                         aria-checked={conversionConfig.bezelKey === b.key}
                         onClick={() => updateConversionConfig({ bezelKey: b.key })}
                         onKeyUp={(e) => e.key === 'Enter' && updateConversionConfig({ bezelKey: b.key })}>
                         <h4
-                            className='row-start-2 row-end-3 col-start-2 col-end-3 text-xs dark:text-gray-100'>
+                            className='row-start-2 row-end-3 col-start-2 col-end-3 text-xs text-on-surface-container'>
                             {b.title}
                         </h4>
                         <div
                             className='row-start-1 row-end-2 col-start-1 col-end-3 justify-self-center
                             max-h-60 w-full h-full
-                            bg-[linear-gradient(0deg,rgba(34,193,195,1)_0%,rgba(253,187,45,1)_100%)]'
+                            bg-[linear-gradient(0deg,var(--secondary)_0%,var(--primary)_100%)]'
                             style={{
                                 maskImage: `url("${bezelMask(b.modelKey)}")`,
                                 WebkitMaskImage: `url("${bezelMask(b.modelKey)}")`,
@@ -68,10 +68,10 @@ export default function BezelSelection({ className, conversionConfig, updateConv
                             aria-hidden
                             className={cn('w-5 h-5 flex justify-center items-center',
                                 'row-start-2 row-end-3 col-start-1 col-end-2',
-                                'rounded-full bg-black',
+                                'rounded-full border border-outline',
                                 conversionConfig.bezelKey === b.key ?
-                                    'bg-black dark:bg-gray-700 before:content-[""] before:block before:w-2 before:h-2 before:aspect-square before:bg-white before:rounded-full' :
-                                    'border bg-gray-100 border-gray-300 dark:bg-gray-700 dark:border-gray-600')}>
+                                    'bg-on-surface-container-muted before:content-[""] before:block before:w-2 before:h-2 before:aspect-square before:bg-white before:rounded-full' :
+                                    'bg-surface-container')}>
                         </div>
                     </article>)}
             </div>
