@@ -11,7 +11,6 @@ export default function useConversionConfig() {
         }),
         {
             fps: 20,
-            scale: 480,
             maxColors: 255,
             size: 480,
             start: 0,

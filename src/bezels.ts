@@ -1,14 +1,7 @@
+import { Bezel } from './types/Bezel'
+
 const BEZEL_IMAGE_EXTENSION = '.png';
 const BEZEL_IMAGES_DIRECOTORY_PATH = 'images/bezels';
-
-export type Bezel = {
-    readonly key: string,
-    readonly modelKey: string,
-    readonly title: string,
-    readonly width: number,
-    readonly height: number,
-    readonly contentScale: number
-}
 
 export const BEZELS = {
     iphone_15_black: {
@@ -211,4 +204,8 @@ export function bezelSmallImage(bezelKey: string) {
 
 export function bezelMask(bezelKey: string) {
     return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_mask${BEZEL_IMAGE_EXTENSION}`
+}
+
+export function bezelTransparentMask(bezelKey: string) {
+    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_maskt${BEZEL_IMAGE_EXTENSION}`
 }

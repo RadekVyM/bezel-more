@@ -2,11 +2,10 @@ import { RefObject, forwardRef, useEffect, useImperativeHandle, useMemo, useRef,
 import { MdOutlineUploadFile } from 'react-icons/md'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
-import { Bezel, bezelImage, bezelMask } from '../bezels'
+import { bezelImage, bezelTransparentMask } from '../bezels'
 import { cn } from '../utils/tailwind'
 import Button from './Button'
-import { useElementSize } from 'usehooks-ts'
-import { getBezelSize } from '../utils/size'
+import { Bezel } from '../types/Bezel'
 
 type VideoPreviewerPorps = {
     showBezel: boolean,
@@ -161,7 +160,7 @@ const Video = forwardRef<HTMLVideoElement | null, VideoProps>(({ video, classNam
 
     useEffect(() => {
         const currentImageSrc = bezelImage(bezel.key);
-        const currentMaskSrc = bezelMask(bezel.modelKey);
+        const currentMaskSrc = bezelTransparentMask(bezel.modelKey);
 
         if (bezelRef.current) {
             bezelRef.current.bezel = bezel;
@@ -220,48 +219,24 @@ const Video = forwardRef<HTMLVideoElement | null, VideoProps>(({ video, classNam
 
         const context = canvasRef.current.getContext('2d');
 
-        context?.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        if (!context) {
+            return;
+        }
 
-        // TOOD: This can probably be optimized (I do not have to create a new canvas) if I create another mask images with transparency
-        const second = document.createElement('canvas');
-        second.width = canvasRef.current.width;
-        second.height = canvasRef.current.height;
-
-        const secondContext = second.getContext('2d');
-
+        context.globalCompositeOperation = 'source-over';
+        context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+        
         if (bezelRef.current.showBezel) {
-            secondContext?.drawImage(bezelRef.current.maskImage, 0, 0, bezelRef.current.maskImage.naturalWidth, bezelRef.current.maskImage.naturalHeight);
-        }
-
-        if (secondContext && context) {
-            const imgData = secondContext.getImageData(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-            for (let i = 0; i < imgData.data.length; i += 4)
-            {
-                // Make black pixels transparent
-                const isBlack = (imgData.data[i + 0] === 0 && imgData.data[i + 1] === 0 && imgData.data[i + 2] === 0);
-
-                imgData.data[i + 3] = isBlack ?
-                    0 :
-                    255;
-                
-                imgData.data[i + 0] = 0;
-                imgData.data[i + 1] = 0;
-                imgData.data[i + 2] = 0;
-            }
-
-            context.putImageData(imgData, 0, 0);
-            context.globalCompositeOperation = 'source-atop';
-        }
-
-        context?.drawImage(videoRef.current, x, y, width, height);
-
-        if (context) {
             context.globalCompositeOperation = 'source-over';
+            context.drawImage(bezelRef.current.maskImage, 0, 0, bezelRef.current.maskImage.naturalWidth, bezelRef.current.maskImage.naturalHeight);
         }
 
+        context.globalCompositeOperation = 'source-atop';
+        context.drawImage(videoRef.current, x, y, width, height);
+        context.globalCompositeOperation = 'source-over';
+
         if (bezelRef.current.showBezel) {
-            context?.drawImage(bezelRef.current.image, 0, 0, bezelRef.current.image.naturalWidth, bezelRef.current.image.naturalHeight);
+            context.drawImage(bezelRef.current.image, 0, 0, bezelRef.current.image.naturalWidth, bezelRef.current.image.naturalHeight);
         }
     }
 

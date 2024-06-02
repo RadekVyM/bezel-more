@@ -1,10 +1,11 @@
 import { fetchFile } from '@ffmpeg/util'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { getBezelSize } from '../../utils/size'
-import { Bezel, bezelImage, bezelMask } from '../../bezels'
+import { bezelImage, bezelMask } from '../../bezels'
 import * as fc from './filterComplex'
 import { ConversionConfig } from './ConversionConfig'
 import { supportedFormats } from '../../supportedFormats'
+import { Bezel } from '../../types/Bezel'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 

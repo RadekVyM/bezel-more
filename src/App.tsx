@@ -59,7 +59,9 @@ type MainScaffoldProps = {
 }
 
 type JustOneProps = {
-    ffmpeg: FFmpeg
+    ffmpeg: FFmpeg,
+    progress: ConversionProgress | null,
+    resetProgress: () => void
 }
 
 type Step = 'edit' | 'convert';
@@ -67,10 +69,7 @@ type Step = 'edit' | 'convert';
 export default function App() {
     const ffmpegRef = useRef(new FFmpeg());
     const [ready, setReady] = useState(false);
-    const [video, setVideo] = useState<File | null | undefined>(null);
     const [progress, setProgress] = useState<ConversionProgress | null>(null);
-    const [conversionConfig, updateConversionConfig] = useConversionConfig();
-    const { convert, converting, result, resultFileName, resultSize } = useConvert(conversionConfig, ffmpegRef.current, video, () => setProgress(null));
 
     useEffect(() => {
         loadFFmpeg();
@@ -97,7 +96,9 @@ export default function App() {
 
     return ready ? (
         <JustOne
-            ffmpeg={ffmpegRef.current}/>
+            ffmpeg={ffmpegRef.current}
+            progress={progress}
+            resetProgress={() => setProgress(null)} />
         ) :
         (<main
             className='min-h-screen w-full grid place-content-center bg-surface text-on-surface'>
@@ -106,11 +107,10 @@ export default function App() {
         </main>)
 }
 
-function JustOne({ ffmpeg }: JustOneProps) {
+function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
     const [video, setVideo] = useState<File | null | undefined>(null);
-    const [progress, setProgress] = useState<ConversionProgress | null>(null);
     const [conversionConfig, updateConversionConfig] = useConversionConfig();
-    const { convert, converting, result, resultFileName, resultSize } = useConvert(conversionConfig, ffmpeg, video, () => setProgress(null));
+    const { convert, converting, result, resultFileName, resultSize } = useConvert(conversionConfig, ffmpeg, video, resetProgress);
 
     return (
         <MainScaffold
