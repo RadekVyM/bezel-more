@@ -4,10 +4,8 @@ import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import VideoPreviewer from './components/VideoPreviewer'
 import Loading from './components/Loading'
-import useConversionConfig from './hooks/useConversionConfig'
 import { ConversionProgress } from './types/ConversionProgress'
 import SectionHeading from './components/SectionHeading'
-import { getBezel } from './bezels'
 import BezelSelection from './components/BezelSelection'
 import { RiLoopLeftLine } from 'react-icons/ri'
 import { IoMenu, IoOptions } from 'react-icons/io5'
@@ -17,31 +15,33 @@ import { cn } from './utils/tailwind'
 import ContentDialog from './components/ContentDialog'
 import Container from './components/Container'
 import Tabs from './components/Tabs'
-import { ConversionConfig } from './services/video/ConversionConfig'
 import FileSelection from './components/FileSelection'
-import TrimConfiguration from './components/TrimConfiguration'
+import VideoTrimConfiguration from './components/VideoTrimConfiguration'
 import useConvert from './hooks/useConvert'
 import ResultPreviewer from './components/ResultPreviewer'
 import ConversionConfiguration from './components/ConversionConfiguration'
 import Button from './components/Button'
 import ComponentSwitch from './components/ComponentSwitch'
 import SubsectionHeading from './components/SubsectionHeading'
+import useScene from './hooks/useScene'
+import { Video, createVideo } from './types/Video'
+import { Scene, getFirstVideo } from './types/Scene'
+import VideoSizeConfiguration from './components/VideoSizeConfiguration'
 
-type EditProps = {
-    video: File | null | undefined,
-    conversionConfig: ConversionConfig,
+type EditVideoProps = {
+    video: Video,
     withTitle?: boolean,
-    setVideo: (video: File | null | undefined) => void,
-    updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
+    onFileSelected: (video: File | null | undefined) => void,
+    updateVideo: (video: Partial<Video>) => void,
 }
 
 type ConvertProps = {
-    conversionConfig: ConversionConfig,
-    video: File | null | undefined,
+    scene: Scene,
     converting: boolean,
     withTitle?: boolean,
+    canConvert?: boolean,
     convert: () => Promise<void>,
-    updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
+    updateScene: (scene: Partial<Scene>) => void,
 }
 
 type ConvertButtonProps = {
@@ -108,34 +108,33 @@ export default function App() {
 }
 
 function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
-    const [video, setVideo] = useState<File | null | undefined>(null);
-    const [conversionConfig, updateConversionConfig] = useConversionConfig();
-    const { convert, converting, result, resultFileName, resultSize } = useConvert(conversionConfig, ffmpeg, video, resetProgress);
+    const { scene, updateScene, updateVideo } = useScene(1);
+    const { convert, converting, result, resultFileName, resultSize } = useConvert(scene, ffmpeg, resetProgress);
 
     return (
         <MainScaffold
             edit={
-                <Edit
-                    conversionConfig={conversionConfig}
-                    updateConversionConfig={updateConversionConfig} 
-                    video={video}
-                    setVideo={setVideo} />
+                <EditVideo
+                    updateVideo={(update) => updateVideo(0, update)}
+                    video={getFirstVideo(scene)}
+                    onFileSelected={(file) => {
+                        if (file) {
+                            updateVideo(0, { file });
+                        }
+                    }} />
             }
             convert={
                 <Convert
-                    conversionConfig={conversionConfig}
-                    updateConversionConfig={updateConversionConfig}
-                    video={video}
+                    scene={scene}
+                    updateScene={updateScene}
+                    canConvert={!!getFirstVideo(scene).file}
                     convert={convert}
                     converting={converting} />
             }
             videoPreviewer={
                 <VideoPreviewer
                     className='h-full'
-                    video={video}
-                    bezel={getBezel(conversionConfig.bezelKey)}
-                    showBezel={conversionConfig.withBezel}
-                    onDurationLoad={(duration => updateConversionConfig({ start: 0, end: duration }))} />
+                    scene={scene} />
             }
             resultPreviewer={
                 <ResultPreviewer
@@ -274,44 +273,50 @@ function PageHeading() {
     )
 }
 
-function Edit({ conversionConfig, video, withTitle, updateConversionConfig, setVideo }: EditProps) {
+function EditVideo({ video, withTitle, updateVideo, onFileSelected }: EditVideoProps) {
     return (
         <div
             className='flex flex-col gap-6'>
             <div>
                 {withTitle && <SectionHeading>Edit</SectionHeading>}
                 <FileSelection
+                    video={video.file}
+                    setVideo={onFileSelected} />
+            </div>
+            <div>
+                <SubsectionHeading>Video size</SubsectionHeading>
+                <VideoSizeConfiguration
                     video={video}
-                    setVideo={setVideo} />
+                    updateVideo={updateVideo}/>
             </div>
             <div>
                 <SubsectionHeading>Trim video</SubsectionHeading>
-                <TrimConfiguration
-                    conversionConfig={conversionConfig}
-                    updateConversionConfig={updateConversionConfig}/>
+                <VideoTrimConfiguration
+                    video={video}
+                    updateVideo={updateVideo}/>
             </div>
             <div>
                 <SubsectionHeading>Bezels</SubsectionHeading>
                 <BezelSelection
-                    conversionConfig={conversionConfig}
-                    updateConversionConfig={updateConversionConfig} />
+                    video={video}
+                    updateVideo={updateVideo} />
             </div>
         </div>
     )
 }
 
-function Convert({ conversionConfig, video, converting, withTitle, convert, updateConversionConfig }: ConvertProps) {
+function Convert({ scene, canConvert, converting, withTitle, convert, updateScene }: ConvertProps) {
     return (
         <>
             {withTitle && <SectionHeading>Convert</SectionHeading>}
 
             <ConversionConfiguration
-                conversionConfig={conversionConfig}
-                updateConversionConfig={updateConversionConfig} />
+                scene={scene}
+                updateScene={updateScene} />
 
             <ConvertButton
                 convert={convert}
-                disabled={converting || !video}
+                disabled={converting || !canConvert}
                 converting={converting}
                 className='mt-5' />
         </>

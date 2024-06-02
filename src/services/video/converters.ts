@@ -1,15 +1,54 @@
 import { fetchFile } from '@ffmpeg/util'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { getBezelSize } from '../../utils/size'
-import { bezelImage, bezelMask } from '../../bezels'
+import { bezelImage, bezelMask, getBezel } from '../../bezels'
 import * as fc from './filterComplex'
-import { ConversionConfig } from './ConversionConfig'
-import { supportedFormats } from '../../supportedFormats'
+import { SupportedFormat, supportedFormats } from '../../supportedFormats'
 import { Bezel } from '../../types/Bezel'
+import { Scene, getFirstVideo } from '../../types/Scene'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
-export async function convertWithBezel(ffmpeg: FFmpeg, videoFile: File, bezel: Bezel, config: ConversionConfig) {
+type ConversionConfig = {
+    fps: number,
+    maxColors: number,
+    size: number,
+    start: number,
+    end: number,
+    formatKey: SupportedFormat,
+}
+
+export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
+    if (scene.videos.length === 1) {
+        return await convertJustOne(ffmpeg, scene);
+    }
+}
+
+async function convertJustOne(ffmpeg: FFmpeg, scene: Scene) {
+    const video = getFirstVideo(scene);
+
+    if (!video.file)
+        throw new Error('No file selected');
+
+    const config: ConversionConfig = {
+        fps: scene.fps,
+        formatKey: scene.formatKey,
+        maxColors: scene.maxColors,
+        start: video.sceneOffset + video.startTime - scene.startTime,
+        end: video.sceneOffset + video.endTime - scene.endTime,
+        size: video.requestedMaxSize
+    };
+
+    if (video.withBezel) {
+        const bezel = getBezel(video.bezelKey);
+        return await convertWithBezel(ffmpeg, video.file, bezel, config);
+    }
+    else {
+        return await convertWithoutBezel(ffmpeg, video.file, config);
+    }
+}
+
+async function convertWithBezel(ffmpeg: FFmpeg, videoFile: File, bezel: Bezel, config: ConversionConfig) {
     const videoName = videoFile.name;
     const bezelName = 'bezel.png';
     const bezelMaskName = bezelMask(bezel.modelKey).split('/').slice(0, -1)[0];
@@ -44,7 +83,7 @@ export async function convertWithBezel(ffmpeg: FFmpeg, videoFile: File, bezel: B
     return await ffmpeg.readFile(fileName);
 }
 
-export async function convertWithoutBezel(ffmpeg: FFmpeg, videoFile: File, config: ConversionConfig) {
+async function convertWithoutBezel(ffmpeg: FFmpeg, videoFile: File, config: ConversionConfig) {
     const videoName = videoFile.name;
     const fileName = createFileName(videoName, config);
 

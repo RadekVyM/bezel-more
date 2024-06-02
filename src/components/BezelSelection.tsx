@@ -1,16 +1,16 @@
 import { BEZELS, bezelMask, bezelSmallImage } from '../bezels'
-import { ConversionConfig } from '../services/video/ConversionConfig'
+import { Video } from '../types/Video'
 import { cn } from '../utils/tailwind'
 import CheckInput from './CheckInput'
 import CheckInputLabel from './CheckInputLabel'
 
 type BezelSelectionProps = {
-    conversionConfig: ConversionConfig,
-    updateConversionConfig: (conversionConfig: Partial<ConversionConfig>) => void,
+    video: Video,
+    updateVideo: (video: Partial<Video>) => void,
     className?: string
 }
 
-export default function BezelSelection({ className, conversionConfig, updateConversionConfig }: BezelSelectionProps) {
+export default function BezelSelection({ className, video, updateVideo }: BezelSelectionProps) {
     return (
         <>
             <div
@@ -19,8 +19,8 @@ export default function BezelSelection({ className, conversionConfig, updateConv
                     id='use-bezel-check'
                     className='rounded'
                     type='checkbox'
-                    defaultChecked={conversionConfig.withBezel}
-                    onChange={(e) => updateConversionConfig({ withBezel: e.target.checked })} />
+                    defaultChecked={video.withBezel}
+                    onChange={(e) => updateVideo({ withBezel: e.target.checked })} />
                 <CheckInputLabel htmlFor='use-bezel-check' className='pl-3'>Use bezel</CheckInputLabel>
             </div>
 
@@ -34,15 +34,15 @@ export default function BezelSelection({ className, conversionConfig, updateConv
                     <article
                         key={b.key}
                         className='p-4 w-full
-                        grid grid-cols-[auto_1fr] grid-rows-[auto_1fr] gap-x-3 gap-y-5 items-center
-                        cursor-pointer isolate
-                        border border-outline rounded-md
-                        disabled:text-on-surface-container-muted bg-surface-container hover:bg-surface-dim-container'
+                            grid grid-cols-[auto_1fr] grid-rows-[auto_1fr] gap-x-3 gap-y-5 items-center
+                            cursor-pointer isolate
+                            border border-outline rounded-md
+                            disabled:text-on-surface-container-muted bg-surface-container hover:bg-surface-dim-container'
                         tabIndex={0}
                         role='radio'
-                        aria-checked={conversionConfig.bezelKey === b.key}
-                        onClick={() => updateConversionConfig({ bezelKey: b.key })}
-                        onKeyUp={(e) => e.key === 'Enter' && updateConversionConfig({ bezelKey: b.key })}>
+                        aria-checked={video.bezelKey === b.key}
+                        onClick={() => updateVideo({ bezelKey: b.key })}
+                        onKeyUp={(e) => e.key === 'Enter' && updateVideo({ bezelKey: b.key })}>
                         <h4
                             className='row-start-2 row-end-3 col-start-2 col-end-3 text-xs text-on-surface-container'>
                             {b.title}
@@ -69,7 +69,7 @@ export default function BezelSelection({ className, conversionConfig, updateConv
                             className={cn('w-5 h-5 flex justify-center items-center',
                                 'row-start-2 row-end-3 col-start-1 col-end-2',
                                 'rounded-full border border-outline',
-                                conversionConfig.bezelKey === b.key ?
+                                video.bezelKey === b.key ?
                                     'bg-on-surface-container-muted before:content-[""] before:block before:w-2 before:h-2 before:aspect-square before:bg-white before:rounded-full' :
                                     'bg-surface-container')}>
                         </div>

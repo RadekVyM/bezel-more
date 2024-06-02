@@ -1,14 +1,12 @@
 import { useState } from 'react'
-import { getBezel } from '../bezels'
-import { convertWithBezel, convertWithoutBezel } from '../services/video/converters'
+import { convertScene } from '../services/video/converters'
 import { supportedFormats } from '../supportedFormats'
-import { ConversionConfig } from '../services/video/ConversionConfig'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { Scene, getFirstVideo } from '../types/Scene'
 
 export default function useConvert(
-    conversionConfig: ConversionConfig,
+    scene: Scene,
     ffmpeg: FFmpeg,
-    video: File | null | undefined,
     resetProgress: () => void
 ) {
     const [result, setResult] = useState<string | null>(null);
@@ -22,22 +20,15 @@ export default function useConvert(
         setResultFileName(null);
         setResultSize(0);
 
-        const bezel = getBezel(conversionConfig.bezelKey);
-        const format = Object.values(supportedFormats).filter((f) => f.key === conversionConfig.formatKey)[0];
+        const format = Object.values(supportedFormats).filter((f) => f.key === scene.formatKey)[0];
 
         try {
-            if (!video)
-                throw new Error('No file selected');
-
-            const data = (conversionConfig.withBezel ?
-                await convertWithBezel(ffmpeg, video, bezel, conversionConfig) :
-                await convertWithoutBezel(ffmpeg, video, conversionConfig)) as any;
-
+            const data = (await convertScene(ffmpeg, scene)) as any;
             const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
 
             setResult(resultUrl);
             setResultSize(data.byteLength);
-            setResultFileName(video.name + format.suffix);
+            setResultFileName((getFirstVideo(scene).file?.name || 'undefined') + format.suffix);
         }
         catch (error) {
             // TODO: Display an error message

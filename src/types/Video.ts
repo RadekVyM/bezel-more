@@ -1,4 +1,4 @@
-import { Bezel } from './Bezel'
+import { BEZELS, getBezel } from '../bezels'
 import { Point } from './Point'
 import { Size } from './Size'
 
@@ -8,16 +8,21 @@ export type Video = {
     sceneOffset: number,
     startTime: number,
     endTime: number,
-    requestedMaxSize?: number,
+    requestedMaxSize: number,
     position: Point,
-    bezel: Bezel | null | undefined,
+    withBezel: boolean,
+    bezelKey: string,
     file: File | null | undefined,
-    htmlVideo: HTMLVideoElement | undefined,
+    totalDuration: number,
+    naturalVideoDimensions?: Size,
+    readonly htmlVideo: HTMLVideoElement,
 }
 
-export function createVideo(index: number, file: File): Video {
+export function createVideo(index: number, file?: File): Video {
     const htmlVideo = document.createElement('video');
-    htmlVideo.src = URL.createObjectURL(file);
+    if (file) {
+        htmlVideo.src = URL.createObjectURL(file);
+    }
     htmlVideo.disablePictureInPicture = true;
     htmlVideo.disableRemotePlayback = true;
     htmlVideo.muted = true;
@@ -31,14 +36,31 @@ export function createVideo(index: number, file: File): Video {
         sceneOffset: 0,
         startTime: 0,
         endTime: 0,
+        totalDuration: 0,
         position: { x: 0, y: 0 },
-        bezel: undefined,
+        withBezel: true,
+        bezelKey: BEZELS.iphone_15_black.key,
+        requestedMaxSize: 480,
         htmlVideo
     };
 }
 
-export function videoSize(video: Video): Size | undefined {
-    if (!video.htmlVideo) {
-        return undefined;
+export function getVideoSize(video: Video): Size | undefined {
+    if (video.naturalVideoDimensions && !video.withBezel) {
+        const scale = Math.max(video.naturalVideoDimensions.width / video.requestedMaxSize, video.naturalVideoDimensions.height / video.requestedMaxSize);
+        return {
+            width: video.naturalVideoDimensions.width / scale,
+            height: video.naturalVideoDimensions.height / scale,
+        };
     }
+    if (video.withBezel) {
+        const bezel = getBezel(video.bezelKey);
+        const scale = Math.max(bezel.width / video.requestedMaxSize, bezel.height / video.requestedMaxSize);
+        return {
+            width: bezel.width / scale,
+            height: bezel.height / scale,
+        };
+    }
+
+    return undefined;
 }

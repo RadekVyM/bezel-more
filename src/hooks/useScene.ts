@@ -1,17 +1,16 @@
 import { useCallback, useReducer } from 'react'
 import { Scene } from '../types/Scene'
 import { supportedFormats } from '../supportedFormats'
-import { Video } from '../types/Video'
-import { Size } from '../types/Size';
+import { Video, createVideo } from '../types/Video'
 
-export default function useScene() {
+export default function useScene(videosCount: number) {
     const [scene, updateScene] = useReducer(
         (state: Scene, newState: Partial<Scene>) => ({
             ...state,
             ...newState,
         }),
         {
-            videos: [],
+            videos: createVideos(videosCount),
             fps: 20,
             maxColors: 255,
             requestedSize: undefined,
@@ -19,27 +18,43 @@ export default function useScene() {
             endTime: 0,
             background: 'transparent',
             formatKey: supportedFormats.webp.key,
-            get firstVideo() { return this.videos.length > 0 ? this.videos[0] : undefined },
-            get size() { return this.requestedSize || (this.videos.length > 0 ? getSize(this.videos) : undefined) }
         }
     );
 
-    const updateVideo = useCallback((index: number, video: Video) => {
-        const videos = [...scene.videos];
+    const updateVideo = useCallback((index: number, update: Partial<Video>) => {
+        const updatedVideos = [...scene.videos];
+        const video = updatedVideos.find((v) => v.index === index);
 
-        videos[index] = {
+        if (!video) {
+            throw new Error('Video with this index does not exist');
+        }
+        
+        const updatedVideo = updatedVideos[index] = {
             ...video,
+            ...update,
             index: index
         };
 
-        for (const v of videos) {
-            v.htmlVideo?.remove();
-            if (v.htmlVideo)
-                document.body.appendChild(v.htmlVideo);
+        if ('file' in update && updatedVideo.file) {
+            updatedVideo.htmlVideo.src = URL.createObjectURL(updatedVideo.file);
         }
 
-        updateScene({ videos });
+        updateScene({ videos: updatedVideos });
     }, [scene, updateScene]);
+
+    scene.videos.forEach((v) => {
+        v.htmlVideo.onloadedmetadata = null;
+        v.htmlVideo.onloadedmetadata = (e) => {
+            updateVideo(
+                v.index,
+                {
+                    startTime: 0,
+                    endTime: v.htmlVideo.duration,
+                    totalDuration: v.htmlVideo.duration,
+                    naturalVideoDimensions: { width: v.htmlVideo.videoWidth, height: v.htmlVideo.videoHeight }
+                });
+        };
+    });
 
     return {
         scene,
@@ -48,6 +63,26 @@ export default function useScene() {
     };
 }
 
-function getSize(videos: Array<Video>): Size {
-    return { width: 0, height: 0 }
+function createVideos(count: number) {
+    const videos: Array<Video> = [];
+
+    for (let i = 0; i < count; i++) {
+        videos[i] = createVideo(i);
+    }
+
+    const container = document.getElementById('videos-container');
+    
+    // Remove old elements
+    // Those elements are from a previous scene and are not needed
+    while (container?.firstChild) {
+        container.removeChild(container.firstChild);
+    }
+    
+    // Add the HTML element to DOM, so the video can be loaded
+    for (const v of videos) {
+        if (v.htmlVideo)
+            container?.appendChild(v.htmlVideo);
+    }
+
+    return videos;
 }
