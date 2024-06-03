@@ -39,7 +39,7 @@ type VideoControlsProps = {
 }
 
 export default function VideoPreviewer({ scene, className }: VideoPreviewerPorps) {
-    return getFirstVideo(scene).file ?
+    return scene.videos.every((v) => v.file) ?
         <VideoPlayer
             scene={scene}
             className={className} /> :
@@ -55,6 +55,7 @@ export default function VideoPreviewer({ scene, className }: VideoPreviewerPorps
 }
 
 function VideoPlayer({ className, scene }: VideoPlayerProps) {
+    const videoFiles = useRef<Array<File | undefined | null> | null>(null);
     const {
         currentTime,
         loop,
@@ -65,6 +66,26 @@ function VideoPlayer({ className, scene }: VideoPlayerProps) {
         seek,
         setLoop
     } = useTimeline(scene);
+
+    useEffect(() => {
+        let changed = false;
+
+        if (videoFiles.current) {
+            if (videoFiles.current.length != scene.videos.length) {
+                changed = true;
+            }
+            else {
+                changed = videoFiles.current.some((v, i) => v !== scene.videos[i].file);
+            }
+        }
+
+        videoFiles.current = scene.videos.map((v) => v.file);
+
+        if (changed) {
+            pause();
+            reset();
+        }
+    }, [scene, reset, pause]);
 
     return (
         <div

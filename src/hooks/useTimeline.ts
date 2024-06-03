@@ -96,7 +96,9 @@ export default function useTimeline(scene: Scene) {
 
 function pauseAllVideos(scene: Scene) {
     scene.videos.forEach((v) => {
-        v.htmlVideo.pause();
+        if (!v.htmlVideo.paused) {
+            v.htmlVideo.pause();
+        }
     });
 }
 
@@ -116,11 +118,13 @@ function updateVideosCurrentTime(scene: Scene, currentTime: number, isPlaying: b
         if (!shouldPause && isPlaying) {
             if (v.htmlVideo.paused || v.htmlVideo.ended) {
                 // I need to play the video because Chrome does not always redraw the video when currentTime is changed  
-                v.htmlVideo.play();
+                v.htmlVideo.play().catch((e) => console.log(e));
             }
         }
         else {
-            v.htmlVideo.pause();
+            if (!v.htmlVideo.paused) {
+                v.htmlVideo.pause();
+            }
         }
 
         if (Math.abs(newCurrentTime - v.htmlVideo.currentTime) < 1 / fps) {

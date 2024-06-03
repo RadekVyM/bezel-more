@@ -35,7 +35,7 @@ export default function useScene(videosCount: number) {
             index: index
         };
 
-        if ('file' in update && updatedVideo.file) {
+        if ('file' in update && updatedVideo.file && updatedVideo.file !== video.file) {
             updatedVideo.htmlVideo.src = URL.createObjectURL(updatedVideo.file);
         }
 
