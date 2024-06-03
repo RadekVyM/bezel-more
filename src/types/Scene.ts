@@ -17,6 +17,10 @@ export function getFirstVideo(scene: Scene): Video {
     return scene.videos[0];
 }
 
+export function getTotalSceneDuration(scene: Scene): number {
+    return Math.max(scene.endTime, ...scene.videos.map((v) => v.totalDuration + v.sceneOffset));
+}
+
 export function getSceneSize(scene: Scene): Size {
     if (scene.requestedSize) {
         return scene.requestedSize;

@@ -20,7 +20,7 @@ export default function ResultPreviewer({ resultUrl, fileName, resultSize, progr
                 className='flex-1 flex items-center w-full overflow-hidden'>
                 {
                     resultUrl ?
-                        <img className='max-h-full m-auto' src={resultUrl} alt='Result' /> :
+                        <img className='max-h-full m-auto object-contain' src={resultUrl} alt='Result' /> :
                         <div
                             className='flex flex-col items-center justify-center pt-5 pb-6 w-full text-on-surface-container-muted'>
                             <MdOutlineVideoLibrary

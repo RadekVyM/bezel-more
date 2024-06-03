@@ -54,6 +54,10 @@ export default function useScene(videosCount: number) {
                     naturalVideoDimensions: { width: v.htmlVideo.videoWidth, height: v.htmlVideo.videoHeight }
                 });
         };
+
+        v.htmlVideo.oncanplaythrough = (e) => (e.target as any).loadingData = false;
+        v.htmlVideo.oncanplay = (e) => (e.target as any).loadingData = false;
+        v.htmlVideo.onwaiting = (e) => (e.target as any).loadingData = true;
     });
 
     return {
@@ -80,8 +84,9 @@ function createVideos(count: number) {
     
     // Add the HTML element to DOM, so the video can be loaded
     for (const v of videos) {
-        if (v.htmlVideo)
+        if (v.htmlVideo && !container?.contains(v.htmlVideo)) {
             container?.appendChild(v.htmlVideo);
+        }
     }
 
     return videos;

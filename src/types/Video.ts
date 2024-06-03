@@ -27,7 +27,7 @@ export function createVideo(index: number, file?: File): Video {
     htmlVideo.disableRemotePlayback = true;
     htmlVideo.muted = true;
     htmlVideo.playsInline = true;
-    htmlVideo.preload = 'metadata';
+    htmlVideo.preload = 'auto';
     htmlVideo.style.display = 'none';
     
     return {

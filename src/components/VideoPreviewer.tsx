@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { MdOutlineUploadFile } from 'react-icons/md'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
@@ -6,8 +6,8 @@ import { bezelImage, bezelTransparentMask, getBezel } from '../bezels'
 import { cn } from '../utils/tailwind'
 import Button from './Button'
 import { Bezel } from '../types/Bezel'
-import { Scene, getFirstVideo } from '../types/Scene'
-import { Video } from '../types/Video'
+import { Scene, getFirstVideo, getTotalSceneDuration } from '../types/Scene'
+import useTimeline from '../hooks/useTimeline'
 
 type VideoPreviewerPorps = {
     scene: Scene,
@@ -15,43 +15,33 @@ type VideoPreviewerPorps = {
 }
 
 type VideoPlayerProps = {
-    video: Video,
+    scene: Scene,
     className?: string,
 }
 
 type VideoCanvasProps = {
-    video: Video,
+    scene: Scene,
+    currentTime: number,
     className?: string,
-    onTimeUpdate: () => void,
-    onPause: () => void,
-    onPlay: () => void,
-    onPlaying: () => void,
 }
 
 type VideoControlsProps = {
     className?: string,
-    video: Video,
-    time: number,
-    isPaused: boolean,
+    scene: Scene,
+    currentTime: number,
+    isPlaying: boolean,
     loop: boolean,
+    play: () => void,
+    pause: () => void,
+    reset: () => void,
+    seek: (newTime: number) => void,
     switchLoop: () => void
 }
 
 export default function VideoPreviewer({ scene, className }: VideoPreviewerPorps) {
-    const video = getFirstVideo(scene);
-    const withVideo = !!video.file;
-
-    useEffect(() => {
-        return () => scene.videos.forEach((v) => v.htmlVideo.pause());
-    }, []);
-    
-
-    // TODO: Render the whole scene, not just the first video
-    // This is just temporary solution
-
-    return withVideo ?
+    return getFirstVideo(scene).file ?
         <VideoPlayer
-            video={video}
+            scene={scene}
             className={className} /> :
         <div
             className={cn('grid place-content-center justify-items-center text-on-surface-container-muted', className)}>
@@ -64,42 +54,52 @@ export default function VideoPreviewer({ scene, className }: VideoPreviewerPorps
         </div>
 }
 
-function VideoPlayer({ className, video }: VideoPlayerProps) {
-    const [time, setTime] = useState(video.htmlVideo.currentTime);
-    const [isPaused, setIsPaused] = useState(video.htmlVideo.paused);
-    const [loop, setLoop] = useState(video.htmlVideo.loop);
-
-    useEffect(() => {
-        video.htmlVideo.loop = loop;
-    }, [loop]);
-
-    useEffect(() => {
-        setIsPaused(video.htmlVideo.paused);
-    }, [video.totalDuration]);
+function VideoPlayer({ className, scene }: VideoPlayerProps) {
+    const {
+        currentTime,
+        loop,
+        isPlaying,
+        play,
+        pause,
+        reset,
+        seek,
+        setLoop
+    } = useTimeline(scene);
 
     return (
         <div
             className={cn('grid grid-rows-[1fr_auto] gap-6 overflow-hidden', className)}>
             <VideoCanvas
                 className='h-full row-start-1 row-end-2 col-start-1 col-end-1 w-full relative overflow-hidden'
-                video={video}
-                onTimeUpdate={() => setTime(video.htmlVideo.currentTime || 0)}
-                onPause={() => setIsPaused(video.htmlVideo.paused)}
-                onPlay={() => setIsPaused(video.htmlVideo.paused)}
-                onPlaying={() => setIsPaused(video.htmlVideo.paused)} />
+                currentTime={currentTime}
+                scene={scene} />
             <VideoControls
-                video={video}
-                isPaused={isPaused}
-                time={time}
+                scene={scene}
+                isPlaying={isPlaying}
+                currentTime={currentTime}
+                play={play}
+                pause={pause}
+                seek={seek}
+                reset={reset}
                 loop={loop}
                 switchLoop={() => setLoop((oldLoop) => !oldLoop)} />
         </div>
     )
 }
 
-function VideoControls({ className, video, time, isPaused, loop, switchLoop }: VideoControlsProps) {
+function VideoControls({ className, scene, currentTime, isPlaying, loop, play, pause, seek, reset, switchLoop }: VideoControlsProps) {
+    const totalDuration = getTotalSceneDuration(scene);
+
     function onPlayClick() {
-        video.htmlVideo.paused ? video.htmlVideo.play() : video.htmlVideo.pause()
+        if (isPlaying) {
+            pause();
+        }
+        else {
+            if (currentTime >= totalDuration) {
+                reset();
+            }
+            play();
+        }
     }
 
     return (
@@ -123,31 +123,32 @@ function VideoControls({ className, video, time, isPaused, loop, switchLoop }: V
                         className='px-0 py-1 w-10'
                         onClick={onPlayClick}
                         title='Play/Pause'>
-                        {isPaused ? <FaPlay className='mx-auto' /> : <FaPause className='mx-auto' />}
+                        {isPlaying ? <FaPause className='mx-auto' /> : <FaPlay className='mx-auto' />}
                     </Button>
                 </div>
-                <span className='self-center'>{time.toFixed(2)} / {video.totalDuration.toFixed(2)}</span>
+                <span className='self-center'>{currentTime.toFixed(2)} / {totalDuration.toFixed(2)}</span>
             </div>
             <input
                 className='accent-on-surface-container'
                 type='range'
                 min={0}
-                max={video.totalDuration}
+                max={totalDuration}
                 step={0.001}
-                value={time}
-                onChange={(e) => video.htmlVideo.currentTime = parseFloat(e.target.value)} />
+                value={currentTime}
+                onChange={(e) => seek(parseFloat(e.target.value))} />
         </div>
     )
 }
 
-function VideoCanvas({ video, className, onPause, onPlay, onPlaying, onTimeUpdate }: VideoCanvasProps) {
-    const fps = 60;
+function VideoCanvas({ scene, currentTime, className }: VideoCanvasProps) {
+    // TODO: Render the whole scene, not just the first video
+    // This is just temporary solution
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const bezelRef = useRef<{ image: HTMLImageElement, maskImage: HTMLImageElement, bezel: Bezel, showBezel: boolean } | null>(null);
-    const lastRenderRef = useRef<Date>(new Date());
-    const bezel = getBezel(video.bezelKey);
+    const bezel = getBezel(getFirstVideo(scene).bezelKey);
 
     useEffect(() => {
+        const video = getFirstVideo(scene);
         const bezel = getBezel(video.bezelKey);
         const currentImageSrc = bezelImage(bezel.key);
         const currentMaskSrc = bezelTransparentMask(bezel.modelKey);
@@ -187,9 +188,15 @@ function VideoCanvas({ video, className, onPause, onPlay, onPlaying, onTimeUpdat
         };
 
         renderVideo();
-    }, [video]);
+    }, [scene]);
+
+    useEffect(() => {
+        renderVideo();
+    }, [currentTime]);
 
     function renderVideo() {
+        const video = getFirstVideo(scene);
+
         if (!canvasRef.current || !bezelRef.current) {
             return;
         }
@@ -213,7 +220,7 @@ function VideoCanvas({ video, className, onPause, onPlay, onPlaying, onTimeUpdat
 
         context.globalCompositeOperation = 'source-over';
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-        
+
         if (bezelRef.current.showBezel) {
             context.drawImage(bezelRef.current.maskImage, 0, 0, bezelRef.current.maskImage.naturalWidth, bezelRef.current.maskImage.naturalHeight);
             context.globalCompositeOperation = 'source-atop';
@@ -227,46 +234,14 @@ function VideoCanvas({ video, className, onPause, onPlay, onPlaying, onTimeUpdat
         }
     }
 
-    function renderVideoLoop() {
-        renderVideo();
-
-        if (!canvasRef.current || !bezelRef.current || video.htmlVideo.paused || video.htmlVideo.ended) {
-            return;
-        }
-
-        const lastRenderMs = lastRenderRef.current.getTime();
-        const nowMs = new Date().getTime();
-        const difference = (1000 / fps) - (nowMs - lastRenderMs);
-        
-        lastRenderRef.current = new Date();
-
-        if (difference > 0) {
-            setTimeout(() => requestAnimationFrame(renderVideoLoop), difference);
-        }
-        else {
-            requestAnimationFrame(renderVideoLoop);
-        }
-    }
-
-    video.htmlVideo.onpause = onPause;
-    video.htmlVideo.onplay = () => {
-        renderVideoLoop();
-        onPlay();
-    }
-    video.htmlVideo.onplaying = onPlaying;
-    video.htmlVideo.ontimeupdate = () => {
-        renderVideo();
-        onTimeUpdate();
-    };
-
     return (
         <div
             className={cn('h-full w-full relative', className)}>
             <canvas
                 ref={canvasRef}
                 className='max-h-full max-w-full m-auto'
-                width={video.withBezel ? bezel.width : video.naturalVideoDimensions?.width}
-                height={video.withBezel ? bezel.height : video.naturalVideoDimensions?.height}/>
+                width={getFirstVideo(scene).withBezel ? bezel.width : getFirstVideo(scene).naturalVideoDimensions?.width}
+                height={getFirstVideo(scene).withBezel ? bezel.height : getFirstVideo(scene).naturalVideoDimensions?.height}/>
         </div>
     )
 }
