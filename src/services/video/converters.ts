@@ -9,16 +9,8 @@ import { Video } from '../../types/Video'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
-type ConversionConfig = {
-    fps: number,
-    maxColors: number,
-    size: number,
-    start: number,
-    end: number,
-    formatKey: SupportedFormat,
-}
-
 export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
+    // TODO: This is just temporary solution
     if (scene.videos.length === 1) {
         return await convertJustOne(ffmpeg, scene);
     }
@@ -26,19 +18,6 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
 
 async function convertJustOne(ffmpeg: FFmpeg, scene: Scene) {
     const video = getFirstVideo(scene);
-
-    if (!video.file)
-        throw new Error('No file selected');
-
-    const config: ConversionConfig = {
-        fps: scene.fps,
-        formatKey: scene.formatKey,
-        maxColors: scene.maxColors,
-        start: video.sceneOffset + video.startTime - scene.startTime,
-        end: video.sceneOffset + video.endTime - scene.endTime,
-        size: video.requestedMaxSize
-    };
-
     return video.withBezel ?
         await convertWithBezel(ffmpeg, scene) :
         await convertWithoutBezel(ffmpeg, scene);

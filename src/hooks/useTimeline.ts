@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Scene, getTotalSceneDuration } from '../types/Scene'
+import { Scene } from '../types/Scene'
 
 export default function useTimeline(scene: Scene) {
     const previousTimeRef = useRef<number>(0);

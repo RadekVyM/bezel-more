@@ -71,7 +71,7 @@ function VideoPlayer({ className, scene }: VideoPlayerProps) {
         let changed = false;
 
         if (videoFiles.current) {
-            if (videoFiles.current.length != scene.videos.length) {
+            if (videoFiles.current.length !== scene.videos.length) {
                 changed = true;
             }
             else {
