@@ -3,6 +3,13 @@ type FilterParams = {
     output?: string[]
 }
 
+type TrimAndTpadFilterParams = {
+    startTrimTime: number | null,
+    endTrimTime: number | null,
+    startPadDuration: number,
+    endPadDuration: number
+} & FilterParams
+
 type ScaleFilterParams = {
     width: number,
     height: number
@@ -23,6 +30,19 @@ type PalettegenFilterParams = {
 
 export function compose(...filters: string[]) {
     return filters.join(';')
+}
+
+export function trimAndTpad(params: TrimAndTpadFilterParams) {
+    const startTrim = params.startTrimTime ? `start=${params.startTrimTime}` : undefined;
+    const endTrim = params.endTrimTime ? `end=${params.endTrimTime}` : undefined;
+    const startPad = `start_mode=clone:start_duration=${params.startPadDuration}`;
+    const endPad = `stop_mode=clone:stop_duration=${params.endPadDuration}`;
+    const trim = [startTrim, endTrim].filter((t) => t).join(':');
+
+    return composeFilter(
+        params,
+        `${trim.length > 0 ? `trim=${trim},` : ''}tpad=${startPad}:${endPad}`
+    );
 }
 
 export function scale(params: ScaleFilterParams) {

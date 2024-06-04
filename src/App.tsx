@@ -27,12 +27,15 @@ import useScene from './hooks/useScene'
 import { Video, createVideo } from './types/Video'
 import { Scene, getFirstVideo } from './types/Scene'
 import VideoSizeConfiguration from './components/VideoSizeConfiguration'
+import SceneConfiguration from './components/SceneConfiguration'
 
 type EditVideoProps = {
     video: Video,
+    scene: Scene,
     withTitle?: boolean,
     onFileSelected: (video: File | null | undefined) => void,
     updateVideo: (video: Partial<Video>) => void,
+    updateScene: (scene: Partial<Scene>) => void,
 }
 
 type ConvertProps = {
@@ -117,6 +120,8 @@ function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
                 <EditVideo
                     updateVideo={(update) => updateVideo(0, update)}
                     video={getFirstVideo(scene)}
+                    scene={scene}
+                    updateScene={updateScene}
                     onFileSelected={(file) => {
                         if (file) {
                             updateVideo(0, { file });
@@ -273,7 +278,7 @@ function PageHeading() {
     )
 }
 
-function EditVideo({ video, withTitle, updateVideo, onFileSelected }: EditVideoProps) {
+function EditVideo({ video, scene, withTitle, updateVideo, updateScene, onFileSelected }: EditVideoProps) {
     return (
         <div
             className='flex flex-col gap-6'>
@@ -288,6 +293,12 @@ function EditVideo({ video, withTitle, updateVideo, onFileSelected }: EditVideoP
                 <VideoSizeConfiguration
                     video={video}
                     updateVideo={updateVideo}/>
+            </div>
+            <div>
+                {<SubsectionHeading>Trim scene</SubsectionHeading>}
+                <SceneConfiguration
+                    scene={scene}
+                    updateScene={updateScene}/>
             </div>
             <div>
                 <SubsectionHeading>Trim video</SubsectionHeading>

@@ -4,8 +4,8 @@ import { getBezelSize } from '../../utils/size'
 import { bezelImage, bezelMask, getBezel } from '../../bezels'
 import * as fc from './filterComplex'
 import { SupportedFormat, supportedFormats } from '../../supportedFormats'
-import { Bezel } from '../../types/Bezel'
-import { Scene, getFirstVideo } from '../../types/Scene'
+import { Scene, getFirstVideo, getTotalSceneDuration } from '../../types/Scene'
+import { Video } from '../../types/Video'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
@@ -39,31 +39,34 @@ async function convertJustOne(ffmpeg: FFmpeg, scene: Scene) {
         size: video.requestedMaxSize
     };
 
-    if (video.withBezel) {
-        const bezel = getBezel(video.bezelKey);
-        return await convertWithBezel(ffmpeg, video.file, bezel, config);
-    }
-    else {
-        return await convertWithoutBezel(ffmpeg, video.file, config);
-    }
+    return video.withBezel ?
+        await convertWithBezel(ffmpeg, scene) :
+        await convertWithoutBezel(ffmpeg, scene);
 }
 
-async function convertWithBezel(ffmpeg: FFmpeg, videoFile: File, bezel: Bezel, config: ConversionConfig) {
+async function convertWithBezel(ffmpeg: FFmpeg, scene: Scene) {
+    const video = getFirstVideo(scene);
+    
+    if (!video.file)
+        throw new Error('No file selected');
+    
+    const bezel = getBezel(video.bezelKey);
+    const videoFile = video.file;
     const videoName = videoFile.name;
     const bezelName = 'bezel.png';
     const bezelMaskName = bezelMask(bezel.modelKey).split('/').slice(0, -1)[0];
-    const fileName = createFileName(videoName, config);
+    const fileName = createFileName(videoName, scene.formatKey);
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
     await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
     await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezelMask(bezel.modelKey)));
 
-    const [width, height] = getBezelSize(bezel, config.size);
+    const [width, height] = getBezelSize(bezel, video.requestedMaxSize);
     const videoScale = bezel.contentScale;
 
-    const start = config.start || 0;
-    const end = config.end || 1;
-    const length = end - start;
+    const {
+        videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
+    } = calculateTrimAndTpad(scene, video);
 
     await ffmpeg.exec([
         ...bezelFfmpegArgs(
@@ -73,34 +76,65 @@ async function convertWithBezel(ffmpeg: FFmpeg, videoFile: File, bezel: Bezel, c
             width,
             height,
             videoScale,
-            config
+            videoStart,
+            videoEnd,
+            videoStartPadDuration,
+            videoEndPadDuration,
+            scene
         ),
-        ...(config.formatKey === supportedFormats.gif.key ?
-            gifOutput(fileName, start, length) :
-            webpOutput(fileName, start, length, [width, height]))
+        ...(scene.formatKey === supportedFormats.gif.key ?
+            gifOutput(fileName, scene.startTime, scene.endTime - scene.startTime) :
+            webpOutput(fileName, scene.startTime, scene.endTime - scene.startTime, [width, height]))
     ]);
 
     return await ffmpeg.readFile(fileName);
 }
 
-async function convertWithoutBezel(ffmpeg: FFmpeg, videoFile: File, config: ConversionConfig) {
+async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
+    const video = getFirstVideo(scene);
+    
+    if (!video.file)
+        throw new Error('No file selected');
+    
+    const videoFile = video.file;
     const videoName = videoFile.name;
-    const fileName = createFileName(videoName, config);
+    const fileName = createFileName(videoName, scene.formatKey);
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
 
-    const start = config.start || 0;
-    const end = config.end || 1;
-    const length = end - start;
+    const {
+        videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
+    } = calculateTrimAndTpad(scene, video);
 
     await ffmpeg.exec([
-        ...ffmpegArgs(videoName, config),
-        ...(config.formatKey === supportedFormats.gif.key ?
-            gifOutput(fileName, start, length) :
-            webpOutput(fileName, start, length))
+        ...ffmpegArgs(
+            videoName,
+            videoStart,
+            videoEnd,
+            videoStartPadDuration,
+            videoEndPadDuration,
+            video.requestedMaxSize,
+            scene),
+        ...(scene.formatKey === supportedFormats.gif.key ?
+            gifOutput(fileName, scene.startTime, scene.endTime - scene.startTime) :
+            webpOutput(fileName, scene.startTime, scene.endTime - scene.startTime))
     ]);
 
     return await ffmpeg.readFile(fileName);
+}
+
+function calculateTrimAndTpad(scene: Scene, video: Video) {
+    const videoStart = video.startTime <= 0 ? null : video.startTime;
+    const videoEnd = video.endTime >= video.totalDuration ? null : video.endTime;
+
+    const totalDuration = getTotalSceneDuration(scene);
+
+    return {
+        videoStart: videoStart,
+        videoEnd: videoEnd,
+        videoStartPadDuration: video.startTime + video.sceneOffset,
+        videoEndPadDuration: totalDuration - (video.endTime + video.sceneOffset),
+    };
 }
 
 function bezelFfmpegArgs(
@@ -110,7 +144,11 @@ function bezelFfmpegArgs(
     width: number,
     height: number,
     videoScale: number,
-    config: ConversionConfig
+    videoStart: number | null,
+    videoEnd: number | null,
+    videoStartPadDuration: number,
+    videoEndPadDuration: number,
+    scene: Scene
 ) {
     return [
         '-i', videoName,
@@ -118,8 +156,16 @@ function bezelFfmpegArgs(
         '-i', bezelMaskName,
         '-filter_complex',
         fc.compose(
-            fc.scale({
+            fc.trimAndTpad({
                 input: ['0:v'],
+                output: ['trimmed-video'],
+                startPadDuration: videoStartPadDuration,
+                endPadDuration: videoEndPadDuration,
+                startTrimTime: videoStart,
+                endTrimTime: videoEnd
+            }),
+            fc.scale({
+                input: ['trimmed-video'],
                 output: ['scaled-video'],
                 width: width * videoScale,
                 height: height * videoScale
@@ -150,10 +196,10 @@ function bezelFfmpegArgs(
             }),
             fc.fps({
                 input: ['alphamerged'],
-                output: config.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
-                fps: config.fps
+                output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
+                fps: scene.fps
             }),
-            ...(config.formatKey === supportedFormats.gif.key ? [
+            ...(scene.formatKey === supportedFormats.gif.key ? [
                 fc.split({
                     input: ['fpsed'],
                     output: ['s0', 's1']
@@ -161,7 +207,7 @@ function bezelFfmpegArgs(
                 fc.palettegen({
                     input: ['s0'],
                     output: ['p'],
-                    maxColors: config.maxColors
+                    maxColors: scene.maxColors
                 }),
                 fc.paletteuse({
                     input: ['s1', 'p']
@@ -173,7 +219,12 @@ function bezelFfmpegArgs(
 
 function ffmpegArgs(
     videoName: string,
-    config: ConversionConfig
+    videoStart: number | null,
+    videoEnd: number | null,
+    videoStartPadDuration: number,
+    videoEndPadDuration: number,
+    size: number,
+    scene: Scene
 ) {
     return [
         '-i', videoName,
@@ -183,18 +234,26 @@ function ffmpegArgs(
                 input: ['0:v'],
                 output: ['rgba-video']
             }),
-            fc.scale({
+            fc.trimAndTpad({
                 input: ['rgba-video'],
+                output: ['trimmed-video'],
+                startPadDuration: videoStartPadDuration,
+                endPadDuration: videoEndPadDuration,
+                startTrimTime: videoStart,
+                endTrimTime: videoEnd
+            }),
+            fc.scale({
+                input: ['trimmed-video'],
                 output: ['scaled-video'],
-                width: config.size,
-                height: config.size
+                width: size,
+                height: size
             }),
             fc.fps({
                 input: ['scaled-video'],
-                output: config.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
-                fps: config.fps
+                output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
+                fps: scene.fps
             }),
-            ...(config.formatKey === supportedFormats.gif.key ? [
+            ...(scene.formatKey === supportedFormats.gif.key ? [
                 fc.split({
                     input: ['fpsed'],
                     output: ['s0', 's1']
@@ -202,7 +261,7 @@ function ffmpegArgs(
                 fc.palettegen({
                     input: ['s0'],
                     output: ['p'],
-                    maxColors: config.maxColors
+                    maxColors: scene.maxColors
                 }),
                 fc.paletteuse({
                     input: ['s1', 'p']
@@ -230,6 +289,6 @@ function gifOutput(fileName: string, start: number, length: number) {
     ]
 }
 
-function createFileName(videoName: string, config: ConversionConfig) {
-    return videoName.split('.').slice(0, -1).join('.') + supportedFormats[config.formatKey].suffix
+function createFileName(videoName: string, formatKey: SupportedFormat) {
+    return videoName.split('.').slice(0, -1).join('.') + supportedFormats[formatKey].suffix
 }

@@ -5,6 +5,7 @@ export default function useTimeline(scene: Scene) {
     const previousTimeRef = useRef<number>(0);
     const timeLoopRef = useRef<Loop | null>(null);
     const loopRef = useRef<boolean>(false);
+    const sceneRef = useRef<Scene>(scene);
     const [currentTime, setCurrentTime] = useState<number>(0);
     const [loop, setLoop] = useState<boolean>(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -20,36 +21,37 @@ export default function useTimeline(scene: Scene) {
             const difference = (now - previousTimeRef.current) / 1000;
             previousTimeRef.current = now;
 
-            if (scene.videos.every((v) => (v.htmlVideo as any).loadingData)) {
+            if (sceneRef.current.videos.every((v) => (v.htmlVideo as any).loadingData)) {
                 // If no video is loaded, timeline will wait
                 return;
             }
 
-            const maxDuration = getTotalSceneDuration(scene);
+            const sceneStart = sceneRef.current.startTime;
+            const sceneEnd = sceneRef.current.endTime;
 
             setCurrentTime((previous) => {
                 let newCurrentTime = previous + difference;
 
-                if (newCurrentTime > maxDuration) {
+                if (newCurrentTime > sceneEnd) {
                     if (loopRef.current) {
-                        newCurrentTime = 0;
+                        newCurrentTime = sceneStart;
                     }
                     else {
                         timeLoopRef.current?.stop();
                         timeLoopRef.current = null;
                         setIsPlaying(false);
-                        newCurrentTime = maxDuration;
+                        newCurrentTime = sceneEnd;
                     }
                 }
 
-                return newCurrentTime;
+                return Math.max(newCurrentTime, sceneStart);
             });
         });
 
         setIsPlaying(true);
         previousTimeRef.current = new Date().getTime();
         timeLoopRef.current.start();
-    }, [timeLoopRef, loopRef, previousTimeRef, scene, setCurrentTime, setIsPlaying]);
+    }, [timeLoopRef, loopRef, previousTimeRef, sceneRef, setCurrentTime, setIsPlaying]);
 
     const pause = useCallback(() => {
         pauseAllVideos(scene);
@@ -59,12 +61,15 @@ export default function useTimeline(scene: Scene) {
     }, [timeLoopRef, scene, setIsPlaying]);
 
     const reset = useCallback(() => {
-        setCurrentTime(0);
-    }, [setCurrentTime]);
+        setCurrentTime(sceneRef.current.startTime);
+    }, [setCurrentTime, sceneRef]);
 
     const seek = useCallback((newTime: number) => {
-        setCurrentTime(newTime);
-    }, [setCurrentTime]);
+        const sceneStart = sceneRef.current.startTime;
+        const sceneEnd = sceneRef.current.endTime;
+
+        setCurrentTime(Math.max(sceneStart, Math.min(newTime, sceneEnd)));
+    }, [setCurrentTime, sceneRef]);
 
     useEffect(() => {
         loopRef.current = loop;
@@ -79,8 +84,12 @@ export default function useTimeline(scene: Scene) {
     }, []);
 
     useEffect(() => {
-        updateVideosCurrentTime(scene, currentTime, isPlaying);
-    }, [currentTime, isPlaying, scene]);
+        sceneRef.current = scene;
+    }, [scene]);
+
+    useEffect(() => {
+        updateVideosCurrentTime(sceneRef.current, currentTime, isPlaying);
+    }, [currentTime, isPlaying, sceneRef]);
 
     return {
         currentTime,

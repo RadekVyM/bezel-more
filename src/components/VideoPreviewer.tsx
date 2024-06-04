@@ -116,7 +116,7 @@ function VideoControls({ className, scene, currentTime, isPlaying, loop, play, p
             pause();
         }
         else {
-            if (currentTime >= totalDuration) {
+            if (currentTime >= scene.endTime) {
                 reset();
             }
             play();

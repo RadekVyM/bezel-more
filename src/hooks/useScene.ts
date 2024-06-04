@@ -22,30 +22,15 @@ export default function useScene(videosCount: number) {
     );
 
     const updateVideo = useCallback((index: number, update: Partial<Video>) => {
-        const updatedVideos = [...scene.videos];
-        const video = updatedVideos.find((v) => v.index === index);
-
-        if (!video) {
-            throw new Error('Video with this index does not exist');
-        }
-        
-        const updatedVideo = updatedVideos[index] = {
-            ...video,
-            ...update,
-            index: index
-        };
-
-        if ('file' in update && updatedVideo.file && updatedVideo.file !== video.file) {
-            updatedVideo.htmlVideo.src = URL.createObjectURL(updatedVideo.file);
-        }
-
+        const updatedVideos = updateVideoOnIndex(scene, index, update);
         updateScene({ videos: updatedVideos });
     }, [scene, updateScene]);
 
     scene.videos.forEach((v) => {
         v.htmlVideo.onloadedmetadata = null;
         v.htmlVideo.onloadedmetadata = (e) => {
-            updateVideo(
+            const updatedVideos = updateVideoOnIndex(
+                scene,
                 v.index,
                 {
                     startTime: 0,
@@ -53,6 +38,9 @@ export default function useScene(videosCount: number) {
                     totalDuration: v.htmlVideo.duration,
                     naturalVideoDimensions: { width: v.htmlVideo.videoWidth, height: v.htmlVideo.videoHeight }
                 });
+            const sceneEnd = Math.max(scene.endTime, ...updatedVideos.map((v) => v.totalDuration + v.sceneOffset));
+
+            updateScene({ startTime: 0, endTime: sceneEnd, videos: updatedVideos });
         };
 
         v.htmlVideo.oncanplaythrough = (e) => (e.target as any).loadingData = false;
@@ -65,6 +53,29 @@ export default function useScene(videosCount: number) {
         updateScene,
         updateVideo
     };
+}
+
+function updateVideoOnIndex(scene: Scene, index: number, update: Partial<Video>) {
+    const updatedVideos = [...scene.videos];
+    const video = updatedVideos.find((v) => v.index === index);
+
+    if (!video) {
+        throw new Error('Video with this index does not exist');
+    }
+
+    const updatedVideo = updatedVideos[index] = {
+        ...video,
+        ...update,
+        index: index
+    };
+
+    if ('file' in update && updatedVideo.file && updatedVideo.file !== video.file) {
+        updatedVideo.htmlVideo.src = URL.createObjectURL(updatedVideo.file);
+    }
+
+    makeVideoValid(updatedVideo);
+
+    return updatedVideos;
 }
 
 function createVideos(count: number) {
@@ -90,4 +101,15 @@ function createVideos(count: number) {
     }
 
     return videos;
+}
+
+function makeVideoValid(video: Video) {
+    video.startTime = Math.max(0, video.startTime); 
+    video.endTime = Math.min(video.totalDuration, video.endTime); 
+
+    if (video.startTime > video.endTime) {
+        video.endTime = video.startTime;
+    }
+
+    return video;
 }

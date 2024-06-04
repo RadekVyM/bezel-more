@@ -17,7 +17,9 @@ export default function VideoTrimConfiguration({ className, video, updateVideo }
                 id='start'
                 unit='seconds'
                 inputClassName='pr-[4.5rem]'
-                min={0} step={0.1}
+                step={0.1}
+                min={0}
+                max={video.totalDuration}
                 value={video.startTime}
                 onChange={(e) => updateVideo({ startTime: parseFloat(e.target.value) })} />
             <NumberInput
@@ -25,9 +27,20 @@ export default function VideoTrimConfiguration({ className, video, updateVideo }
                 id='end'
                 unit='seconds'
                 inputClassName='pr-[4.5rem]'
-                min={0} step={0.1}
+                step={0.1}
+                min={Math.max(video.startTime, 0)}
+                max={video.totalDuration}
                 value={video.endTime}
                 onChange={(e) => updateVideo({ endTime: parseFloat(e.target.value) })} />
+            <NumberInput
+                label='Scene offset'
+                id='scene-offset'
+                unit='seconds'
+                inputClassName='pr-[4.5rem]'
+                step={0.1}
+                min={0}
+                value={video.sceneOffset}
+                onChange={(e) => updateVideo({ sceneOffset: parseFloat(e.target.value) })} />
         </div>
     )
 }
