@@ -8,6 +8,7 @@ import Button from './Button'
 import { Bezel } from '../types/Bezel'
 import { Scene, getFirstVideo, getTotalSceneDuration } from '../types/Scene'
 import useTimeline from '../hooks/useTimeline'
+import SceneTimeline from './SceneTimeline'
 
 type VideoPreviewerPorps = {
     scene: Scene,
@@ -89,7 +90,7 @@ function VideoPlayer({ className, scene }: VideoPlayerProps) {
 
     return (
         <div
-            className={cn('grid grid-rows-[1fr_auto] gap-6 overflow-hidden', className)}>
+            className={cn('grid grid-rows-[1fr_auto_auto] gap-6 overflow-hidden max-w-full', className)}>
             <VideoCanvas
                 className='h-full row-start-1 row-end-2 col-start-1 col-end-1 w-full relative overflow-hidden'
                 currentTime={currentTime}
@@ -104,6 +105,9 @@ function VideoPlayer({ className, scene }: VideoPlayerProps) {
                 reset={reset}
                 loop={loop}
                 switchLoop={() => setLoop((oldLoop) => !oldLoop)} />
+            <SceneTimeline
+                scene={scene}
+                currentTime={currentTime} />
         </div>
     )
 }

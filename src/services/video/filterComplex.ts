@@ -3,9 +3,7 @@ type FilterParams = {
     output?: string[]
 }
 
-type TrimAndTpadFilterParams = {
-    startTrimTime: number | null,
-    endTrimTime: number | null,
+type TpadFilterParams = {
     startPadDuration: number,
     endPadDuration: number
 } & FilterParams
@@ -32,16 +30,13 @@ export function compose(...filters: string[]) {
     return filters.join(';')
 }
 
-export function trimAndTpad(params: TrimAndTpadFilterParams) {
-    const startTrim = params.startTrimTime ? `start=${params.startTrimTime}` : undefined;
-    const endTrim = params.endTrimTime ? `end=${params.endTrimTime}` : undefined;
+export function tpad(params: TpadFilterParams) {
     const startPad = `start_mode=clone:start_duration=${params.startPadDuration}`;
     const endPad = `stop_mode=clone:stop_duration=${params.endPadDuration}`;
-    const trim = [startTrim, endTrim].filter((t) => t).join(':');
 
     return composeFilter(
         params,
-        `${trim.length > 0 ? `trim=${trim},` : ''}tpad=${startPad}:${endPad}`
+        `tpad=${startPad}:${endPad},setpts=PTS-STARTPTS`
     );
 }
 

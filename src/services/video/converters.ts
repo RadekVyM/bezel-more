@@ -103,16 +103,14 @@ async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
 }
 
 function calculateTrimAndTpad(scene: Scene, video: Video) {
-    const videoStart = video.startTime <= 0 ? null : video.startTime;
-    const videoEnd = video.endTime >= video.totalDuration ? null : video.endTime;
-
-    const totalDuration = getTotalSceneDuration(scene);
+    const videoStart = video.startTime <= 0 ? 0 : video.startTime;
+    const videoEnd = video.endTime >= video.totalDuration ? video.totalDuration : video.endTime;
 
     return {
         videoStart: videoStart,
         videoEnd: videoEnd,
         videoStartPadDuration: video.startTime + video.sceneOffset,
-        videoEndPadDuration: totalDuration - (video.endTime + video.sceneOffset),
+        videoEndPadDuration: Math.max(0, scene.endTime - (video.endTime + video.sceneOffset)),
     };
 }
 
@@ -123,25 +121,24 @@ function bezelFfmpegArgs(
     width: number,
     height: number,
     videoScale: number,
-    videoStart: number | null,
-    videoEnd: number | null,
+    videoStart: number,
+    videoEnd: number,
     videoStartPadDuration: number,
     videoEndPadDuration: number,
     scene: Scene
 ) {
     return [
-        '-i', videoName,
+        '-ss', `${videoStart}`, '-t', `${videoEnd - videoStart}`, '-i', videoName,
         '-i', bezelName,
         '-i', bezelMaskName,
+        '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
         '-filter_complex',
         fc.compose(
-            fc.trimAndTpad({
+            fc.tpad({
                 input: ['0:v'],
                 output: ['trimmed-video'],
                 startPadDuration: videoStartPadDuration,
                 endPadDuration: videoEndPadDuration,
-                startTrimTime: videoStart,
-                endTrimTime: videoEnd
             }),
             fc.scale({
                 input: ['trimmed-video'],
@@ -198,28 +195,27 @@ function bezelFfmpegArgs(
 
 function ffmpegArgs(
     videoName: string,
-    videoStart: number | null,
-    videoEnd: number | null,
+    videoStart: number,
+    videoEnd: number,
     videoStartPadDuration: number,
     videoEndPadDuration: number,
     size: number,
     scene: Scene
 ) {
     return [
-        '-i', videoName,
+        '-ss', `${videoStart}`, '-t', `${videoEnd - videoStart}`, '-i', videoName,
+        '-avoid_negative_ts', 'make_zero',
         '-filter_complex',
         fc.compose(
             fc.rgba({
                 input: ['0:v'],
                 output: ['rgba-video']
             }),
-            fc.trimAndTpad({
+            fc.tpad({
                 input: ['rgba-video'],
                 output: ['trimmed-video'],
                 startPadDuration: videoStartPadDuration,
                 endPadDuration: videoEndPadDuration,
-                startTrimTime: videoStart,
-                endTrimTime: videoEnd
             }),
             fc.scale({
                 input: ['trimmed-video'],
@@ -256,7 +252,7 @@ function webpOutput(fileName: string, start: number, length: number, size?: [num
         '-lossless', '1',
         '-loop', '0',
         '-preset', 'picture',
-        '-an', '-vsync', '0',
+        '-an', '-fps_mode', 'auto', // https://ffmpeg.org/ffmpeg.html#:~:text=%2Dfps_mode%5B%3Astream_specifier%5D%20parameter%20(output%2Cper%2Dstream)
         ...(size ? ['-s', `${size[0]}:${size[1]}`] : []),
         '-t', `${length}`, '-ss', `${start}`, fileName
     ]
