@@ -104,8 +104,9 @@ function createVideos(count: number) {
 }
 
 function makeVideoValid(video: Video) {
-    video.startTime = Math.max(0, video.startTime); 
-    video.endTime = Math.min(video.totalDuration, video.endTime); 
+    video.startTime = Math.max(0, video.startTime);
+    video.endTime = Math.min(video.totalDuration, video.endTime);
+    video.sceneOffset = Math.max(0, video.sceneOffset);
 
     if (video.startTime > video.endTime) {
         video.endTime = video.startTime;

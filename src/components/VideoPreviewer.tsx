@@ -9,15 +9,20 @@ import { Bezel } from '../types/Bezel'
 import { Scene, getFirstVideo, getTotalSceneDuration } from '../types/Scene'
 import useTimeline from '../hooks/useTimeline'
 import SceneTimeline from './SceneTimeline'
+import { Video } from '../types/Video'
 
-type VideoPreviewerPorps = {
+type VideoPreviewerProps = {
     scene: Scene,
-    className?: string
+    className?: string,
+    updateVideo: (index: number, video: Partial<Video>) => void,
+    updateScene: (scene: Partial<Scene>) => void,
 }
 
 type VideoPlayerProps = {
     scene: Scene,
     className?: string,
+    updateVideo: (index: number, video: Partial<Video>) => void,
+    updateScene: (scene: Partial<Scene>) => void,
 }
 
 type VideoCanvasProps = {
@@ -35,15 +40,16 @@ type VideoControlsProps = {
     play: () => void,
     pause: () => void,
     reset: () => void,
-    seek: (newTime: number) => void,
     switchLoop: () => void
 }
 
-export default function VideoPreviewer({ scene, className }: VideoPreviewerPorps) {
+export default function VideoPreviewer({ scene, className, updateScene, updateVideo }: VideoPreviewerProps) {
     return scene.videos.every((v) => v.file) ?
         <VideoPlayer
             scene={scene}
-            className={className} /> :
+            className={className}
+            updateScene={updateScene}
+            updateVideo={updateVideo} /> :
         <div
             className={cn('grid place-content-center justify-items-center text-on-surface-container-muted', className)}>
             <MdOutlineUploadFile
@@ -55,7 +61,7 @@ export default function VideoPreviewer({ scene, className }: VideoPreviewerPorps
         </div>
 }
 
-function VideoPlayer({ className, scene }: VideoPlayerProps) {
+function VideoPlayer({ className, scene, updateScene, updateVideo }: VideoPlayerProps) {
     const videoFiles = useRef<Array<File | undefined | null> | null>(null);
     const {
         currentTime,
@@ -101,18 +107,20 @@ function VideoPlayer({ className, scene }: VideoPlayerProps) {
                 currentTime={currentTime}
                 play={play}
                 pause={pause}
-                seek={seek}
                 reset={reset}
                 loop={loop}
                 switchLoop={() => setLoop((oldLoop) => !oldLoop)} />
             <SceneTimeline
                 scene={scene}
-                currentTime={currentTime} />
+                currentTime={currentTime}
+                seek={seek}
+                updateScene={updateScene}
+                updateVideo={updateVideo}  />
         </div>
     )
 }
 
-function VideoControls({ className, scene, currentTime, isPlaying, loop, play, pause, seek, reset, switchLoop }: VideoControlsProps) {
+function VideoControls({ className, scene, currentTime, isPlaying, loop, play, pause, reset, switchLoop }: VideoControlsProps) {
     const totalDuration = getTotalSceneDuration(scene);
 
     function onPlayClick() {
@@ -153,14 +161,6 @@ function VideoControls({ className, scene, currentTime, isPlaying, loop, play, p
                 </div>
                 <span className='self-center'>{currentTime.toFixed(2)} / {totalDuration.toFixed(2)}</span>
             </div>
-            <input
-                className='accent-on-surface-container'
-                type='range'
-                min={0}
-                max={totalDuration}
-                step={0.001}
-                value={currentTime}
-                onChange={(e) => seek(parseFloat(e.target.value))} />
         </div>
     )
 }

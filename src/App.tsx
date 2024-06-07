@@ -24,7 +24,7 @@ import Button from './components/Button'
 import ComponentSwitch from './components/ComponentSwitch'
 import SubsectionHeading from './components/SubsectionHeading'
 import useScene from './hooks/useScene'
-import { Video, createVideo } from './types/Video'
+import { Video } from './types/Video'
 import { Scene, getFirstVideo } from './types/Scene'
 import VideoSizeConfiguration from './components/VideoSizeConfiguration'
 import SceneConfiguration from './components/SceneConfiguration'
@@ -139,7 +139,9 @@ function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
             videoPreviewer={
                 <VideoPreviewer
                     className='h-full'
-                    scene={scene} />
+                    scene={scene}
+                    updateScene={updateScene}
+                    updateVideo={updateVideo} />
             }
             resultPreviewer={
                 <ResultPreviewer
