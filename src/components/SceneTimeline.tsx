@@ -89,7 +89,7 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
     const timeAxisHeight = 30;
     const timeAxisSceneSpacing = 10;
     const horizontalPadding = 16;
-    const bottomPadding = 16;
+    const bottomPadding = 10;
     const outerDivRef = useRef<HTMLDivElement>(null);
     const dimensions = useDimensions(outerDivRef);
     const totalDuration = getTotalSceneDuration(scene) || 10;

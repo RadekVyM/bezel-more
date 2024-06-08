@@ -8,6 +8,7 @@ import { ConversionProgress } from './types/ConversionProgress'
 import SectionHeading from './components/SectionHeading'
 import BezelSelection from './components/BezelSelection'
 import { RiLoopLeftLine } from 'react-icons/ri'
+import { BiMoviePlay } from 'react-icons/bi'
 import { IoMenu, IoOptions } from 'react-icons/io5'
 import { useMediaQuery } from 'usehooks-ts'
 import useContentDialog from './hooks/useContentDialog'
@@ -28,20 +29,28 @@ import { Video } from './types/Video'
 import { Scene, getFirstVideo } from './types/Scene'
 import VideoSizeConfiguration from './components/VideoSizeConfiguration'
 import SceneConfiguration from './components/SceneConfiguration'
+import { FaRegFileVideo } from 'react-icons/fa'
+
+type EditProps = {
+    scene: Scene,
+    updateScene: (scene: Partial<Scene>) => void,
+    updateVideo: (index: number, video: Partial<Video>) => void,
+}
+
+type EditSceneProps = {
+    scene: Scene,
+    updateScene: (scene: Partial<Scene>) => void,
+}
 
 type EditVideoProps = {
     video: Video,
-    scene: Scene,
-    withTitle?: boolean,
     onFileSelected: (video: File | null | undefined) => void,
     updateVideo: (video: Partial<Video>) => void,
-    updateScene: (scene: Partial<Scene>) => void,
 }
 
 type ConvertProps = {
     scene: Scene,
     converting: boolean,
-    withTitle?: boolean,
     canConvert?: boolean,
     convert: () => Promise<void>,
     updateScene: (scene: Partial<Scene>) => void,
@@ -117,16 +126,10 @@ function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
     return (
         <MainScaffold
             edit={
-                <EditVideo
-                    updateVideo={(update) => updateVideo(0, update)}
-                    video={getFirstVideo(scene)}
+                <Edit
+                    updateVideo={updateVideo}
                     scene={scene}
-                    updateScene={updateScene}
-                    onFileSelected={(file) => {
-                        if (file) {
-                            updateVideo(0, { file });
-                        }
-                    }} />
+                    updateScene={updateScene} />
             }
             convert={
                 <Convert
@@ -156,7 +159,7 @@ function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
 }
 
 function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer }: MainScaffoldProps) {
-    const isLarge = useMediaQuery('(min-width: 60rem)');
+    const isLarge = useIsLarge();
     const [selectedStep, setSelectedStep] = useState<Step>('edit');
     const [convertDialogRef, isConvertDialogOpen, convertDialogAnimation, showConvertDialog, hideConvertDialog] =
         useContentDialog(!isLarge);
@@ -214,20 +217,23 @@ function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer }: MainSc
 
             {
                 isLarge &&
-                <Container
-                    className='h-full max-h-full overflow-auto thin-scrollbar py-7 px-5 flex-1'>
+                <div
+                    className='h-full max-h-full overflow-hidden'>
                     <ComponentSwitch
                         selectedKey={selectedStep}>
-                        <div key='edit'>
-                            <SectionHeading>Edit</SectionHeading>
+                        <div
+                            key='edit'
+                            className='h-full max-h-full'>
                             {edit}
                         </div>
-                        <div key='convert'>
+                        <Container
+                            key='convert'
+                            className='h-full max-h-full overflow-auto thin-scrollbar py-7 px-5 flex-1'>
                             <SectionHeading>Convert</SectionHeading>
                             {convert}
-                        </div>
+                        </Container>
                     </ComponentSwitch>
-                </Container>
+                </div>
             }
 
             <div
@@ -281,12 +287,75 @@ function PageHeading() {
     )
 }
 
-function EditVideo({ video, scene, withTitle, updateVideo, updateScene, onFileSelected }: EditVideoProps) {
+function Edit({ scene, updateScene, updateVideo }: EditProps) {
+    const [selection, setSelection] = useState<'scene' | 'video'>('scene');
+    const video = getFirstVideo(scene);
+    const isLarge = useIsLarge();
+
+    const content = (
+        <ComponentSwitch
+            selectedKey={selection}>
+            <EditScene
+                key='scene'
+                scene={scene}
+                updateScene={updateScene} />
+            <EditVideo
+                key='video'
+                updateVideo={(update) => updateVideo(video.index, update)}
+                video={video}
+                onFileSelected={(file) => {
+                    if (file) {
+                        updateVideo(video.index, { file });
+                    }
+                }} />
+        </ComponentSwitch>
+    );
+
     return (
         <div
+            className='flex flex-col gap-3 h-full max-h-full overflow-hidden'>
+            <Tabs
+                tabs={[
+                    { key: 'scene', title: 'Scene', icon: <BiMoviePlay className='w-5 h-5' />, onClick: () => setSelection('scene') },
+                    { key: 'video', title: 'Video', icon: <FaRegFileVideo className='w-4 h-4' />, onClick: () => setSelection('video') },
+                ]}
+                selectedTabKey={selection}/>
+            {!isLarge ?
+                <div className='pt-4'>{content}</div> :
+                <Container
+                    className='h-full max-h-full overflow-auto thin-scrollbar py-7 px-5 flex-1'>
+                    <SectionHeading className='sr-only'>Edit</SectionHeading>
+                    {content}
+                </Container>}
+        </div>
+    )
+}
+
+function EditScene({ scene, updateScene }: EditSceneProps) {
+    const isLarge = useIsLarge();
+
+    return (
+        <article
             className='flex flex-col gap-6'>
             <div>
-                {withTitle && <SectionHeading>Edit</SectionHeading>}
+                {isLarge && <SectionHeading>Edit scene</SectionHeading>}
+                {<SubsectionHeading>Trim scene</SubsectionHeading>}
+                <SceneConfiguration
+                    scene={scene}
+                    updateScene={updateScene}/>
+            </div>
+        </article>
+    )
+}
+
+function EditVideo({ video, updateVideo, onFileSelected }: EditVideoProps) {
+    const isLarge = useIsLarge();
+
+    return (
+        <article
+            className='flex flex-col gap-6'>
+            <div>
+                {isLarge && <SectionHeading>Edit video</SectionHeading>}
                 <FileSelection
                     video={video.file}
                     setVideo={onFileSelected} />
@@ -296,12 +365,6 @@ function EditVideo({ video, scene, withTitle, updateVideo, updateScene, onFileSe
                 <VideoSizeConfiguration
                     video={video}
                     updateVideo={updateVideo}/>
-            </div>
-            <div>
-                {<SubsectionHeading>Trim scene</SubsectionHeading>}
-                <SceneConfiguration
-                    scene={scene}
-                    updateScene={updateScene}/>
             </div>
             <div>
                 <SubsectionHeading>Trim video</SubsectionHeading>
@@ -315,15 +378,13 @@ function EditVideo({ video, scene, withTitle, updateVideo, updateScene, onFileSe
                     video={video}
                     updateVideo={updateVideo} />
             </div>
-        </div>
+        </article>
     )
 }
 
-function Convert({ scene, canConvert, converting, withTitle, convert, updateScene }: ConvertProps) {
+function Convert({ scene, canConvert, converting, convert, updateScene }: ConvertProps) {
     return (
         <>
-            {withTitle && <SectionHeading>Convert</SectionHeading>}
-
             <ConversionConfiguration
                 scene={scene}
                 updateScene={updateScene} />
@@ -351,4 +412,8 @@ function ConvertButton({ convert, disabled, converting, className }: ConvertButt
             <span className='ml-3'>Convert</span>
         </Button>
     )
+}
+
+function useIsLarge() {
+    return useMediaQuery('(min-width: 60rem)');
 }

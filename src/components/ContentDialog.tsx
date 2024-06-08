@@ -18,7 +18,7 @@ export const ContentDialog = forwardRef<HTMLDialogElement, ContentDialogProps>((
         <Dialog
             ref={ref}
             animation={animation}
-            className={cn(className, 'w-full h-full px-6 pb-6 thin-scrollbar', slideInFromBottom ? 'max-w-full max-h-[90vh] mt-auto mb-0' : 'max-w-[30rem] max-h-full ml-auto mr-0')}>
+            className={cn(className, 'w-full h-full px-6 pb-6 thin-scrollbar overflow-y-scroll', slideInFromBottom ? 'max-w-full max-h-[90vh] mt-auto mb-0' : 'max-w-[30rem] max-h-full ml-auto mr-0')}>
             <article
                 className='isolate bg-inherit'>
                 <header
