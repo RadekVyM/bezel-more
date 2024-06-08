@@ -41,7 +41,7 @@ export function trimAndTpad(params: TrimAndTpadFilterParams) {
 
     return composeFilter(
         params,
-        `${trim.length > 0 ? `trim=${trim},` : ''}tpad=${startPad}:${endPad}`
+        `${trim.length > 0 ? `trim=${trim},setpts=PTS-STARTPTS,` : ''}tpad=${startPad}:${endPad},setpts=PTS-STARTPTS`
     );
 }
 
@@ -88,10 +88,10 @@ export function fps(params: FpsFilterParams) {
     )
 }
 
-export function rgba(params: FilterParams) {
+export function yuv(params: FilterParams) {
     return composeFilter(
         params,
-        `format=rgba`
+        `format=yuv420p`
     )
 }
 

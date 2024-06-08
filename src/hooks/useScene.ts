@@ -5,10 +5,10 @@ import { Video, createVideo } from '../types/Video'
 
 export default function useScene(videosCount: number) {
     const [scene, updateScene] = useReducer(
-        (state: Scene, newState: Partial<Scene>) => ({
+        (state: Scene, newState: Partial<Scene>) => (makeSceneValid({
             ...state,
             ...newState,
-        }),
+        })),
         {
             videos: createVideos(videosCount),
             fps: 20,
@@ -103,13 +103,20 @@ function createVideos(count: number) {
     return videos;
 }
 
+function makeSceneValid(scene: Scene) {
+    scene.startTime = Math.max(0, scene.startTime);
+    scene.endTime = Math.max(scene.startTime, scene.endTime);
+
+    return scene;
+}
+
 function makeVideoValid(video: Video) {
     video.startTime = Math.max(0, video.startTime);
     video.endTime = Math.min(video.totalDuration, video.endTime);
     video.sceneOffset = Math.max(0, video.sceneOffset);
 
     if (video.startTime > video.endTime) {
-        video.endTime = video.startTime;
+        video.startTime = video.endTime;
     }
 
     return video;

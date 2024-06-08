@@ -3,24 +3,31 @@ import { cn } from '../utils/tailwind'
 import Button from './Button'
 import { ConversionProgress } from '../types/ConversionProgress'
 import { FiDownload } from 'react-icons/fi'
+import Container from './Container'
+import { SupportedFormat, supportedFormats } from '../supportedFormats'
 
 type ResultPreviewerProps = {
     resultUrl: string | null,
     fileName: string | null,
     resultSize: number,
     progress: ConversionProgress | null,
+    formatKey: SupportedFormat,
     className?: string
 }
 
-export default function ResultPreviewer({ resultUrl, fileName, resultSize, progress, className }: ResultPreviewerProps) {
+export default function ResultPreviewer({ resultUrl, fileName, resultSize, progress, formatKey, className }: ResultPreviewerProps) {
     return (
-        <div
-            className={cn('flex flex-col gap-6', className)}>
+        <Container
+            className={cn('flex flex-col gap-6 p-5', className)}>
             <div
                 className='flex-1 flex items-center w-full overflow-hidden'>
                 {
                     resultUrl ?
-                        <img className='max-h-full m-auto object-contain' src={resultUrl} alt='Result' /> :
+                        <>
+                            {supportedFormats[formatKey].type.startsWith('image') ?
+                                <img className='max-h-full m-auto object-contain' src={resultUrl} alt='Result' /> :
+                                <video className='max-h-full m-auto object-contain' loop autoPlay controls src={resultUrl} />}
+                        </> :
                         <div
                             className='flex flex-col items-center justify-center pt-5 pb-6 w-full text-on-surface-container-muted'>
                             <MdOutlineVideoLibrary
@@ -56,6 +63,6 @@ export default function ResultPreviewer({ resultUrl, fileName, resultSize, progr
                     </span>
                 </div>
             }
-        </div>
+        </Container>
     )
 }

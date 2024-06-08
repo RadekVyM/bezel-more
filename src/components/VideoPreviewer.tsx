@@ -10,6 +10,7 @@ import { Scene, getFirstVideo, getTotalSceneDuration } from '../types/Scene'
 import useTimeline from '../hooks/useTimeline'
 import SceneTimeline from './SceneTimeline'
 import { Video } from '../types/Video'
+import Container from './Container'
 
 type VideoPreviewerProps = {
     scene: Scene,
@@ -50,7 +51,7 @@ export default function VideoPreviewer({ scene, className, updateScene, updateVi
             className={className}
             updateScene={updateScene}
             updateVideo={updateVideo} /> :
-        <div
+        <Container
             className={cn('grid place-content-center justify-items-center text-on-surface-container-muted', className)}>
             <MdOutlineUploadFile
                 className='w-8 h-8 mb-4' />
@@ -58,7 +59,7 @@ export default function VideoPreviewer({ scene, className, updateScene, updateVi
                 className='mb-2 text-sm'>
                 No video uploaded
             </p>
-        </div>
+        </Container>
 }
 
 function VideoPlayer({ className, scene, updateScene, updateVideo }: VideoPlayerProps) {
@@ -96,26 +97,32 @@ function VideoPlayer({ className, scene, updateScene, updateVideo }: VideoPlayer
 
     return (
         <div
-            className={cn('grid grid-rows-[1fr_auto_auto] gap-6 overflow-hidden max-w-full', className)}>
-            <VideoCanvas
-                className='h-full row-start-1 row-end-2 col-start-1 col-end-1 w-full relative overflow-hidden'
-                currentTime={currentTime}
-                scene={scene} />
-            <VideoControls
-                scene={scene}
-                isPlaying={isPlaying}
-                currentTime={currentTime}
-                play={play}
-                pause={pause}
-                reset={reset}
-                loop={loop}
-                switchLoop={() => setLoop((oldLoop) => !oldLoop)} />
-            <SceneTimeline
-                scene={scene}
-                currentTime={currentTime}
-                seek={seek}
-                updateScene={updateScene}
-                updateVideo={updateVideo}  />
+            className={cn('grid grid-rows-[1fr_auto] gap-3', className)}>
+            <Container
+                className='grid grid-rows-[1fr_auto] gap-6 p-5 relative overflow-hidden'>
+                <VideoCanvas
+                    className='relative overflow-hidden'
+                    currentTime={currentTime}
+                    scene={scene} />
+                <VideoControls
+                    scene={scene}
+                    isPlaying={isPlaying}
+                    currentTime={currentTime}
+                    play={play}
+                    pause={pause}
+                    reset={reset}
+                    loop={loop}
+                    switchLoop={() => setLoop((oldLoop) => !oldLoop)} />
+            </Container>
+            <Container>
+                <SceneTimeline
+                    className='px-1'
+                    scene={scene}
+                    currentTime={currentTime}
+                    seek={seek}
+                    updateScene={updateScene}
+                    updateVideo={updateVideo}  />
+            </Container>
         </div>
     )
 }

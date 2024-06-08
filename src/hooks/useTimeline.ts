@@ -6,7 +6,7 @@ export default function useTimeline(scene: Scene) {
     const timeLoopRef = useRef<Loop | null>(null);
     const loopRef = useRef<boolean>(false);
     const sceneRef = useRef<Scene>(scene);
-    const [currentTime, setCurrentTime] = useState<number>(0);
+    const [currentTime, setCurrentTime] = useState<number>(scene.startTime);
     const [loop, setLoop] = useState<boolean>(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
 

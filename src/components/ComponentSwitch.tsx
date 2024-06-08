@@ -1,5 +1,4 @@
 type ComponentSwitchProps = {
-    className?: string,
     selectedKey: React.ReactNode,
     children: Array<React.ReactElement<any, string | React.JSXElementConstructor<any>>>
 }

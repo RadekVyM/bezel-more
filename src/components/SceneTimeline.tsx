@@ -4,6 +4,7 @@ import { Scene, getTotalSceneDuration } from '../types/Scene'
 import useDimensions from '../hooks/useDimensions'
 import { cn } from '../utils/tailwind'
 import { useEventListener } from 'usehooks-ts'
+import { round } from '../utils/numbers'
 
 type SceneTimelineProps = {
     scene: Scene,
@@ -82,16 +83,18 @@ const HIGHLIGHTED_TICKS_INTERVALS = [
 ];
 
 export default function SceneTimeline({ scene, currentTime, className, seek, updateScene, updateVideo }: SceneTimelineProps) {
-    const videoTimelineHeight = 50;
+    const videoTimelineHeight = 36;
     const videoTimelineSpacing = 5;
-    const sceneRangeHeight = 20;
+    const sceneRangeHeight = 15;
     const timeAxisHeight = 30;
+    const timeAxisSceneSpacing = 10;
     const horizontalPadding = 16;
+    const bottomPadding = 16;
     const outerDivRef = useRef<HTMLDivElement>(null);
     const dimensions = useDimensions(outerDivRef);
     const totalDuration = getTotalSceneDuration(scene) || 10;
     const width = dimensions.width - (horizontalPadding * 2);
-    const height = (videoTimelineHeight * scene.videos.length) + (videoTimelineSpacing * scene.videos.length) + videoTimelineSpacing + timeAxisHeight + sceneRangeHeight;
+    const height = ((videoTimelineHeight + videoTimelineSpacing) * scene.videos.length) + videoTimelineSpacing + timeAxisHeight + sceneRangeHeight + timeAxisSceneSpacing;
 
     return (
         <div
@@ -108,14 +111,14 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
 
             <svg
                 width={dimensions.width}
-                height={height}
+                height={height + bottomPadding}
                 className='w-full h-full'>
                 <SceneRange
                     totalDuration={totalDuration}
                     sceneStart={scene.startTime}
                     sceneEnd={scene.endTime}
                     left={horizontalPadding}
-                    top={timeAxisHeight}
+                    top={timeAxisHeight + timeAxisSceneSpacing}
                     width={width}
                     height={sceneRangeHeight}
                     updateScene={updateScene} />
@@ -126,7 +129,7 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
                         video={v}
                         totalDuration={totalDuration}
                         left={horizontalPadding}
-                        top={timeAxisHeight + sceneRangeHeight + videoTimelineSpacing + (videoTimelineHeight + videoTimelineSpacing) * index}
+                        top={timeAxisHeight + timeAxisSceneSpacing + sceneRangeHeight + videoTimelineSpacing + (videoTimelineHeight + videoTimelineSpacing) * index}
                         width={width}
                         height={videoTimelineHeight}
                         updateVideo={updateVideo} />)}
@@ -160,7 +163,12 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, updateV
     const selectedVideoOffset = videoOffset + (width * (video.startTime / totalDuration));
     const selectedVideoX = left + selectedVideoOffset;
     const startEndHalfWidth = 5;
+    const radius = 4;
     const [cursor, setCursor] = useState('');
+
+    function isMoving() {
+        return (isMovingRef.current || isMovingStartRef.current || isMovingEndRef.current);
+    }
 
     function isOverLeftThumb(pointerX: number) {
         return pointerX >= selectedVideoOffset - startEndHalfWidth && pointerX <= selectedVideoOffset + startEndHalfWidth;
@@ -175,10 +183,9 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, updateV
             return;
         }
 
-        const rect = gRef.current.getBoundingClientRect();
-        const pointerX = e.clientX - rect.left;
+        const pointerX = getPointerX(gRef.current, e.clientX);
 
-        setCursor(isOverLeftThumb(pointerX) || isOverRightThumb(pointerX) ?
+        setCursor(!isMovingRef.current && (isMovingStartRef.current || isMovingEndRef.current || isOverLeftThumb(pointerX) || isOverRightThumb(pointerX)) ?
             'cursor-col-resize' :
             'cursor-move');
     }
@@ -188,8 +195,7 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, updateV
             return;
         }
 
-        const rect = gRef.current.getBoundingClientRect();
-        const pointerX = e.clientX - rect.left;
+        const pointerX = getPointerX(gRef.current, e.clientX);
 
         downSceneOffsetRef.current = video.sceneOffset;
         downStartTimeRef.current = video.startTime;
@@ -208,12 +214,11 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, updateV
     }
 
     useEventListener('pointermove', (e) => {
-        if (!(isMovingRef.current || isMovingStartRef.current || isMovingEndRef.current) || !gRef.current) {
+        if (!isMoving() || !gRef.current) {
             return;
         }
 
-        const rect = gRef.current.getBoundingClientRect();
-        const pointerX = e.clientX - rect.left;
+        const pointerX = getPointerX(gRef.current, e.clientX);
         const difference = pointerX - downXRef.current;
         const offset = Math.round((totalDuration * (difference / width) * 100) * (1 + Number.EPSILON)) / 100;
         
@@ -239,50 +244,126 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, updateV
         isMovingRef.current = false;
         isMovingStartRef.current = false;
         isMovingEndRef.current = false;
+        setCursor('');
     });
 
     return (
         <g
             ref={gRef}>
             <rect
-                className='stroke-secondary stroke-2 fill-transparent'
+                className='stroke-secondary stroke-2 fill-transparent opacity-90'
                 strokeDasharray={5}
                 x={left} y={top}
-                width={width} height={height}
-                rx={4} ry={4} />
+                width={Math.max(0, width)} height={height}
+                rx={radius} ry={radius} />
             <rect
-                className={cn('fill-secondary opacity-40', cursor)}
-                strokeDasharray={5}
+                className={cn('fill-secondary stroke-2 stroke-secondary opacity-40', cursor)}
                 x={left + videoOffset} y={top}
-                width={videoWidth} height={height}
-                rx={4} ry={4}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove} />
+                width={Math.max(0, videoWidth)} height={height}
+                rx={radius} ry={radius} />
             <rect
-                className={cn('fill-secondary', cursor)}
-                strokeDasharray={5}
+                className={cn('fill-secondary stroke-2 stroke-secondary drop-shadow-lg transition-colors', (cursor === 'cursor-col-resize') && 'stroke-on-surface-container', cursor)}
                 x={selectedVideoX} y={top}
-                width={selectedVideoWidth} height={height}
-                rx={4} ry={4}
+                width={Math.max(0, selectedVideoWidth)} height={height}
+                rx={radius} ry={radius} />
+            <rect
+                className={cn('fill-transparent stroke-2 stroke-transparent transition-colors', (cursor === 'cursor-move') && 'stroke-on-surface-container', cursor)}
+                x={left + videoOffset} y={top}
+                width={Math.max(0, videoWidth)} height={height}
+                rx={radius} ry={radius}
                 onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove} />
+                onPointerMove={onPointerMove}
+                onPointerLeave={() => !isMoving() && setCursor('')} />
         </g>
     )
 }
 
-function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDuration }: SceneRangeProps) {
+function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDuration, updateScene }: SceneRangeProps) {
+    const gRef = useRef<SVGRectElement>(null);
+    const downXRef = useRef<number>(0);
+    const downStartTimeRef = useRef<number>(0);
+    const downEndTimeRef = useRef<number>(0);
+    const isMovingStartRef = useRef<boolean>(false);
+    const isMovingEndRef = useRef<boolean>(false);
     const rangeWidth = width * ((sceneEnd - sceneStart) / totalDuration);
     const rangeHeight = 4;
     const rangeOffset = width * (sceneStart / totalDuration);
+    const thumbWidth = 7;
+    const thumbHeight = height;
+    const x = left + rangeOffset;
+
+    function onStartPointerDown(e: PointerEvent<SVGPolygonElement>) {
+        if (!gRef.current) {
+            return;
+        }
+        
+        const pointerX = getPointerX(gRef.current, e.clientX);
+
+        downXRef.current = pointerX;
+        downStartTimeRef.current = sceneStart;
+        isMovingStartRef.current = true;
+    }
+
+    function onEndPointerDown(e: PointerEvent<SVGPolygonElement>) {
+        if (!gRef.current) {
+            return;
+        }
+        
+        const pointerX = getPointerX(gRef.current, e.clientX);
+
+        downXRef.current = pointerX;
+        downEndTimeRef.current = sceneEnd;
+        isMovingEndRef.current = true;
+    }
+
+    useEventListener('pointermove', (e) => {
+        if (!gRef.current) {
+            return;
+        }
+
+        const pointerX = getPointerX(gRef.current, e.clientX);
+        const difference = pointerX - downXRef.current;
+        const offset = round(totalDuration * (difference / width), 2);
+
+        if (isMovingStartRef.current) {
+            updateScene({ startTime: downStartTimeRef.current + offset });
+        }
+        if (isMovingEndRef.current) {
+            updateScene({ endTime: downEndTimeRef.current + offset });
+        }
+    });
+
+    useEventListener('pointerup', (e) => {
+        isMovingStartRef.current = false;
+        isMovingEndRef.current = false;
+    });
 
     return (
         <g>
             <rect
+                ref={gRef}
+                className='fill-transparent'
+                x={left} y={top}
+                width={Math.max(0, width)} height={height} />
+            <polygon
+                onPointerDown={onStartPointerDown}
+                className='fill-on-surface-container drop-shadow-lg stroke-surface-container stroke-2'
+                strokeLinecap='round' strokeLinejoin='round'
+                points={`
+                    ${x - thumbWidth},${top} ${x},${top}
+                    ${x},${top + thumbHeight} ${x - thumbWidth},${top + (thumbHeight * 0.65)}`}/>
+            <rect
                 className='fill-on-surface-container-muted'
                 strokeDasharray={5}
-                x={left + rangeOffset} y={top + (height - rangeHeight) / 2}
-                width={rangeWidth} height={rangeHeight}
-                rx={2} ry={2}/>
+                x={x} y={top + (height - rangeHeight) / 2}
+                width={Math.max(0, rangeWidth)} height={rangeHeight}/>
+            <polygon
+                onPointerDown={onEndPointerDown}
+                className='fill-on-surface-container drop-shadow-lg stroke-surface-container stroke-2'
+                strokeLinecap='round' strokeLinejoin='round'
+                points={`
+                    ${x + rangeWidth},${top} ${x + rangeWidth + thumbWidth},${top}
+                    ${x + rangeWidth + thumbWidth},${top + (thumbHeight * 0.65)} ${x + rangeWidth},${top + thumbHeight}`}/>
         </g>
     )
 }
@@ -315,7 +396,7 @@ function Slider({ width, height, fullHeight, left, top, currentTime, totalDurati
     const isDownRef = useRef<boolean>(false);
     const thumbHalfWidth = 8;
     const thumbHeight = height / 2.2;
-    const lineHalfWidth = 1.2;
+    const lineHalfWidth = 2;
     const x = width * (currentTime / totalDuration) + left;
     
     function onSeek(clientX: number) {
@@ -323,8 +404,7 @@ function Slider({ width, height, fullHeight, left, top, currentTime, totalDurati
             return;
         }
 
-        const rect = gRef.current.getBoundingClientRect();
-        const pointerX = clientX - rect.left;
+        const pointerX = getPointerX(gRef.current, clientX);
         const newTime = totalDuration * (pointerX / width);
 
         seek(newTime);
@@ -355,9 +435,9 @@ function Slider({ width, height, fullHeight, left, top, currentTime, totalDurati
             <rect
                 className='fill-transparent'
                 x={left} y={top}
-                width={width} height={height} />
+                width={Math.max(0, width)} height={height} />
             <polygon
-                className='fill-on-surface-container'
+                className='fill-on-surface-container drop-shadow-lg stroke-surface-container stroke-2'
                 strokeLinecap='round' strokeLinejoin='round'
                 points={`
                     ${x - thumbHalfWidth},${top} ${x + thumbHalfWidth},${top}
@@ -458,4 +538,9 @@ function getHighlightedIntervals(interval: number) {
         highlightedInterval: HIGHLIGHTED_TICKS_INTERVALS[intervalIndex],
         subhighlightedInterval: HIGHLIGHTED_TICKS_INTERVALS[intervalIndex] / 2
     };
+}
+
+function getPointerX(element: Element, clientX: number) {
+    const rect = element.getBoundingClientRect();
+    return clientX - rect.left;
 }

@@ -62,8 +62,10 @@ async function convertWithBezel(ffmpeg: FFmpeg, scene: Scene) {
             scene
         ),
         ...(scene.formatKey === supportedFormats.gif.key ?
-            gifOutput(fileName, scene.startTime, scene.endTime - scene.startTime) :
-            webpOutput(fileName, scene.startTime, scene.endTime - scene.startTime, [width, height]))
+            gifOutput(fileName) :
+            scene.formatKey === supportedFormats.mp4.key ?
+                mp4Output(fileName, [width, height]) :
+                webpOutput(fileName, [width, height]))
     ]);
 
     return await ffmpeg.readFile(fileName);
@@ -95,24 +97,26 @@ async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
             video.requestedMaxSize,
             scene),
         ...(scene.formatKey === supportedFormats.gif.key ?
-            gifOutput(fileName, scene.startTime, scene.endTime - scene.startTime) :
-            webpOutput(fileName, scene.startTime, scene.endTime - scene.startTime))
+            gifOutput(fileName) :
+            scene.formatKey === supportedFormats.mp4.key ?
+                mp4Output(fileName) :
+                webpOutput(fileName))
     ]);
 
     return await ffmpeg.readFile(fileName);
 }
 
 function calculateTrimAndTpad(scene: Scene, video: Video) {
-    const videoStart = video.startTime <= 0 ? null : video.startTime;
-    const videoEnd = video.endTime >= video.totalDuration ? null : video.endTime;
+    const videoStart = Math.max(video.startTime, scene.startTime - video.sceneOffset);
+    const videoEnd = Math.min(video.endTime, scene.endTime - video.sceneOffset);
 
     const totalDuration = getTotalSceneDuration(scene);
 
     return {
-        videoStart: videoStart,
-        videoEnd: videoEnd,
-        videoStartPadDuration: video.startTime + video.sceneOffset,
-        videoEndPadDuration: totalDuration - (video.endTime + video.sceneOffset),
+        videoStart: videoStart <= 0 ? null : videoStart,
+        videoEnd: videoEnd >= totalDuration ? null : videoEnd,
+        videoStartPadDuration: Math.max(0, videoStart + video.sceneOffset - scene.startTime),
+        videoEndPadDuration: Math.max(0, scene.endTime - (videoEnd + video.sceneOffset)),
     };
 }
 
@@ -211,12 +215,12 @@ function ffmpegArgs(
         '-avoid_negative_ts', 'make_zero',
         '-filter_complex',
         fc.compose(
-            fc.rgba({
+            fc.yuv({
                 input: ['0:v'],
-                output: ['rgba-video']
+                output: ['yuv-video']
             }),
             fc.trimAndTpad({
-                input: ['rgba-video'],
+                input: ['yuv-video'],
                 output: ['trimmed-video'],
                 startPadDuration: videoStartPadDuration,
                 endPadDuration: videoEndPadDuration,
@@ -252,7 +256,7 @@ function ffmpegArgs(
     ]
 }
 
-function webpOutput(fileName: string, start: number, length: number, size?: [number, number]) {
+function webpOutput(fileName: string, size?: [number, number]) {
     return [
         '-vcodec', 'libwebp',
         '-lossless', '1',
@@ -260,16 +264,24 @@ function webpOutput(fileName: string, start: number, length: number, size?: [num
         '-preset', 'picture',
         '-an', '-fps_mode', 'auto', // https://ffmpeg.org/ffmpeg.html#:~:text=%2Dfps_mode%5B%3Astream_specifier%5D%20parameter%20(output%2Cper%2Dstream)
         ...(size ? ['-s', `${size[0]}:${size[1]}`] : []),
-        '-t', `${length}`, '-ss', `${start}`, fileName
+        fileName
     ]
 }
 
-function gifOutput(fileName: string, start: number, length: number) {
+function gifOutput(fileName: string) {
     return [
-        '-t', `${length}`, '-ss', `${start}`, '-f', 'gif', fileName
+        '-f', 'gif', fileName
+    ]
+}
+
+function mp4Output(fileName: string, size?: [number, number]) {
+    return [
+        '-an', '-sn','-c:v', 'libx264',
+        ...(size ? ['-s', `${Math.round(size[0] / 2) * 2}:${Math.round(size[1] / 2) * 2}`] : []), // size has to be divisible by 2
+        fileName
     ]
 }
 
 function createFileName(videoName: string, formatKey: SupportedFormat) {
-    return videoName.split('.').slice(0, -1).join('.') + supportedFormats[formatKey].suffix
+    return videoName.split('.').slice(0, -1).join('.') + '_result' + supportedFormats[formatKey].suffix
 }

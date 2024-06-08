@@ -58,7 +58,7 @@ function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
                 id='max-colors'
                 min={32} max={255} step={1}
                 value={scene.maxColors}
-                disabled={scene.formatKey === supportedFormats.webp.key}
+                disabled={scene.formatKey !== supportedFormats.gif.key}
                 onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
                 onChange={(e) => updateScene({ maxColors: parseFloat(e.target.value) })} />
         </div>

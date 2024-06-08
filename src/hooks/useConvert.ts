@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { convertScene } from '../services/video/converters'
-import { supportedFormats } from '../supportedFormats'
+import { SupportedFormat, supportedFormats } from '../supportedFormats'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { Scene, getFirstVideo } from '../types/Scene'
 
@@ -13,6 +13,7 @@ export default function useConvert(
     const [resultFileName, setResultFileName] = useState<string | null>(null);
     const [resultSize, setResultSize] = useState(0);
     const [converting, setConverting] = useState(false);
+    const [resultFormatKey, setResultFormatKey] = useState<SupportedFormat>(scene.formatKey);
 
     async function convert() {
         setConverting(true);
@@ -20,7 +21,7 @@ export default function useConvert(
         setResultFileName(null);
         setResultSize(0);
 
-        const format = Object.values(supportedFormats).filter((f) => f.key === scene.formatKey)[0];
+        const format = supportedFormats[scene.formatKey];
 
         try {
             const data = (await convertScene(ffmpeg, scene)) as any;
@@ -29,6 +30,7 @@ export default function useConvert(
             setResult(resultUrl);
             setResultSize(data.byteLength);
             setResultFileName((getFirstVideo(scene).file?.name || 'undefined') + format.suffix);
+            setResultFormatKey(format.key);
         }
         catch (error) {
             // TODO: Display an error message
@@ -48,6 +50,7 @@ export default function useConvert(
         result,
         resultFileName,
         resultSize,
-        converting
+        converting,
+        resultFormatKey
     }
 }

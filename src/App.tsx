@@ -112,7 +112,7 @@ export default function App() {
 
 function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
     const { scene, updateScene, updateVideo } = useScene(1);
-    const { convert, converting, result, resultFileName, resultSize } = useConvert(scene, ffmpeg, resetProgress);
+    const { convert, converting, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene, ffmpeg, resetProgress);
 
     return (
         <MainScaffold
@@ -149,6 +149,7 @@ function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
                     resultUrl={result}
                     resultSize={resultSize}
                     progress={progress}
+                    formatKey={resultFormatKey}
                     fileName={resultFileName} />
             }/>
     )
@@ -229,14 +230,14 @@ function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer }: MainSc
                 </Container>
             }
 
-            <Container
-                className='h-full max-h-full p-5 overflow-hidden'>
+            <div
+                className='h-full max-h-full overflow-hidden'>
                 <ComponentSwitch
                     selectedKey={selectedStep}>
                     <div key='edit' className='h-full'>{videoPreviewer}</div>
                     <div key='convert' className='h-full'>{resultPreviewer}</div>
                 </ComponentSwitch>
-            </Container>
+            </div>
 
             <Tabs
                 className={cn('col-start-1', isLarge ? 'col-end-3' : 'col-end-2')}
