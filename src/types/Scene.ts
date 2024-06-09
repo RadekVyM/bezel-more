@@ -5,6 +5,7 @@ import { Video, getVideoSize } from './Video'
 export type Scene = {
     videos: Array<Video>,
     requestedSize?: Size,
+    requestedMaxSize: number,
     background: string,
     startTime: number,
     endTime: number,
@@ -30,7 +31,7 @@ export function getSceneSize(scene: Scene): Size {
     let height = 0;
 
     for (const video of scene.videos) {
-        const size = getVideoSize(video);
+        const size = getVideoSize(video, scene.requestedMaxSize);
 
         if (!size) {
             continue;

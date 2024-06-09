@@ -11,6 +11,7 @@ import useTimeline from '../hooks/useTimeline'
 import SceneTimeline from './SceneTimeline'
 import { Video } from '../types/Video'
 import Container from './Container'
+import { useUnmount } from 'usehooks-ts'
 
 type VideoPreviewerProps = {
     scene: Scene,
@@ -175,6 +176,8 @@ function VideoControls({ className, scene, currentTime, isPlaying, loop, play, p
 function VideoCanvas({ scene, currentTime, className }: VideoCanvasProps) {
     // TODO: Render the whole scene, not just the first video
     // This is just temporary solution
+    const fps = 30;
+    const previousRenderRef = useRef<number>(0);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const bezelRef = useRef<{ image: HTMLImageElement, maskImage: HTMLImageElement, bezel: Bezel, showBezel: boolean } | null>(null);
     const bezel = getBezel(getFirstVideo(scene).bezelKey);
@@ -223,7 +226,12 @@ function VideoCanvas({ scene, currentTime, className }: VideoCanvasProps) {
     }, [scene]);
 
     useEffect(() => {
-        renderVideo();
+        const now = new Date().getTime();
+
+        if (now - previousRenderRef.current > 1000 / fps) {
+            renderVideo();
+            previousRenderRef.current = now;
+        }
     }, [currentTime]);
 
     function renderVideo() {
@@ -265,6 +273,10 @@ function VideoCanvas({ scene, currentTime, className }: VideoCanvasProps) {
             context.drawImage(bezelRef.current.image, 0, 0, bezelRef.current.image.naturalWidth, bezelRef.current.image.naturalHeight);
         }
     }
+
+    // This is a bit hacky solution, but I guess... who cares...
+    scene.videos.forEach((v) => v.htmlVideo.ontimeupdate = () => renderVideo());
+    useUnmount(() => scene.videos.forEach((v) => v.htmlVideo.ontimeupdate = null));
 
     return (
         <div

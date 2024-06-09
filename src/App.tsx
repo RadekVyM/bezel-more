@@ -27,7 +27,7 @@ import SubsectionHeading from './components/SubsectionHeading'
 import useScene from './hooks/useScene'
 import { Video } from './types/Video'
 import { Scene, getFirstVideo } from './types/Scene'
-import VideoSizeConfiguration from './components/VideoSizeConfiguration'
+import SceneSizeConfiguration from './components/SceneSizeConfiguration'
 import SceneConfiguration from './components/SceneConfiguration'
 import { FaRegFileVideo } from 'react-icons/fa'
 
@@ -339,6 +339,11 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
             className='flex flex-col gap-6'>
             <div>
                 {isLarge && <SectionHeading>Edit scene</SectionHeading>}
+                <SceneSizeConfiguration
+                    scene={scene}
+                    updateScene={updateScene}/>
+            </div>
+            <div>
                 {<SubsectionHeading>Trim scene</SubsectionHeading>}
                 <SceneConfiguration
                     scene={scene}
@@ -359,12 +364,6 @@ function EditVideo({ video, updateVideo, onFileSelected }: EditVideoProps) {
                 <FileSelection
                     video={video.file}
                     setVideo={onFileSelected} />
-            </div>
-            <div>
-                <SubsectionHeading>Video size</SubsectionHeading>
-                <VideoSizeConfiguration
-                    video={video}
-                    updateVideo={updateVideo}/>
             </div>
             <div>
                 <SubsectionHeading>Trim video</SubsectionHeading>

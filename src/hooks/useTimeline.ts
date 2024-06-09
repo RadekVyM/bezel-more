@@ -21,8 +21,8 @@ export default function useTimeline(scene: Scene) {
             const difference = (now - previousTimeRef.current) / 1000;
             previousTimeRef.current = now;
 
-            if (sceneRef.current.videos.every((v) => (v.htmlVideo as any).loadingData)) {
-                // If no video is loaded, timeline will wait
+            if (sceneRef.current.videos.some((v) => (v.htmlVideo as any).loadingData)) {
+                // If some videos are not loaded, timeline will wait
                 return;
             }
 
@@ -112,7 +112,8 @@ function pauseAllVideos(scene: Scene) {
 }
 
 function updateVideosCurrentTime(scene: Scene, currentTime: number, isPlaying: boolean) {
-    const fps = 30;
+    // Browsers do not like frequent changes of the currentTime while playing the video
+    const fps = 2;
 
     scene.videos.forEach((v) => {
         const offsetCurrentTime = currentTime - v.sceneOffset;
@@ -126,24 +127,37 @@ function updateVideosCurrentTime(scene: Scene, currentTime: number, isPlaying: b
 
         if (!shouldPause && isPlaying) {
             if (v.htmlVideo.paused || v.htmlVideo.ended) {
-                // I need to play the video because Chrome does not always redraw the video when currentTime is changed  
-                v.htmlVideo.play().catch((e) => console.log(e));
+                // I need to play the video because Chrome does not always redraw the video when currentTime is changed
+                seek(v.htmlVideo, newCurrentTime);
+                v.htmlVideo.play()
+                    .catch((e) => console.log(e));
             }
         }
         else {
             if (!v.htmlVideo.paused) {
                 v.htmlVideo.pause();
             }
+            
+            seek(v.htmlVideo, newCurrentTime);
         }
 
         if (Math.abs(newCurrentTime - v.htmlVideo.currentTime) < 1 / fps) {
             return;
         }
 
-        if (v.htmlVideo.currentTime !== newCurrentTime) {
-            v.htmlVideo.currentTime = newCurrentTime;
-        }
+        seek(v.htmlVideo, newCurrentTime);
     });
+}
+
+function seek(video: HTMLVideoElement, newCurrentTime: number) {
+    const fps = 25;
+
+    if (Math.abs(video.currentTime - newCurrentTime) > 1 / fps) {
+        if (video.fastSeek) {
+            video.fastSeek(newCurrentTime);
+        }
+        video.currentTime = newCurrentTime;
+    }
 }
 
 class Loop {

@@ -1,19 +1,24 @@
-import { useCallback, useReducer } from 'react'
+import { useCallback, useMemo, useReducer } from 'react'
 import { Scene } from '../types/Scene'
 import { supportedFormats } from '../supportedFormats'
 import { Video, createVideo } from '../types/Video'
 
+const VIDEO_SIZE = 600;
+
 export default function useScene(videosCount: number) {
+    const createdVideos = useMemo(() => createVideos(videosCount), [videosCount]);
+
     const [scene, updateScene] = useReducer(
         (state: Scene, newState: Partial<Scene>) => (makeSceneValid({
             ...state,
             ...newState,
         })),
         {
-            videos: createVideos(videosCount),
+            videos: createdVideos,
             fps: 20,
             maxColors: 255,
             requestedSize: undefined,
+            requestedMaxSize: 480,
             startTime: 0,
             endTime: 0,
             background: 'transparent',
@@ -40,12 +45,19 @@ export default function useScene(videosCount: number) {
                 });
             const sceneEnd = Math.max(scene.endTime, ...updatedVideos.map((v) => v.totalDuration + v.sceneOffset));
 
+            v.htmlVideo.width = Math.min(VIDEO_SIZE, v.htmlVideo.videoWidth);
+            v.htmlVideo.height = Math.min(VIDEO_SIZE, v.htmlVideo.videoHeight);
+
             updateScene({ startTime: 0, endTime: sceneEnd, videos: updatedVideos });
         };
 
-        v.htmlVideo.oncanplaythrough = (e) => (e.target as any).loadingData = false;
-        v.htmlVideo.oncanplay = (e) => (e.target as any).loadingData = false;
-        v.htmlVideo.onwaiting = (e) => (e.target as any).loadingData = true;
+        v.htmlVideo.onplay = (e) => updateLoadingData(e.target as any, true);
+        v.htmlVideo.onwaiting = (e) => updateLoadingData(e.target as any, true);
+        v.htmlVideo.onseeking = (e) => updateLoadingData(e.target as any, true);
+        v.htmlVideo.onplaying = (e) => updateLoadingData(e.target as any, false);
+        v.htmlVideo.oncanplaythrough = (e) => updateLoadingData(e.target as any, false);
+        v.htmlVideo.oncanplay = (e) => updateLoadingData(e.target as any, false);
+        v.htmlVideo.onseeked = (e) => updateLoadingData(e.target as any, false);
     });
 
     return {
@@ -120,4 +132,8 @@ function makeVideoValid(video: Video) {
     }
 
     return video;
+}
+
+function updateLoadingData(obj: any, value: boolean) {
+    obj.loadingData = value;
 }

@@ -40,7 +40,7 @@ async function convertWithBezel(ffmpeg: FFmpeg, scene: Scene) {
     await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
     await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezelMask(bezel.modelKey)));
 
-    const [width, height] = getBezelSize(bezel, video.requestedMaxSize);
+    const [width, height] = getBezelSize(bezel, scene.requestedMaxSize);
     const videoScale = bezel.contentScale;
 
     const {
@@ -94,7 +94,7 @@ async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
             videoEnd,
             videoStartPadDuration,
             videoEndPadDuration,
-            video.requestedMaxSize,
+            scene.requestedMaxSize,
             scene),
         ...(scene.formatKey === supportedFormats.gif.key ?
             gifOutput(fileName) :
