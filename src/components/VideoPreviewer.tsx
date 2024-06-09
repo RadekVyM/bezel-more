@@ -278,14 +278,18 @@ function VideoCanvas({ scene, currentTime, className }: VideoCanvasProps) {
     scene.videos.forEach((v) => v.htmlVideo.ontimeupdate = () => renderVideo());
     useUnmount(() => scene.videos.forEach((v) => v.htmlVideo.ontimeupdate = null));
 
+    const canvasWidth = getFirstVideo(scene).withBezel ? bezel.width : getFirstVideo(scene).naturalVideoDimensions?.width;
+    const canvasHeight = getFirstVideo(scene).withBezel ? bezel.height : getFirstVideo(scene).naturalVideoDimensions?.height;
+
     return (
         <div
             className={cn('h-full w-full relative', className)}>
             <canvas
                 ref={canvasRef}
                 className='max-h-full max-w-full m-auto'
-                width={getFirstVideo(scene).withBezel ? bezel.width : getFirstVideo(scene).naturalVideoDimensions?.width}
-                height={getFirstVideo(scene).withBezel ? bezel.height : getFirstVideo(scene).naturalVideoDimensions?.height}/>
+                style={{ aspectRatio: canvasWidth && canvasHeight ? `${canvasWidth}/${canvasHeight}` : undefined }}
+                width={canvasWidth}
+                height={canvasHeight}/>
         </div>
     )
 }

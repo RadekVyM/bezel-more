@@ -5,7 +5,8 @@ import { bezelImage, bezelMask, getBezel } from '../../bezels'
 import * as fc from './filterComplex'
 import { SupportedFormat, supportedFormats } from '../../supportedFormats'
 import { Scene, getFirstVideo, getTotalSceneDuration } from '../../types/Scene'
-import { Video } from '../../types/Video'
+import { Video, getVideoSize } from '../../types/Video'
+import { roundToEven } from '../../utils/numbers'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
@@ -80,6 +81,7 @@ async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
     const videoFile = video.file;
     const videoName = videoFile.name;
     const fileName = createFileName(videoName, scene.formatKey);
+    const size = getVideoSize(video, scene.requestedMaxSize);
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
 
@@ -99,7 +101,7 @@ async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
         ...(scene.formatKey === supportedFormats.gif.key ?
             gifOutput(fileName) :
             scene.formatKey === supportedFormats.mp4.key ?
-                mp4Output(fileName) :
+                mp4Output(fileName, size ? [size.width, size.height] : undefined) :
                 webpOutput(fileName))
     ]);
 
@@ -277,7 +279,7 @@ function gifOutput(fileName: string) {
 function mp4Output(fileName: string, size?: [number, number]) {
     return [
         '-an', '-sn','-c:v', 'libx264',
-        ...(size ? ['-s', `${Math.round(size[0] / 2) * 2}:${Math.round(size[1] / 2) * 2}`] : []), // size has to be divisible by 2
+        ...(size ? ['-s', `${roundToEven(size[0])}:${roundToEven(size[1])}`] : []), // size has to be divisible by 2
         fileName
     ]
 }
