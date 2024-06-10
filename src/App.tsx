@@ -28,7 +28,7 @@ import useScene from './hooks/useScene'
 import { Video } from './types/Video'
 import { Scene, getFirstVideo } from './types/Scene'
 import SceneSizeConfiguration from './components/SceneSizeConfiguration'
-import SceneConfiguration from './components/SceneConfiguration'
+import SceneTrimConfiguration from './components/SceneTrimConfiguration'
 import { FaRegFileVideo } from 'react-icons/fa'
 
 type EditProps = {
@@ -345,7 +345,7 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
             </div>
             <div>
                 {<SubsectionHeading>Trim scene</SubsectionHeading>}
-                <SceneConfiguration
+                <SceneTrimConfiguration
                     scene={scene}
                     updateScene={updateScene}/>
             </div>

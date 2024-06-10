@@ -7,9 +7,10 @@ type NumberInputProps = {
     className?: string
 } & React.InputHTMLAttributes<HTMLInputElement>
 
-export default function NumberInput({ id, label, min, max, unit, inputClassName, value, onChange, ...rest }: NumberInputProps) {
+export default function NumberInput({ className, id, label, min, max, unit, inputClassName, value, onChange, ...rest }: NumberInputProps) {
     return (
-        <div>
+        <div
+            className={className}>
             <label
                 htmlFor={id}
                 className='block text-sm font-medium mb-2 text-on-surface'>

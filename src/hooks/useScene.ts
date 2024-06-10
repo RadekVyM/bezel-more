@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useReducer } from 'react'
-import { Scene } from '../types/Scene'
+import { Scene, getMaxPadding } from '../types/Scene'
 import { supportedFormats } from '../supportedFormats'
 import { Video, createVideo } from '../types/Video'
 
@@ -19,9 +19,11 @@ export default function useScene(videosCount: number) {
             maxColors: 255,
             requestedSize: undefined,
             requestedMaxSize: 480,
+            horizontalPadding: 0,
+            verticalPadding: 0,
             startTime: 0,
             endTime: 0,
-            background: 'transparent',
+            background: '#00000000',
             formatKey: supportedFormats.webp.key,
         }
     );
@@ -118,6 +120,9 @@ function createVideos(count: number) {
 function makeSceneValid(scene: Scene) {
     scene.startTime = Math.max(0, scene.startTime);
     scene.endTime = Math.max(scene.startTime, scene.endTime);
+
+    scene.horizontalPadding = Math.min(getMaxPadding(scene), scene.horizontalPadding);
+    scene.verticalPadding = Math.min(getMaxPadding(scene), scene.verticalPadding);
 
     return scene;
 }

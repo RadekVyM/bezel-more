@@ -1,12 +1,12 @@
 import { fetchFile } from '@ffmpeg/util'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { getBezelSize } from '../../utils/size'
 import { bezelImage, bezelMask, getBezel } from '../../bezels'
 import * as fc from './filterComplex'
 import { SupportedFormat, supportedFormats } from '../../supportedFormats'
-import { Scene, getFirstVideo, getTotalSceneDuration } from '../../types/Scene'
-import { Video, getVideoSize } from '../../types/Video'
+import { Scene, getFirstVideo, getSceneSize, getTotalSceneDuration, getVideoSizeInScene } from '../../types/Scene'
+import { Video } from '../../types/Video'
 import { roundToEven } from '../../utils/numbers'
+import { generateBackground } from './background'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
@@ -30,19 +30,25 @@ async function convertWithBezel(ffmpeg: FFmpeg, scene: Scene) {
     if (!video.file)
         throw new Error('No file selected');
     
+    const background = await generateBackground(scene);
+    if (!background)
+        throw new Error('Background could not be generated');
+
     const bezel = getBezel(video.bezelKey);
     const videoFile = video.file;
     const videoName = videoFile.name;
     const bezelName = 'bezel.png';
+    const backgroundName = 'background.png';
     const bezelMaskName = bezelMask(bezel.modelKey).split('/').slice(0, -1)[0];
     const fileName = createFileName(videoName, scene.formatKey);
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
     await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
     await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezelMask(bezel.modelKey)));
+    await ffmpeg.writeFile(backgroundName, await fetchFile(background));
 
-    const [width, height] = getBezelSize(bezel, scene.requestedMaxSize);
-    const videoScale = bezel.contentScale;
+    const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
+    const { videoWidth, videoHeight } = getVideoSizeInScene(video, scene);
 
     const {
         videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
@@ -53,9 +59,12 @@ async function convertWithBezel(ffmpeg: FFmpeg, scene: Scene) {
             videoName,
             bezelName,
             bezelMaskName,
-            width,
-            height,
-            videoScale,
+            backgroundName,
+            sceneWidth,
+            sceneHeight,
+            videoWidth,
+            videoHeight,
+            bezel.contentScale,
             videoStart,
             videoEnd,
             videoStartPadDuration,
@@ -65,8 +74,8 @@ async function convertWithBezel(ffmpeg: FFmpeg, scene: Scene) {
         ...(scene.formatKey === supportedFormats.gif.key ?
             gifOutput(fileName) :
             scene.formatKey === supportedFormats.mp4.key ?
-                mp4Output(fileName, [width, height]) :
-                webpOutput(fileName, [width, height]))
+                mp4Output(fileName, [sceneWidth, sceneHeight]) :
+                webpOutput(fileName, [sceneWidth, sceneHeight]))
     ]);
 
     return await ffmpeg.readFile(fileName);
@@ -78,12 +87,20 @@ async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
     if (!video.file)
         throw new Error('No file selected');
     
+    const background = await generateBackground(scene);
+    if (!background)
+        throw new Error('Background could not be generated');
+
     const videoFile = video.file;
     const videoName = videoFile.name;
+    const backgroundName = 'background.png';
     const fileName = createFileName(videoName, scene.formatKey);
-    const size = getVideoSize(video, scene.requestedMaxSize);
 
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
+    await ffmpeg.writeFile(backgroundName, await fetchFile(background));
+
+    const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
+    const { videoWidth, videoHeight } = getVideoSizeInScene(video, scene);
 
     const {
         videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
@@ -92,17 +109,21 @@ async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
     await ffmpeg.exec([
         ...ffmpegArgs(
             videoName,
+            backgroundName,
             videoStart,
             videoEnd,
             videoStartPadDuration,
             videoEndPadDuration,
-            scene.requestedMaxSize,
+            sceneWidth,
+            sceneHeight,
+            videoWidth,
+            videoHeight,
             scene),
         ...(scene.formatKey === supportedFormats.gif.key ?
             gifOutput(fileName) :
             scene.formatKey === supportedFormats.mp4.key ?
-                mp4Output(fileName, size ? [size.width, size.height] : undefined) :
-                webpOutput(fileName))
+                mp4Output(fileName, [sceneWidth, sceneHeight]) :
+                webpOutput(fileName, [sceneWidth, sceneHeight]))
     ]);
 
     return await ffmpeg.readFile(fileName);
@@ -126,8 +147,11 @@ function bezelFfmpegArgs(
     videoName: string,
     bezelName: string,
     bezelMaskName: string,
-    width: number,
-    height: number,
+    backgroundName: string,
+    sceneWidth: number,
+    sceneHeight: number,
+    videoWidth: number,
+    videoHeight: number,
     videoScale: number,
     videoStart: number | null,
     videoEnd: number | null,
@@ -139,6 +163,7 @@ function bezelFfmpegArgs(
         '-i', videoName,
         '-i', bezelName,
         '-i', bezelMaskName,
+        '-i', backgroundName,
         '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
         '-filter_complex',
         fc.compose(
@@ -153,20 +178,20 @@ function bezelFfmpegArgs(
             fc.scale({
                 input: ['trimmed-video'],
                 output: ['scaled-video'],
-                width: width * videoScale,
-                height: height * videoScale
+                width: videoWidth * videoScale,
+                height: videoHeight * videoScale
             }),
             fc.pad({
                 input: ['scaled-video'],
                 output: ['padded-video'],
-                width: width,
-                height: height
+                width: videoWidth,
+                height: videoHeight
             }),
             fc.scale({
                 input: ['1:v'],
                 output: ['scaled-bezel'],
-                width: width,
-                height: height
+                width: videoWidth,
+                height: videoHeight
             }),
             fc.overlay({
                 input: ['padded-video', 'scaled-bezel'],
@@ -180,8 +205,18 @@ function bezelFfmpegArgs(
                 input: ['merged-2', 'scaled-mask'],
                 output: ['alphamerged']
             }),
-            fc.fps({
+            fc.pad({
                 input: ['alphamerged'],
+                output: ['padded-alphamerged'],
+                width: sceneWidth,
+                height: sceneHeight
+            }),
+            fc.overlay({
+                input: ['3:v', 'padded-alphamerged'],
+                output: ['background-merged']
+            }),
+            fc.fps({
+                input: ['background-merged'],
                 output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
                 fps: scene.fps
             }),
@@ -205,15 +240,20 @@ function bezelFfmpegArgs(
 
 function ffmpegArgs(
     videoName: string,
+    backgroundName: string,
     videoStart: number | null,
     videoEnd: number | null,
     videoStartPadDuration: number,
     videoEndPadDuration: number,
-    size: number,
+    sceneWidth: number,
+    sceneHeight: number,
+    videoWidth: number,
+    videoHeight: number,
     scene: Scene
 ) {
     return [
         '-i', videoName,
+        '-i', backgroundName,
         '-avoid_negative_ts', 'make_zero',
         '-filter_complex',
         fc.compose(
@@ -232,11 +272,21 @@ function ffmpegArgs(
             fc.scale({
                 input: ['trimmed-video'],
                 output: ['scaled-video'],
-                width: size,
-                height: size
+                width: videoWidth,
+                height: videoHeight
+            }),
+            fc.pad({
+                input: ['scaled-video'],
+                output: ['padded-video'],
+                width: sceneWidth,
+                height: sceneHeight
+            }),
+            fc.overlay({
+                input: ['1:v', 'padded-video'],
+                output: ['background-merged']
             }),
             fc.fps({
-                input: ['scaled-video'],
+                input: ['background-merged'],
                 output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
                 fps: scene.fps
             }),

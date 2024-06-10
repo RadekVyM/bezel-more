@@ -2,13 +2,13 @@ import { Scene, getTotalSceneDuration } from '../types/Scene'
 import { cn } from '../utils/tailwind'
 import NumberInput from './NumberInput'
 
-type SceneConfigurationProps = {
+type SceneTrimConfigurationProps = {
     scene: Scene,
     className?: string,
     updateScene: (scene: Partial<Scene>) => void,
 }
 
-export default function SceneConfiguration({ className, scene, updateScene }: SceneConfigurationProps) {
+export default function SceneTrimConfiguration({ className, scene, updateScene }: SceneTrimConfigurationProps) {
     return (
         <div
             className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}>
