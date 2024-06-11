@@ -63,3 +63,13 @@ dialog {
 .thin-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* Source: https://codepen.io/lloeki/pen/bGpRzb */
+.checkered {
+  background-color: var(--surface-container);
+  background-size: 0.8rem 0.8rem;
+  background-position: 0 0, 0.4rem 0.4rem;
+  background-image: linear-gradient(45deg, var(--surface-dim) 25%, transparent 25%, transparent 75%, var(--surface-dim) 75%, var(--surface-dim)),
+                    linear-gradient(45deg, var(--surface-dim) 25%, transparent 25%, transparent 75%, var(--surface-dim) 75%, var(--surface-dim));
+
+}

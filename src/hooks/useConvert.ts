@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { convertScene } from '../services/video/converters'
+import { convertScene } from '../services/conversion/converters'
 import { SupportedFormat, supportedFormats } from '../supportedFormats'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { Scene, getFirstVideo } from '../types/Scene'

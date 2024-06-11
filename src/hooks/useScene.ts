@@ -2,6 +2,7 @@ import { useCallback, useMemo, useReducer } from 'react'
 import { Scene, getMaxPadding } from '../types/Scene'
 import { supportedFormats } from '../supportedFormats'
 import { Video, createVideo } from '../types/Video'
+import { createSolidBackground } from '../types/Background';
 
 const VIDEO_SIZE = 600;
 
@@ -23,7 +24,7 @@ export default function useScene(videosCount: number) {
             verticalPadding: 0,
             startTime: 0,
             endTime: 0,
-            background: '#00000000',
+            background: createSolidBackground('#00000000'),
             formatKey: supportedFormats.webp.key,
         }
     );

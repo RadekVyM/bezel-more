@@ -1,4 +1,5 @@
 import { SupportedFormat } from '../supportedFormats'
+import { Background } from './Background'
 import { Size } from './Size'
 import { Video, getVideoSize } from './Video'
 
@@ -8,7 +9,7 @@ export type Scene = {
     requestedMaxSize: number,
     horizontalPadding: number,
     verticalPadding: number,
-    background: string,
+    background: Background,
     startTime: number,
     endTime: number,
     formatKey: SupportedFormat,

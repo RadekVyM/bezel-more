@@ -2,7 +2,7 @@ import './App.css'
 import { useEffect, useRef, useState } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
-import VideoPreviewer from './components/VideoPreviewer'
+import ScenePreviewer from './components/ScenePreviewer'
 import Loading from './components/Loading'
 import { ConversionProgress } from './types/ConversionProgress'
 import SectionHeading from './components/SectionHeading'
@@ -30,6 +30,7 @@ import { Scene, getFirstVideo } from './types/Scene'
 import SceneSizeConfiguration from './components/SceneSizeConfiguration'
 import SceneTrimConfiguration from './components/SceneTrimConfiguration'
 import { FaRegFileVideo } from 'react-icons/fa'
+import BackgroundSelection from './components/BackgroundSelection'
 
 type EditProps = {
     scene: Scene,
@@ -140,7 +141,7 @@ function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
                     converting={converting} />
             }
             videoPreviewer={
-                <VideoPreviewer
+                <ScenePreviewer
                     className='h-full'
                     scene={scene}
                     updateScene={updateScene}
@@ -339,6 +340,11 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
             className='flex flex-col gap-6'>
             <div>
                 {isLarge && <SectionHeading>Edit scene</SectionHeading>}
+                <BackgroundSelection
+                    className='mb-4'
+                    scene={scene}
+                    updateScene={updateScene}/>
+
                 <SceneSizeConfiguration
                     scene={scene}
                     updateScene={updateScene}/>
