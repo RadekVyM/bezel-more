@@ -7,7 +7,6 @@ import { MdClose } from 'react-icons/md'
 
 type ContentDialogProps = {
     heading: React.ReactNode,
-    animation: string,
     className?: string,
     slideInFromBottom?: boolean,
     hide: () => void,
