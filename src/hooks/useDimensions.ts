@@ -19,7 +19,7 @@ export default function useDimensions(ref: RefObject<Element | null>) {
         });
         resizeObserver.observe(observeTarget);
         return () => resizeObserver.unobserve(observeTarget);
-    }, []);
+    }, [ref]);
 
     return dimensions;
 }

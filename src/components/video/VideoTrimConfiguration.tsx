@@ -1,6 +1,6 @@
-import { Video } from '../types/Video'
-import { cn } from '../utils/tailwind'
-import NumberInput from './NumberInput'
+import { Video } from '../../types/Video'
+import { cn } from '../../utils/tailwind'
+import NumberInput from '../inputs/NumberInput'
 
 type VideoTrimConfigurationProps = {
     video: Video,

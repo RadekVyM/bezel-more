@@ -1,4 +1,4 @@
-import { cn } from '../utils/tailwind'
+import { cn } from '../../utils/tailwind'
 
 type ButtonProps = {
     children: React.ReactNode,

@@ -1,8 +1,8 @@
-import { BEZELS, bezelMask, bezelSmallImage } from '../bezels'
-import { Video } from '../types/Video'
-import { cn } from '../utils/tailwind'
-import CheckInput from './CheckInput'
-import CheckInputLabel from './CheckInputLabel'
+import { BEZELS, bezelMask, bezelSmallImage } from '../../bezels'
+import { Video } from '../../types/Video'
+import { cn } from '../../utils/tailwind'
+import CheckInput from '../inputs/CheckInput'
+import CheckInputLabel from '../inputs/CheckInputLabel'
 
 type BezelSelectionProps = {
     video: Video,

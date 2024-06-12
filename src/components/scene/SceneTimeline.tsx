@@ -1,10 +1,10 @@
 import { useMemo, useRef, PointerEvent, useState } from 'react'
-import { Video } from '../types/Video'
-import { Scene, getTotalSceneDuration } from '../types/Scene'
-import useDimensions from '../hooks/useDimensions'
-import { cn } from '../utils/tailwind'
+import { Video } from '../../types/Video'
+import { Scene, getTotalSceneDuration } from '../../types/Scene'
+import useDimensions from '../../hooks/useDimensions'
+import { cn } from '../../utils/tailwind'
 import { useEventListener } from 'usehooks-ts'
-import { round } from '../utils/numbers'
+import { round } from '../../utils/numbers'
 
 type SceneTimelineProps = {
     scene: Scene,

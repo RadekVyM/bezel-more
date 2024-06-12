@@ -1,6 +1,6 @@
-import { Scene, getMaxPadding, getSceneSize } from '../types/Scene'
-import { cn } from '../utils/tailwind'
-import NumberInput from './NumberInput'
+import { Scene, getMaxPadding } from '../../types/Scene'
+import { cn } from '../../utils/tailwind'
+import NumberInput from '../inputs/NumberInput'
 
 type SceneSizeConfigurationProps = {
     scene: Scene,

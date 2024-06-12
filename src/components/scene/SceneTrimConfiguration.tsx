@@ -1,6 +1,6 @@
-import { Scene, getTotalSceneDuration } from '../types/Scene'
-import { cn } from '../utils/tailwind'
-import NumberInput from './NumberInput'
+import { Scene, getTotalSceneDuration } from '../../types/Scene'
+import { cn } from '../../utils/tailwind'
+import NumberInput from '../inputs/NumberInput'
 
 type SceneTrimConfigurationProps = {
     scene: Scene,

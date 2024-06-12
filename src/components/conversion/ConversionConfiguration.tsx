@@ -1,9 +1,9 @@
-import NumberInput from './NumberInput'
-import CheckInput from './CheckInput'
-import CheckInputLabel from './CheckInputLabel'
-import { SupportedFormat, supportedFormats } from '../supportedFormats'
-import { cn } from '../utils/tailwind'
-import { Scene } from '../types/Scene'
+import NumberInput from '../inputs/NumberInput'
+import CheckInput from '../inputs/CheckInput'
+import CheckInputLabel from '../inputs/CheckInputLabel'
+import { SupportedFormat, supportedFormats } from '../../supportedFormats'
+import { cn } from '../../utils/tailwind'
+import { Scene } from '../../types/Scene'
 
 type ConversionConfigurationProps = {
     scene: Scene,

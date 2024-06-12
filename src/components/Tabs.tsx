@@ -1,5 +1,5 @@
 import { cn } from '../utils/tailwind'
-import Button from './Button'
+import Button from './inputs/Button'
 
 type Tab = {
     key: string,

@@ -1,10 +1,10 @@
 import { MdOutlineVideoLibrary } from 'react-icons/md'
-import { cn } from '../utils/tailwind'
-import Button from './Button'
-import { ConversionProgress } from '../types/ConversionProgress'
+import { cn } from '../../utils/tailwind'
+import Button from '../inputs/Button'
+import { ConversionProgress } from '../../types/ConversionProgress'
 import { FiDownload } from 'react-icons/fi'
-import Container from './Container'
-import { SupportedFormat, supportedFormats } from '../supportedFormats'
+import Container from '../Container'
+import { SupportedFormat, supportedFormats } from '../../supportedFormats'
 
 type ResultPreviewerProps = {
     resultUrl: string | null,

@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react'
-import { Background, createSolidBackground } from '../types/Background'
-import { Scene } from '../types/Scene'
-import { shallowEqual } from '../utils/objects'
-import { cn } from '../utils/tailwind'
-import { drawBackground } from '../services/drawing/background'
-import Button from './Button'
+import { Background, createSolidBackground } from '../../types/Background'
+import { Scene } from '../../types/Scene'
+import { shallowEqual } from '../../utils/objects'
+import { cn } from '../../utils/tailwind'
+import { drawBackground } from '../../services/drawing/background'
+import Button from '../inputs/Button'
 import { FaPlus } from 'react-icons/fa'
 
 type BackgroundSelectionProps = {
