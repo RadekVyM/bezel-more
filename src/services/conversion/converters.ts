@@ -7,13 +7,13 @@ import { Scene, getSceneSize, getTotalSceneDuration, getVideoRectInScene } from 
 import { Video } from '../../types/Video'
 import { roundToEven } from '../../utils/numbers'
 import { generateBackground } from '../drawing/background'
+import { generateSceneMask } from '../drawing/sceneMask'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
 type VideoFileInputs = {
     videoInput: string,
     bezelInput?: string,
-    bezelMaskInput?: string,
 }
 
 export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
@@ -21,6 +21,7 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
     const {
         inputs,
         backgroundInputName,
+        sceneMaskInputName,
         videoInputNamesMap
     } = await loadVideos(ffmpeg, scene);
     const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
@@ -28,8 +29,12 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
 
     const complexFilter = fc.compose(
         videosFfmpegArgs(scene, videoInputNamesMap, mergedVideosOutputName),
+        fc.alphamerge({
+            input: [mergedVideosOutputName, sceneMaskInputName],
+            output: ['alphamerged-videos']
+        }),
         fc.overlay({
-            input: [backgroundInputName, mergedVideosOutputName],
+            input: [backgroundInputName, 'alphamerged-videos'],
             output: ['background-merged']
         }),
         fc.fps({
@@ -121,7 +126,7 @@ function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs
         videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
     } = calculateTrimAndTpad(scene, video);
 
-    if (video.withBezel && inputNames.bezelInput && inputNames.bezelMaskInput) {
+    if (video.withBezel && inputNames.bezelInput) {
         const bezel = getBezel(video.bezelKey);
 
         return fc.compose(
@@ -155,16 +160,8 @@ function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs
                 input: [generateOutputName('padded-video', video), generateOutputName('scaled-bezel', video)],
                 output: [generateOutputName('merged', video)]
             }),
-            fc.scale2ref({
-                input: ['2:v', generateOutputName('merged', video)],
-                output: [generateOutputName('scaled-mask', video), generateOutputName('merged-2', video)]
-            }),
-            fc.alphamerge({
-                input: [generateOutputName('merged-2', video), generateOutputName('scaled-mask', video)],
-                output: [generateOutputName('alphamerged', video)]
-            }),
             fc.pad({
-                input: [generateOutputName('alphamerged', video)],
+                input: [generateOutputName('merged', video)],
                 output: [outputName],
                 width: sceneWidth,
                 height: sceneHeight,
@@ -223,19 +220,15 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
         if (video.withBezel) {
             const bezel = getBezel(video.bezelKey);
             const bezelName = 'bezel.png';
-            const bezelMaskName = bezelMask(bezel.modelKey).split('/').slice(0, -1)[0];
             inputs.push('-i', bezelName);
-            inputs.push('-i', bezelMaskName);
 
             await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
-            await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezelMask(bezel.modelKey)));
 
             videoInputNamesMap.set(
                 video,
                 {
                     videoInput: videoInput,
-                    bezelInput: `${index++}:v`,
-                    bezelMaskInput: `${index++}:v` 
+                    bezelInput: `${index++}:v`
                 });
         }
         else {
@@ -253,9 +246,20 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
 
     await ffmpeg.writeFile(backgroundName, await fetchFile(background));
 
+    const sceneMask = await generateSceneMask(scene);
+    if (!sceneMask)
+        throw new Error('Scene mask could not be generated');
+
+    const sceneMaskName = 'scene-mask.png';
+    const sceneMaskInputName = `${index++}:v`;
+    inputs.push('-i', sceneMaskName);
+
+    await ffmpeg.writeFile(sceneMaskName, await fetchFile(sceneMask));
+
     return {
         inputs,
         backgroundInputName,
+        sceneMaskInputName,
         videoInputNamesMap
     };
 }
@@ -283,13 +287,13 @@ function webpOutput(fileName: string, size?: [number, number]) {
         '-an', '-fps_mode', 'auto', // https://ffmpeg.org/ffmpeg.html#:~:text=%2Dfps_mode%5B%3Astream_specifier%5D%20parameter%20(output%2Cper%2Dstream)
         ...(size ? ['-s', `${size[0]}:${size[1]}`] : []),
         fileName
-    ]
+    ];
 }
 
 function gifOutput(fileName: string) {
     return [
         '-f', 'gif', fileName
-    ]
+    ];
 }
 
 function mp4Output(fileName: string, size?: [number, number]) {
@@ -297,7 +301,7 @@ function mp4Output(fileName: string, size?: [number, number]) {
         '-an', '-sn','-c:v', 'libx264',
         ...(size ? ['-s', `${roundToEven(size[0])}:${roundToEven(size[1])}`] : []), // size has to be divisible by 2
         fileName
-    ]
+    ];
 }
 
 function generateOutputName(output: string, video: Video) {

@@ -58,8 +58,6 @@ export function pad(params: PadFilterParams) {
     const x = params.x || params.x === 0 ? Math.max(params.x, 0).toString() : '(ow-iw)/2';
     const y = params.y || params.y === 0 ? Math.max(params.y, 0).toString() : '(oh-ih)/2';
 
-    console.warn(`${x} ${y}`)
-
     return composeFilter(
         params,
         `format=rgba,
