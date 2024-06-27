@@ -1,6 +1,6 @@
 import { useRef } from 'react'
 import Button from './Button'
-import { FaRegFileVideo } from 'react-icons/fa'
+import { LuFileVideo } from 'react-icons/lu'
 
 type FileSelectionProps = {
     video: File | null | undefined,
@@ -13,10 +13,10 @@ export default function FileSelection({ video, setVideo }: FileSelectionProps) {
     return (
         <>
             <Button
-                className='flex gap-3 items-center px-3 py-1.5'
+                className='flex gap-2 items-center px-3 py-1.5'
                 onClick={() => inputRef.current?.click()}>
-                <FaRegFileVideo
-                    className='w-3 h-4'/>
+                <LuFileVideo
+                    className='w-4 h-4'/>
                 {video?.name || 'Choose file'}
             </Button>
 

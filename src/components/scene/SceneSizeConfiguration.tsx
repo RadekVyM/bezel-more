@@ -40,6 +40,14 @@ export default function SceneSizeConfiguration({ className, scene, updateScene }
                 min={1}
                 value={scene.requestedMaxSize}
                 onChange={(e) => updateScene({ requestedMaxSize: parseFloat(e.target.value) })} />
+            <NumberInput
+                label='Spacing'
+                id='spacing'
+                unit='px'
+                inputClassName='pr-8'
+                min={1}
+                value={scene.horizontalSpacing}
+                onChange={(e) => updateScene({ horizontalSpacing: parseFloat(e.target.value) })} />
         </div>
     )
 }

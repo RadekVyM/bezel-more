@@ -9,11 +9,7 @@ import SectionHeading from './components/SectionHeading'
 import BezelSelection from './components/video/BezelSelection'
 import { RiLoopLeftLine } from 'react-icons/ri'
 import { BiMoviePlay } from 'react-icons/bi'
-import { IoMenu, IoOptions } from 'react-icons/io5'
-import { useMediaQuery } from 'usehooks-ts'
-import useContentDialog from './hooks/useContentDialog'
 import { cn } from './utils/tailwind'
-import ContentDialog from './components/ContentDialog'
 import Container from './components/Container'
 import Tabs from './components/Tabs'
 import FileSelection from './components/inputs/FileSelection'
@@ -29,8 +25,13 @@ import { Video } from './types/Video'
 import { Scene, getFirstVideo } from './types/Scene'
 import SceneSizeConfiguration from './components/scene/SceneSizeConfiguration'
 import SceneTrimConfiguration from './components/scene/SceneTrimConfiguration'
-import { FaRegFileVideo } from 'react-icons/fa'
+import { TbVideo } from 'react-icons/tb'
 import BackgroundSelection from './components/scene/BackgroundSelection'
+import useIsLarge from './hooks/useIsLarge'
+import MainScaffold from './components/app/MainScaffold'
+import useContentDialog from './hooks/useContentDialog'
+import { NewProjectDialog } from './components/app/NewProjectDialog'
+import { ProjectConfig } from './types/ProjectConfig'
 
 type EditProps = {
     scene: Scene,
@@ -64,20 +65,17 @@ type ConvertButtonProps = {
     className?: string
 }
 
-type MainScaffoldProps = {
-    edit: React.ReactNode,
-    convert: React.ReactNode,
-    videoPreviewer: React.ReactNode,
-    resultPreviewer: React.ReactNode,
-}
-
-type JustOneProps = {
+type MainContentProps = {
     ffmpeg: FFmpeg,
     progress: ConversionProgress | null,
     resetProgress: () => void
 }
 
-type Step = 'edit' | 'convert';
+type ProjectProps = {
+    ffmpeg: FFmpeg,
+    progress: ConversionProgress | null,
+    resetProgress: () => void
+}
 
 export default function App() {
     const ffmpegRef = useRef(new FFmpeg());
@@ -108,7 +106,7 @@ export default function App() {
     }
 
     return ready ? (
-        <JustOne
+        <MainContent
             ffmpeg={ffmpegRef.current}
             progress={progress}
             resetProgress={() => setProgress(null)} />
@@ -120,195 +118,79 @@ export default function App() {
         </main>)
 }
 
-function JustOne({ ffmpeg, progress, resetProgress }: JustOneProps) {
-    const { scene, updateScene, updateVideo } = useScene(1);
+function MainContent({ ffmpeg, progress, resetProgress }: MainContentProps) {
+    const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ videosCount: 1 });
+    const { scene, updateScene, updateVideo } = useScene(projectConfig);
     const { convert, converting, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene, ffmpeg, resetProgress);
+    const [newProjectDialogRef, isOpen, newProjectDialogAnimation, showNewProjectDialog, hideNewProjectDialog] = useContentDialog(true);
 
     return (
-        <MainScaffold
-            edit={
-                <Edit
-                    updateVideo={updateVideo}
-                    scene={scene}
-                    updateScene={updateScene} />
-            }
-            convert={
-                <Convert
-                    scene={scene}
-                    updateScene={updateScene}
-                    canConvert={!!getFirstVideo(scene).file}
-                    convert={convert}
-                    converting={converting} />
-            }
-            videoPreviewer={
-                <ScenePreviewer
-                    className='h-full'
-                    scene={scene}
-                    updateScene={updateScene}
-                    updateVideo={updateVideo} />
-            }
-            resultPreviewer={
-                <ResultPreviewer
-                    className='h-full'
-                    resultUrl={result}
-                    resultSize={resultSize}
-                    progress={progress}
-                    formatKey={resultFormatKey}
-                    fileName={resultFileName} />
-            }/>
-    )
-}
-
-function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer }: MainScaffoldProps) {
-    const isLarge = useIsLarge();
-    const [selectedStep, setSelectedStep] = useState<Step>('edit');
-    const [convertDialogRef, isConvertDialogOpen, convertDialogAnimation, showConvertDialog, hideConvertDialog] =
-        useContentDialog(!isLarge);
-    const [bezelDialogRef, isBezelDialogOpen, bezelDialogAnimation, showBezelDialog, hideBezelDialog] =
-        useContentDialog(true);
-
-    useEffect(() => {
-        if (isConvertDialogOpen) {
-            convertDialogRef.current?.scrollTo({ top: 0 })
-        }
-    }, [isConvertDialogOpen]);
-
-    useEffect(() => {
-        if (isBezelDialogOpen) {
-            bezelDialogRef.current?.scrollTo({ top: 0 })
-        }
-    }, [isBezelDialogOpen]);
-    
-    return (
-        <main
-            className={cn(
-                'w-full h-full max-h-full mx-auto px-4 grid gap-3 pb-4 bg-surface',
-                isLarge ?
-                    'grid-rows-[auto_1fr_auto] grid-cols-[minmax(20rem,2fr)_3fr]' :
-                    'grid-rows-[auto_1fr_auto] grid-cols-[1fr]'
-            )}>
-            <header
-                className={cn(
-                    'flex justify-between items-center pt-8 pb-6',
-                    isLarge ?
-                        'row-start-1 row-end-2 col-start-1 col-end-3' :
-                        'row-start-1 row-end-2 col-start-1 col-end-2'
-                )}>
-                <PageHeading />
-
-                {
-                    !isLarge &&
-                    <Button
-                        className='gap-2'
-                        onClick={() => {
-                            switch (selectedStep) {
-                                case 'edit':
-                                    showBezelDialog();
-                                    break;
-                                case 'convert':
-                                    showConvertDialog();
-                                    break;
-                            }
-                        }}>
-                        <IoMenu className='w-4 h-4'/>
-                        Options
-                    </Button>
+        <>
+            <MainScaffold
+                edit={
+                    <Edit
+                        updateVideo={updateVideo}
+                        scene={scene}
+                        updateScene={updateScene} />
                 }
-            </header>
-
-            {
-                isLarge &&
-                <div
-                    className='h-full max-h-full overflow-hidden'>
-                    <ComponentSwitch
-                        selectedKey={selectedStep}>
-                        <div
-                            key='edit'
-                            className='h-full max-h-full'>
-                            {edit}
-                        </div>
-                        <Container
-                            key='convert'
-                            className='h-full max-h-full overflow-auto thin-scrollbar py-7 px-5 flex-1'>
-                            <SectionHeading>Convert</SectionHeading>
-                            {convert}
-                        </Container>
-                    </ComponentSwitch>
-                </div>
-            }
-
-            <div
-                className='h-full max-h-full overflow-hidden'>
-                <ComponentSwitch
-                    selectedKey={selectedStep}>
-                    <div key='edit' className='h-full'>{videoPreviewer}</div>
-                    <div key='convert' className='h-full'>{resultPreviewer}</div>
-                </ComponentSwitch>
-            </div>
-
-            <Tabs
-                className={cn('col-start-1', isLarge ? 'col-end-3' : 'col-end-2')}
-                tabs={[
-                    { key: 'edit', title: 'Edit', icon: <IoOptions className='w-5 h-5' />, onClick: () => setSelectedStep('edit') },
-                    { key: 'convert', title: 'Convert', icon: <RiLoopLeftLine className='w-5 h-5' />, onClick: () => setSelectedStep('convert') },
-                ]}
-                selectedTabKey={selectedStep}/>
+                convert={
+                    <Convert
+                        scene={scene}
+                        updateScene={updateScene}
+                        canConvert={!!getFirstVideo(scene).file}
+                        convert={convert}
+                        converting={converting} />
+                }
+                videoPreviewer={
+                    <ScenePreviewer
+                        className='h-full'
+                        scene={scene}
+                        updateScene={updateScene}
+                        updateVideo={updateVideo} />
+                }
+                resultPreviewer={
+                    <ResultPreviewer
+                        className='h-full'
+                        resultUrl={result}
+                        resultSize={resultSize}
+                        progress={progress}
+                        formatKey={resultFormatKey}
+                        fileName={resultFileName} />
+                }
+                onNewProjectClick={showNewProjectDialog}/>
             
-            {
-                !isLarge &&
-                <>
-                    <ContentDialog
-                        ref={convertDialogRef}
-                        hide={hideConvertDialog}
-                        animation={convertDialogAnimation}
-                        slideInFromBottom
-                        heading={'Convert'}>
-                        {convert}
-                    </ContentDialog>
-
-                    <ContentDialog
-                        ref={bezelDialogRef}
-                        hide={hideBezelDialog}
-                        animation={bezelDialogAnimation}
-                        slideInFromBottom
-                        heading={'Edit'}>
-                        {edit}
-                    </ContentDialog>
-                </>
-            }
-        </main>
-    )
-}
-
-function PageHeading() {
-    return (
-        <h1 title='bezel-more' className='font-bold text-xl'>
-            bezel<span aria-hidden className='line-through text-on-surface-muted'>-less</span><span className='handwritten text-2xl'>-more</span>
-        </h1>
+            <NewProjectDialog
+                ref={newProjectDialogRef}
+                animation={newProjectDialogAnimation}
+                hide={hideNewProjectDialog}
+                onProjectConfigSelected={setProjectConfig}/>
+        </>
     )
 }
 
 function Edit({ scene, updateScene, updateVideo }: EditProps) {
-    const [selection, setSelection] = useState<'scene' | 'video'>('scene');
-    const video = getFirstVideo(scene);
+    const [selection, setSelection] = useState<string>('scene');
     const isLarge = useIsLarge();
 
     const content = (
         <ComponentSwitch
             selectedKey={selection}>
-            <EditScene
-                key='scene'
-                scene={scene}
-                updateScene={updateScene} />
-            <EditVideo
-                key='video'
-                updateVideo={(update) => updateVideo(video.index, update)}
-                video={video}
-                onFileSelected={(file) => {
-                    if (file) {
-                        updateVideo(video.index, { file });
-                    }
-                }} />
+            {[
+                <EditScene
+                    key={'scene'}
+                    scene={scene}
+                    updateScene={updateScene} />,
+                ...scene.videos.map((video, index) => 
+                    <EditVideo
+                        key={`video-${index}`}
+                        updateVideo={(update) => updateVideo(video.index, update)}
+                        video={video}
+                        onFileSelected={(file) => {
+                            if (file) {
+                                updateVideo(video.index, { file });
+                            }
+                        }} />)
+            ]}
         </ComponentSwitch>
     );
 
@@ -318,7 +200,8 @@ function Edit({ scene, updateScene, updateVideo }: EditProps) {
             <Tabs
                 tabs={[
                     { key: 'scene', title: 'Scene', icon: <BiMoviePlay className='w-5 h-5' />, onClick: () => setSelection('scene') },
-                    { key: 'video', title: 'Video', icon: <FaRegFileVideo className='w-4 h-4' />, onClick: () => setSelection('video') },
+                    ...scene.videos.map((video, index) =>
+                        ({ key: `video-${index}`, title: `Video #${index + 1}`, icon: <TbVideo className='w-5 h-5' />, onClick: () => setSelection(`video-${index}`) }))
                 ]}
                 selectedTabKey={selection}/>
             {!isLarge ?
@@ -417,8 +300,4 @@ function ConvertButton({ convert, disabled, converting, className }: ConvertButt
             <span className='ml-3'>Convert</span>
         </Button>
     )
-}
-
-function useIsLarge() {
-    return useMediaQuery('(min-width: 60rem)');
 }

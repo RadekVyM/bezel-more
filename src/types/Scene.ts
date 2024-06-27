@@ -9,6 +9,7 @@ export type Scene = {
     requestedMaxSize: number,
     horizontalPadding: number,
     verticalPadding: number,
+    horizontalSpacing: number,
     background: Background,
     startTime: number,
     endTime: number,
@@ -30,40 +31,57 @@ export function getSceneSize(scene: Scene): Size {
         return { width: Math.round(scene.requestedSize.width), height: Math.round(scene.requestedSize.height) };
     }
 
-    let width = 0;
-    let height = 0;
-
-    for (const video of scene.videos) {
-        const size = getVideoSize(video, Math.max(0, scene.requestedMaxSize - scene.horizontalPadding, scene.requestedMaxSize - scene.verticalPadding));
-
-        if (!size) {
-            continue;
-        }
-
-        const w = size.width;
-        const h = size.height;
-        const scale = Math.max(1, w / Math.max(1, scene.requestedMaxSize - scene.horizontalPadding), h / Math.max(1, scene.requestedMaxSize - scene.verticalPadding));
-        width = Math.max(width, (w / scale) + scene.horizontalPadding);
-        height = Math.max(height, (h / scale) + scene.verticalPadding);
-    }
+    const { totalVideosWidth, totalVideosHeight } = getVideoSizes(scene);
+    const { horizontalSpacingPadding, verticalSpacingPadding } = getSpacingPaddings(scene);
+    const scale = Math.max(totalVideosWidth / (scene.requestedMaxSize - horizontalSpacingPadding), totalVideosHeight / (scene.requestedMaxSize - verticalSpacingPadding));
+    const width = (totalVideosWidth / scale) + horizontalSpacingPadding;
+    const height = (totalVideosHeight / scale) + verticalSpacingPadding;
 
     return { width: Math.round(width), height: Math.round(height) };
 }
 
-export function getVideoSizeInScene(video: Video, scene: Scene) {
+export function getVideoRectInScene(video: Video, scene: Scene) {
     const sceneSize = getSceneSize(scene);
-    const videoSize = getVideoSize(video, scene.requestedMaxSize);
-    if (!videoSize)
-        throw new Error('Video size could not be loaded');
-    const maxVideoWidth = sceneSize.width - scene.horizontalPadding;
-    const maxVideoHeight = sceneSize.height - scene.verticalPadding;
-    const scale = Math.max(videoSize.width / maxVideoWidth, videoSize.height / maxVideoHeight);
-    const videoWidth = Math.round(videoSize.width / scale);
-    const videoHeight = Math.round(videoSize.height / scale);
+    const { videoSizes, totalVideosWidth, totalVideosHeight } = getVideoSizes(scene);
+    const { horizontalSpacingPadding, verticalSpacingPadding } = getSpacingPaddings(scene);
+    const scale = Math.max(totalVideosWidth / (sceneSize.width - horizontalSpacingPadding), totalVideosHeight / (sceneSize.height - verticalSpacingPadding));
 
-    return { videoWidth: Math.max(1, videoWidth), videoHeight: Math.max(1, videoHeight) };
+    const index = scene.videos.indexOf(video);
+    const videoSize = videoSizes[index];
+    const videoWidth = Math.max(1, Math.round(videoSize.width / scale));
+    const videoHeight = Math.max(1, Math.round(videoSize.height / scale));
+    const x = (scene.horizontalPadding / 2) + (index * scene.horizontalSpacing) + videoSizes.slice(0, index).reduce((prev, current) => prev + (current.width / scale), 0);
+    const y = (sceneSize.height - videoHeight) / 2;
+
+    return { videoWidth: videoWidth, videoHeight: videoHeight, videoX: x, videoY: y };
 }
 
 export function getMaxPadding(scene: Scene) {
     return Math.round(scene.requestedMaxSize * 0.95);;
+}
+
+function getVideoSizes(scene: Scene) {
+    const videoSizes = scene.videos.map((video) => getVideoSize(video, Math.max(0, scene.requestedMaxSize * 10)));
+    const maxHeight = Math.max(...videoSizes.map((size) => size ? size.height : 0));
+
+    for (const size of videoSizes) {
+        if (!size) {
+            throw new Error('Video size could not be loaded');
+        }
+
+        size.width = size.width * (maxHeight / size.height);
+        size.height = maxHeight;
+    }
+
+    const totalVideosWidth = videoSizes.reduce((prev, current) => prev + (current?.width || 0), 0);
+    const totalVideosHeight = maxHeight;
+
+    return { videoSizes: videoSizes as Array<Size>, totalVideosWidth, totalVideosHeight };
+}
+
+function getSpacingPaddings(scene: Scene) {
+    const horizontalSpacingPadding = scene.horizontalPadding + ((scene.videos.length - 1) * scene.horizontalSpacing);
+    const verticalSpacingPadding = scene.verticalPadding;
+
+    return { horizontalSpacingPadding, verticalSpacingPadding };
 }

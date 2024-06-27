@@ -2,131 +2,262 @@ import { fetchFile } from '@ffmpeg/util'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { bezelImage, bezelMask, getBezel } from '../../bezels'
 import * as fc from './filterComplex'
-import { SupportedFormat, supportedFormats } from '../../supportedFormats'
-import { Scene, getFirstVideo, getSceneSize, getTotalSceneDuration, getVideoSizeInScene } from '../../types/Scene'
+import { supportedFormats } from '../../supportedFormats'
+import { Scene, getSceneSize, getTotalSceneDuration, getVideoRectInScene } from '../../types/Scene'
 import { Video } from '../../types/Video'
 import { roundToEven } from '../../utils/numbers'
 import { generateBackground } from '../drawing/background'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
+type VideoFileInputs = {
+    videoInput: string,
+    bezelInput?: string,
+    bezelMaskInput?: string,
+}
+
 export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
-    // TODO: This is just temporary solution
+    const fileName = `result${supportedFormats[scene.formatKey].suffix}`;
+    const {
+        inputs,
+        backgroundInputName,
+        videoInputNamesMap
+    } = await loadVideos(ffmpeg, scene);
+    const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
+    const mergedVideosOutputName = 'merged-videos';
+
+    const complexFilter = fc.compose(
+        videosFfmpegArgs(scene, videoInputNamesMap, mergedVideosOutputName),
+        fc.overlay({
+            input: [backgroundInputName, mergedVideosOutputName],
+            output: ['background-merged']
+        }),
+        fc.fps({
+            input: ['background-merged'],
+            output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
+            fps: scene.fps
+        }),
+        ...(scene.formatKey === supportedFormats.gif.key ? [
+            fc.split({
+                input: ['fpsed'],
+                output: ['s0', 's1']
+            }),
+            fc.palettegen({
+                input: ['s0'],
+                output: ['p'],
+                maxColors: scene.maxColors
+            }),
+            fc.paletteuse({
+                input: ['s1', 'p']
+            })
+        ] : [])
+    );
+
+    await ffmpeg.exec([
+        ...inputs,
+        '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
+        '-filter_complex',
+        complexFilter,
+        ...(scene.formatKey === supportedFormats.gif.key ?
+            gifOutput(fileName) :
+            scene.formatKey === supportedFormats.mp4.key ?
+                mp4Output(fileName, [sceneWidth, sceneHeight]) :
+                webpOutput(fileName, [sceneWidth, sceneHeight]))
+    ]);
+
+    return await ffmpeg.readFile(fileName);
+}
+
+function videosFfmpegArgs(scene: Scene, inputNamesMap: Map<Video, VideoFileInputs>, outputName: string) {
     if (scene.videos.length === 1) {
-        return await convertJustOne(ffmpeg, scene);
+        const video = scene.videos[0];
+        const inputNames = inputNamesMap.get(video);
+        if (!inputNames)
+            throw new Error('Error occured during conversion');
+
+        return videoFfmpegArgs(scene, video, inputNames, outputName);
     }
+
+    const outputNamesStack: Array<string> = [];
+    const videoArgs: Array<string> = [];
+    const overlayArgs: Array<string> = [];
+
+    for (const video of scene.videos) {
+        const inputNames = inputNamesMap.get(video);
+        if (!inputNames)
+            throw new Error('Error occured during conversion');
+
+        const outputName = generateOutputName('output', video);
+        videoArgs.push(videoFfmpegArgs(scene, video, inputNames, outputName));
+        outputNamesStack.push(outputName);
+    }
+
+    let index = 0;
+    let lastOverlayedOutput = outputNamesStack.pop();
+
+    while (lastOverlayedOutput && outputNamesStack.length > 0) {
+        const name = outputNamesStack.pop();
+
+        if (name) {
+            const overlayOutputName = outputNamesStack.length > 0 ? `video-overlay_${index++}` : outputName;
+
+            overlayArgs.push(fc.overlay({
+                input: [lastOverlayedOutput, name],
+                output: [overlayOutputName]
+            }));
+
+            lastOverlayedOutput = overlayOutputName;
+        }
+    }
+
+    return fc.compose(...videoArgs, ...overlayArgs);
 }
 
-async function convertJustOne(ffmpeg: FFmpeg, scene: Scene) {
-    const video = getFirstVideo(scene);
-    return video.withBezel ?
-        await convertWithBezel(ffmpeg, scene) :
-        await convertWithoutBezel(ffmpeg, scene);
-}
-
-async function convertWithBezel(ffmpeg: FFmpeg, scene: Scene) {
-    const video = getFirstVideo(scene);
-    
-    if (!video.file)
-        throw new Error('No file selected');
-    
-    const background = await generateBackground(scene);
-    if (!background)
-        throw new Error('Background could not be generated');
-
-    const bezel = getBezel(video.bezelKey);
-    const videoFile = video.file;
-    const videoName = videoFile.name;
-    const bezelName = 'bezel.png';
-    const backgroundName = 'background.png';
-    const bezelMaskName = bezelMask(bezel.modelKey).split('/').slice(0, -1)[0];
-    const fileName = createFileName(videoName, scene.formatKey);
-
-    await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
-    await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
-    await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezelMask(bezel.modelKey)));
-    await ffmpeg.writeFile(backgroundName, await fetchFile(background));
-
+function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs, outputName: string) {
     const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
-    const { videoWidth, videoHeight } = getVideoSizeInScene(video, scene);
+    const { videoWidth, videoHeight, videoX, videoY } = getVideoRectInScene(video, scene);
 
     const {
         videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
     } = calculateTrimAndTpad(scene, video);
 
-    await ffmpeg.exec([
-        ...bezelFfmpegArgs(
-            videoName,
-            bezelName,
-            bezelMaskName,
-            backgroundName,
-            sceneWidth,
-            sceneHeight,
-            videoWidth,
-            videoHeight,
-            bezel.contentScale,
-            videoStart,
-            videoEnd,
-            videoStartPadDuration,
-            videoEndPadDuration,
-            scene
-        ),
-        ...(scene.formatKey === supportedFormats.gif.key ?
-            gifOutput(fileName) :
-            scene.formatKey === supportedFormats.mp4.key ?
-                mp4Output(fileName, [sceneWidth, sceneHeight]) :
-                webpOutput(fileName, [sceneWidth, sceneHeight]))
-    ]);
+    if (video.withBezel && inputNames.bezelInput && inputNames.bezelMaskInput) {
+        const bezel = getBezel(video.bezelKey);
 
-    return await ffmpeg.readFile(fileName);
+        return fc.compose(
+            fc.trimAndTpad({
+                input: [inputNames.videoInput],
+                output: [generateOutputName('trimmed-video', video)],
+                startPadDuration: videoStartPadDuration,
+                endPadDuration: videoEndPadDuration,
+                startTrimTime: videoStart,
+                endTrimTime: videoEnd
+            }),
+            fc.scale({
+                input: [generateOutputName('trimmed-video', video)],
+                output: [generateOutputName('scaled-video', video)],
+                width: videoWidth * bezel.contentScale,
+                height: videoHeight * bezel.contentScale
+            }),
+            fc.pad({
+                input: [generateOutputName('scaled-video', video)],
+                output: [generateOutputName('padded-video', video)],
+                width: videoWidth,
+                height: videoHeight
+            }),
+            fc.scale({
+                input: [inputNames.bezelInput],
+                output: [generateOutputName('scaled-bezel', video)],
+                width: videoWidth,
+                height: videoHeight
+            }),
+            fc.overlay({
+                input: [generateOutputName('padded-video', video), generateOutputName('scaled-bezel', video)],
+                output: [generateOutputName('merged', video)]
+            }),
+            fc.scale2ref({
+                input: ['2:v', generateOutputName('merged', video)],
+                output: [generateOutputName('scaled-mask', video), generateOutputName('merged-2', video)]
+            }),
+            fc.alphamerge({
+                input: [generateOutputName('merged-2', video), generateOutputName('scaled-mask', video)],
+                output: [generateOutputName('alphamerged', video)]
+            }),
+            fc.pad({
+                input: [generateOutputName('alphamerged', video)],
+                output: [outputName],
+                width: sceneWidth,
+                height: sceneHeight,
+                x: videoX,
+                y: videoY
+            })
+        );
+    }
+
+    return fc.compose(
+        fc.yuv({
+            input: [inputNames.videoInput],
+            output: [generateOutputName('yuv-video', video)]
+        }),
+        fc.trimAndTpad({
+            input: [generateOutputName('yuv-video', video)],
+            output: [generateOutputName('trimmed-video', video)],
+            startPadDuration: videoStartPadDuration,
+            endPadDuration: videoEndPadDuration,
+            startTrimTime: videoStart,
+            endTrimTime: videoEnd
+        }),
+        fc.scale({
+            input: [generateOutputName('trimmed-video', video)],
+            output: [generateOutputName('scaled-video', video)],
+            width: videoWidth,
+            height: videoHeight
+        }),
+        fc.pad({
+            input: [generateOutputName('scaled-video', video)],
+            output: [outputName],
+            width: sceneWidth,
+            height: sceneHeight,
+            x: videoX,
+            y: videoY
+        })
+    );
 }
 
-async function convertWithoutBezel(ffmpeg: FFmpeg, scene: Scene) {
-    const video = getFirstVideo(scene);
-    
-    if (!video.file)
-        throw new Error('No file selected');
+async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
+    const videoInputNamesMap = new Map<Video, VideoFileInputs>();
+    const inputs: Array<string> = [];
+    let index = 0;
+
+    for (const video of scene.videos) {
+        if (!video.file)
+            throw new Error('No video file selected');
+        
+        const videoFile = video.file;
+        const videoName = `${videoFile.name.split('.').slice(0, -1).join('.')}_${video.index}.${videoFile.name.split('.').at(-1)}`;
+        const videoInput = `${index++}:v`;
+        inputs.push('-i', videoName);
+
+        await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
+
+        if (video.withBezel) {
+            const bezel = getBezel(video.bezelKey);
+            const bezelName = 'bezel.png';
+            const bezelMaskName = bezelMask(bezel.modelKey).split('/').slice(0, -1)[0];
+            inputs.push('-i', bezelName);
+            inputs.push('-i', bezelMaskName);
+
+            await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
+            await ffmpeg.writeFile(bezelMaskName, await fetchFile(bezelMask(bezel.modelKey)));
+
+            videoInputNamesMap.set(
+                video,
+                {
+                    videoInput: videoInput,
+                    bezelInput: `${index++}:v`,
+                    bezelMaskInput: `${index++}:v` 
+                });
+        }
+        else {
+            videoInputNamesMap.set(video, { videoInput: videoInput });
+        }
+    }
     
     const background = await generateBackground(scene);
     if (!background)
         throw new Error('Background could not be generated');
 
-    const videoFile = video.file;
-    const videoName = videoFile.name;
     const backgroundName = 'background.png';
-    const fileName = createFileName(videoName, scene.formatKey);
+    const backgroundInputName = `${index++}:v`;
+    inputs.push('-i', backgroundName);
 
-    await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
     await ffmpeg.writeFile(backgroundName, await fetchFile(background));
 
-    const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
-    const { videoWidth, videoHeight } = getVideoSizeInScene(video, scene);
-
-    const {
-        videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
-    } = calculateTrimAndTpad(scene, video);
-
-    await ffmpeg.exec([
-        ...ffmpegArgs(
-            videoName,
-            backgroundName,
-            videoStart,
-            videoEnd,
-            videoStartPadDuration,
-            videoEndPadDuration,
-            sceneWidth,
-            sceneHeight,
-            videoWidth,
-            videoHeight,
-            scene),
-        ...(scene.formatKey === supportedFormats.gif.key ?
-            gifOutput(fileName) :
-            scene.formatKey === supportedFormats.mp4.key ?
-                mp4Output(fileName, [sceneWidth, sceneHeight]) :
-                webpOutput(fileName, [sceneWidth, sceneHeight]))
-    ]);
-
-    return await ffmpeg.readFile(fileName);
+    return {
+        inputs,
+        backgroundInputName,
+        videoInputNamesMap
+    };
 }
 
 function calculateTrimAndTpad(scene: Scene, video: Video) {
@@ -141,171 +272,6 @@ function calculateTrimAndTpad(scene: Scene, video: Video) {
         videoStartPadDuration: Math.max(0, videoStart + video.sceneOffset - scene.startTime),
         videoEndPadDuration: Math.max(0, scene.endTime - (videoEnd + video.sceneOffset)),
     };
-}
-
-function bezelFfmpegArgs(
-    videoName: string,
-    bezelName: string,
-    bezelMaskName: string,
-    backgroundName: string,
-    sceneWidth: number,
-    sceneHeight: number,
-    videoWidth: number,
-    videoHeight: number,
-    videoScale: number,
-    videoStart: number | null,
-    videoEnd: number | null,
-    videoStartPadDuration: number,
-    videoEndPadDuration: number,
-    scene: Scene
-) {
-    return [
-        '-i', videoName,
-        '-i', bezelName,
-        '-i', bezelMaskName,
-        '-i', backgroundName,
-        '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
-        '-filter_complex',
-        fc.compose(
-            fc.trimAndTpad({
-                input: ['0:v'],
-                output: ['trimmed-video'],
-                startPadDuration: videoStartPadDuration,
-                endPadDuration: videoEndPadDuration,
-                startTrimTime: videoStart,
-                endTrimTime: videoEnd
-            }),
-            fc.scale({
-                input: ['trimmed-video'],
-                output: ['scaled-video'],
-                width: videoWidth * videoScale,
-                height: videoHeight * videoScale
-            }),
-            fc.pad({
-                input: ['scaled-video'],
-                output: ['padded-video'],
-                width: videoWidth,
-                height: videoHeight
-            }),
-            fc.scale({
-                input: ['1:v'],
-                output: ['scaled-bezel'],
-                width: videoWidth,
-                height: videoHeight
-            }),
-            fc.overlay({
-                input: ['padded-video', 'scaled-bezel'],
-                output: ['merged']
-            }),
-            fc.scale2ref({
-                input: ['2:v', 'merged'],
-                output: ['scaled-mask', 'merged-2']
-            }),
-            fc.alphamerge({
-                input: ['merged-2', 'scaled-mask'],
-                output: ['alphamerged']
-            }),
-            fc.pad({
-                input: ['alphamerged'],
-                output: ['padded-alphamerged'],
-                width: sceneWidth,
-                height: sceneHeight
-            }),
-            fc.overlay({
-                input: ['3:v', 'padded-alphamerged'],
-                output: ['background-merged']
-            }),
-            fc.fps({
-                input: ['background-merged'],
-                output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
-                fps: scene.fps
-            }),
-            ...(scene.formatKey === supportedFormats.gif.key ? [
-                fc.split({
-                    input: ['fpsed'],
-                    output: ['s0', 's1']
-                }),
-                fc.palettegen({
-                    input: ['s0'],
-                    output: ['p'],
-                    maxColors: scene.maxColors
-                }),
-                fc.paletteuse({
-                    input: ['s1', 'p']
-                })
-            ] : [])
-        )
-    ]
-}
-
-function ffmpegArgs(
-    videoName: string,
-    backgroundName: string,
-    videoStart: number | null,
-    videoEnd: number | null,
-    videoStartPadDuration: number,
-    videoEndPadDuration: number,
-    sceneWidth: number,
-    sceneHeight: number,
-    videoWidth: number,
-    videoHeight: number,
-    scene: Scene
-) {
-    return [
-        '-i', videoName,
-        '-i', backgroundName,
-        '-avoid_negative_ts', 'make_zero',
-        '-filter_complex',
-        fc.compose(
-            fc.yuv({
-                input: ['0:v'],
-                output: ['yuv-video']
-            }),
-            fc.trimAndTpad({
-                input: ['yuv-video'],
-                output: ['trimmed-video'],
-                startPadDuration: videoStartPadDuration,
-                endPadDuration: videoEndPadDuration,
-                startTrimTime: videoStart,
-                endTrimTime: videoEnd
-            }),
-            fc.scale({
-                input: ['trimmed-video'],
-                output: ['scaled-video'],
-                width: videoWidth,
-                height: videoHeight
-            }),
-            fc.pad({
-                input: ['scaled-video'],
-                output: ['padded-video'],
-                width: sceneWidth,
-                height: sceneHeight
-            }),
-            fc.overlay({
-                input: ['1:v', 'padded-video'],
-                output: ['background-merged']
-            }),
-            fc.fps({
-                input: ['background-merged'],
-                output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
-                fps: scene.fps
-            }),
-            ...(scene.formatKey === supportedFormats.gif.key ? [
-                fc.split({
-                    input: ['fpsed'],
-                    output: ['s0', 's1']
-                }),
-                fc.palettegen({
-                    input: ['s0'],
-                    output: ['p'],
-                    maxColors: scene.maxColors
-                }),
-                fc.paletteuse({
-                    input: ['s1', 'p']
-                })
-            ] : [])
-        )
-    ]
 }
 
 function webpOutput(fileName: string, size?: [number, number]) {
@@ -334,6 +300,6 @@ function mp4Output(fileName: string, size?: [number, number]) {
     ]
 }
 
-function createFileName(videoName: string, formatKey: SupportedFormat) {
-    return videoName.split('.').slice(0, -1).join('.') + '_result' + supportedFormats[formatKey].suffix
+function generateOutputName(output: string, video: Video) {
+    return `${output}_${video.index}`;
 }

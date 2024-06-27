@@ -17,7 +17,9 @@ type ScaleFilterParams = {
 
 type PadFilterParams = {
     width: number,
-    height: number
+    height: number,
+    x?: number,
+    y?: number
 } & FilterParams
 
 type FpsFilterParams = {
@@ -29,7 +31,7 @@ type PalettegenFilterParams = {
 } & FilterParams
 
 export function compose(...filters: string[]) {
-    return filters.join(';')
+    return filters.join(';');
 }
 
 export function trimAndTpad(params: TrimAndTpadFilterParams) {
@@ -49,71 +51,76 @@ export function scale(params: ScaleFilterParams) {
     return composeFilter(
         params,
         `scale=w=${params.width}:h=${params.height}:force_original_aspect_ratio=decrease:flags=lanczos`
-    )
+    );
 }
 
 export function pad(params: PadFilterParams) {
+    const x = params.x || params.x === 0 ? Math.max(params.x, 0).toString() : '(ow-iw)/2';
+    const y = params.y || params.y === 0 ? Math.max(params.y, 0).toString() : '(oh-ih)/2';
+
+    console.warn(`${x} ${y}`)
+
     return composeFilter(
         params,
         `format=rgba,
-        pad=width=${params.width}:height=${params.height}:x=(ow-iw)/2:y=(oh-ih)/2:color=black@0`
-    )
+        pad=width=${params.width}:height=${params.height}:x=${x}:y=${y}:color=black@0`
+    );
 }
 
 export function overlay(params: FilterParams) {
     return composeFilter(
         params,
         `overlay=0:0`
-    )
+    );
 }
 
 export function scale2ref(params: FilterParams) {
     return composeFilter(
         params,
         `scale2ref`
-    )
+    );
 }
 
 export function alphamerge(params: FilterParams) {
     return composeFilter(
         params,
         `alphamerge`
-    )
+    );
 }
 
 export function fps(params: FpsFilterParams) {
     return composeFilter(
         params,
         `fps=${params.fps}`
-    )
+    );
 }
 
 export function yuv(params: FilterParams) {
     return composeFilter(
         params,
         `format=yuv420p`
-    )
+    );
 }
 
 export function split(params: FilterParams) {
     return composeFilter(
         params,
         `split`
-    )
+    );
 }
 
 export function palettegen(params: PalettegenFilterParams) {
     return composeFilter(
         params,
         `palettegen=max_colors=${params.maxColors}`
-    )
+    );
 }
 
 export function paletteuse(params: FilterParams) {
     return composeFilter(
         params,
         `paletteuse=dither=bayer`
-    )
+    );
 }
 
 function composeFilter(params: FilterParams, filter: string) {

@@ -1,5 +1,5 @@
 import { BezelImages } from '../../types/BezelImages'
-import { Scene, getVideoSizeInScene } from '../../types/Scene'
+import { Scene, getVideoRectInScene } from '../../types/Scene'
 import { Video } from '../../types/Video'
 
 export function drawVideo(
@@ -41,21 +41,21 @@ export function drawVideo(
 
 function calculateVideoDimensions(video: Video, scene: Scene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {
     if (!video.naturalVideoDimensions) {
-        throw new Error('Size of the video could not be determined')
+        throw new Error('Size of the video could not be determined');
     }
 
-    const { videoWidth: w, videoHeight: h } = getVideoSizeInScene(video, scene)
-    const totalWidth = w * sceneScale
-    const totalHeight = h * sceneScale
-    const totalX = sceneX + ((sceneWidth - totalWidth) / 2)
-    const totalY = sceneY + ((sceneHeight - totalHeight) / 2)
+    const { videoWidth: w, videoHeight: h, videoX: x, videoY: y } = getVideoRectInScene(video, scene);
+    const totalWidth = w * sceneScale;
+    const totalHeight = h * sceneScale;
+    const totalX = sceneX + (x * sceneScale);
+    const totalY = sceneY + (y * sceneScale);
 
     const videoScale = Math.min(totalWidth / video.naturalVideoDimensions.width, totalHeight / video.naturalVideoDimensions.height) *
-        (bezelImages.showBezel ? bezelImages.bezel.contentScale : 1)
+        (bezelImages.showBezel ? bezelImages.bezel.contentScale : 1);
 
-    const videoWidth = video.naturalVideoDimensions.width * videoScale
-    const videoHeight = video.naturalVideoDimensions.height * videoScale
-    const videoX = (bezelImages.showBezel ? (totalWidth - videoWidth) / 2 : 0) + totalX
-    const videoY = (bezelImages.showBezel ? (totalHeight - videoHeight) / 2 : 0) + totalY
-    return { totalX, totalY, totalWidth, totalHeight, videoX, videoY, videoWidth, videoHeight }
+    const videoWidth = video.naturalVideoDimensions.width * videoScale;
+    const videoHeight = video.naturalVideoDimensions.height * videoScale;
+    const videoX = (bezelImages.showBezel ? (totalWidth - videoWidth) / 2 : 0) + totalX;
+    const videoY = (bezelImages.showBezel ? (totalHeight - videoHeight) / 2 : 0) + totalY;
+    return { totalX, totalY, totalWidth, totalHeight, videoX, videoY, videoWidth, videoHeight };
 }

@@ -1,33 +1,25 @@
-import { useCallback, useMemo, useReducer } from 'react'
+import { useCallback, useEffect, useMemo, useReducer } from 'react'
 import { Scene, getMaxPadding } from '../types/Scene'
 import { supportedFormats } from '../supportedFormats'
 import { Video, createVideo } from '../types/Video'
-import { createSolidBackground } from '../types/Background';
+import { createSolidBackground } from '../types/Background'
+import { ProjectConfig } from '../types/ProjectConfig'
 
 const VIDEO_SIZE = 600;
 
-export default function useScene(videosCount: number) {
-    const createdVideos = useMemo(() => createVideos(videosCount), [videosCount]);
-
+export default function useScene(projectConfig: ProjectConfig) {
+    const createdVideos = useMemo(() => createVideos(projectConfig.videosCount), [projectConfig]);
     const [scene, updateScene] = useReducer(
         (state: Scene, newState: Partial<Scene>) => (makeSceneValid({
             ...state,
             ...newState,
         })),
-        {
-            videos: createdVideos,
-            fps: 20,
-            maxColors: 255,
-            requestedSize: undefined,
-            requestedMaxSize: 480,
-            horizontalPadding: 0,
-            verticalPadding: 0,
-            startTime: 0,
-            endTime: 0,
-            background: createSolidBackground('#00000000'),
-            formatKey: supportedFormats.webp.key,
-        }
+        createInitialScene(createdVideos)
     );
+
+    useEffect(() => {
+        updateScene(createInitialScene(createdVideos));
+    }, [createdVideos]);
 
     const updateVideo = useCallback((index: number, update: Partial<Video>) => {
         const updatedVideos = updateVideoOnIndex(scene, index, update);
@@ -67,6 +59,23 @@ export default function useScene(videosCount: number) {
         scene,
         updateScene,
         updateVideo
+    };
+}
+
+function createInitialScene(createdVideos: Array<Video>): Scene {
+    return {
+        videos: createdVideos,
+        fps: 20,
+        maxColors: 255,
+        requestedSize: undefined,
+        requestedMaxSize: 480,
+        horizontalPadding: 0,
+        verticalPadding: 0,
+        horizontalSpacing: 0,
+        startTime: 0,
+        endTime: 0,
+        background: createSolidBackground('#00000000'),
+        formatKey: supportedFormats.webp.key,
     };
 }
 
