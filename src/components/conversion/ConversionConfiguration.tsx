@@ -54,7 +54,7 @@ function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
                 onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
                 onChange={(e) => updateScene({ fps: parseFloat(e.target.value) })} />
             <NumberInput
-                label='Max Colors'
+                label='Max colors'
                 id='max-colors'
                 min={32} max={255} step={1}
                 value={scene.maxColors}
@@ -69,7 +69,7 @@ function FormatSelection({ className, updateScene, scene }: FormatSelectionProps
     return (
         <fieldset
             className={className}>
-            <legend className='block text-sm font-medium mb-2'>Output Format</legend>
+            <legend className='block text-sm font-medium mb-2'>Output format</legend>
 
             {Object.values(supportedFormats).map(f =>
                 <div

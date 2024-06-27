@@ -35,6 +35,7 @@ import { ProjectConfig } from './types/ProjectConfig'
 
 type EditProps = {
     scene: Scene,
+    resetValue?: any,
     updateScene: (scene: Partial<Scene>) => void,
     updateVideo: (index: number, video: Partial<Video>) => void,
 }
@@ -130,6 +131,7 @@ function MainContent({ ffmpeg, progress, resetProgress }: MainContentProps) {
                 edit={
                     <Edit
                         updateVideo={updateVideo}
+                        resetValue={projectConfig}
                         scene={scene}
                         updateScene={updateScene} />
                 }
@@ -157,18 +159,19 @@ function MainContent({ ffmpeg, progress, resetProgress }: MainContentProps) {
                         formatKey={resultFormatKey}
                         fileName={resultFileName} />
                 }
-                onNewProjectClick={showNewProjectDialog}/>
+                onNewProjectClick={showNewProjectDialog}
+                resetValue={projectConfig} />
             
             <NewProjectDialog
                 ref={newProjectDialogRef}
                 animation={newProjectDialogAnimation}
                 hide={hideNewProjectDialog}
-                onProjectConfigSelected={setProjectConfig}/>
+                onProjectConfigSelected={setProjectConfig} />
         </>
     )
 }
 
-function Edit({ scene, updateScene, updateVideo }: EditProps) {
+function Edit({ scene, resetValue, updateScene, updateVideo }: EditProps) {
     const [selection, setSelection] = useState<string>('scene');
     const isLarge = useIsLarge();
 
@@ -177,7 +180,7 @@ function Edit({ scene, updateScene, updateVideo }: EditProps) {
             selectedKey={selection}>
             {[
                 <EditScene
-                    key={'scene'}
+                    key='scene'
                     scene={scene}
                     updateScene={updateScene} />,
                 ...scene.videos.map((video, index) => 
@@ -194,6 +197,10 @@ function Edit({ scene, updateScene, updateVideo }: EditProps) {
         </ComponentSwitch>
     );
 
+    useEffect(() => {
+        setSelection('scene');
+    }, [resetValue]);
+
     return (
         <div
             className='flex flex-col gap-3 h-full max-h-full overflow-hidden'>
@@ -201,7 +208,7 @@ function Edit({ scene, updateScene, updateVideo }: EditProps) {
                 tabs={[
                     { key: 'scene', title: 'Scene', icon: <BiMoviePlay className='w-5 h-5' />, onClick: () => setSelection('scene') },
                     ...scene.videos.map((video, index) =>
-                        ({ key: `video-${index}`, title: `Video #${index + 1}`, icon: <TbVideo className='w-5 h-5' />, onClick: () => setSelection(`video-${index}`) }))
+                        ({ key: `video-${index}`, title: scene.videos.length > 1 ? `Video #${index + 1}` : 'Video', icon: <TbVideo className='w-5 h-5' />, onClick: () => setSelection(`video-${index}`) }))
                 ]}
                 selectedTabKey={selection}/>
             {!isLarge ?

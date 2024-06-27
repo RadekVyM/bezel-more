@@ -1,6 +1,6 @@
 import { fetchFile } from '@ffmpeg/util'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { bezelImage, bezelMask, getBezel } from '../../bezels'
+import { bezelImage, getBezel } from '../../bezels'
 import * as fc from './filterComplex'
 import { supportedFormats } from '../../supportedFormats'
 import { Scene, getSceneSize, getTotalSceneDuration, getVideoRectInScene } from '../../types/Scene'
@@ -219,7 +219,7 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
 
         if (video.withBezel) {
             const bezel = getBezel(video.bezelKey);
-            const bezelName = 'bezel.png';
+            const bezelName = `bezel_${video.index}.png`;
             inputs.push('-i', bezelName);
 
             await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));

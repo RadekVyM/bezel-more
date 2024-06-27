@@ -1,6 +1,7 @@
 import { BEZELS, bezelMask, bezelSmallImage } from '../../bezels'
 import { Video } from '../../types/Video'
 import { cn } from '../../utils/tailwind'
+import BezelThumbnail from '../BezelThumbnail'
 import CheckInput from '../inputs/CheckInput'
 import CheckInputLabel from '../inputs/CheckInputLabel'
 
@@ -47,23 +48,11 @@ export default function BezelSelection({ className, video, updateVideo }: BezelS
                             className='row-start-2 row-end-3 col-start-2 col-end-3 text-xs text-on-surface-container'>
                             {b.title}
                         </h4>
-                        <div
-                            className='row-start-1 row-end-2 col-start-1 col-end-3 justify-self-center
-                            max-h-60 w-full h-full
-                            bg-[linear-gradient(0deg,var(--secondary)_0%,var(--primary)_100%)]'
-                            style={{
-                                maskImage: `url("${bezelMask(b.modelKey)}")`,
-                                WebkitMaskImage: `url("${bezelMask(b.modelKey)}")`,
-                                maskRepeat: 'no-repeat',
-                                maskPosition: 'center',
-                                maskSize: 'contain',
-                                maskMode: 'luminance'
-                            }} />
-                        <img
-                            className='row-start-1 row-end-2 col-start-1 col-end-3 justify-self-center max-h-60 z-10'
-                            loading='lazy'
-                            src={bezelSmallImage(b.key)}
-                            alt={`${b.title} bezel`} />
+                        <BezelThumbnail
+                            className='row-start-1 row-end-2 col-start-1 col-end-3 max-h-60 w-full h-full'
+                            bezelKey={b.key}
+                            modelKey={b.modelKey}
+                            bezelTitle={b.title} />
                         <div
                             aria-hidden
                             className={cn('w-5 h-5 flex justify-center items-center',

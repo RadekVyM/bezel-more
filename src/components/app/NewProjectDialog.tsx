@@ -5,6 +5,8 @@ import SectionHeading from '../SectionHeading'
 import Button from '../inputs/Button'
 import { MdClose } from 'react-icons/md'
 import { ProjectConfig } from '../../types/ProjectConfig'
+import BezelThumbnail from '../BezelThumbnail'
+import { BEZELS } from '../../bezels'
 
 type NewProjectDialogProps = {
     hide: () => void,
@@ -25,7 +27,7 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
             <article
                 className='isolate flex flex-col'>
                 <header
-                    className='flex justify-between items-start pt-8'>
+                    className='flex justify-between items-start pt-8 mb-4'>
                     <SectionHeading>New project</SectionHeading>
                     <Button
                         className='p-1'
@@ -34,14 +36,37 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
                     </Button>
                 </header>
 
-                <Button
-                    onClick={() => onProjectClick(1)}>
-                    One video
-                </Button>
-                <Button
-                    onClick={() => onProjectClick(2)}>
-                    Two videos
-                </Button>
+                <div
+                    className='grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] grid-rows-[auto] gap-3'>
+                    <Button
+                        className='flex flex-col p-5 gap-4'
+                        onClick={() => onProjectClick(1)}>
+                        <BezelThumbnail
+                            className='max-h-32 h-full w-full'
+                            bezelKey={BEZELS.iphone_15_black.key}
+                            modelKey={BEZELS.iphone_15_black.modelKey}
+                            bezelTitle={BEZELS.iphone_15_black.title} />
+                        One video
+                    </Button>
+                    <Button
+                        className='flex flex-col p-5 gap-4'
+                        onClick={() => onProjectClick(2)}>
+                        <div
+                            className='flex gap-4'>
+                            <BezelThumbnail
+                                className='max-h-32 h-full w-full'
+                                bezelKey={BEZELS.iphone_15_black.key}
+                                modelKey={BEZELS.iphone_15_black.modelKey}
+                                bezelTitle={BEZELS.iphone_15_black.title} />
+                            <BezelThumbnail
+                                className='max-h-32 h-full w-full'
+                                bezelKey={BEZELS['android_gray_19,5_9'].key}
+                                modelKey={BEZELS['android_gray_19,5_9'].modelKey}
+                                bezelTitle={BEZELS['android_gray_19,5_9'].title} />
+                        </div>
+                        Two videos
+                    </Button>
+                </div>
             </article>
         </Dialog>
     )

@@ -18,10 +18,11 @@ type MainScaffoldProps = {
     convert: React.ReactNode,
     videoPreviewer: React.ReactNode,
     resultPreviewer: React.ReactNode,
+    resetValue?: any,
     onNewProjectClick: () => void,
 }
 
-export default function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer, onNewProjectClick }: MainScaffoldProps) {
+export default function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer, resetValue, onNewProjectClick }: MainScaffoldProps) {
     const isLarge = useIsLarge();
     const [selectedStep, setSelectedStep] = useState<AppStep>('edit');
     const [convertDialogRef, isConvertDialogOpen, convertDialogAnimation, showConvertDialog, hideConvertDialog] =
@@ -41,6 +42,10 @@ export default function MainScaffold({ edit, convert, videoPreviewer, resultPrev
         }
     }, [isEditDialogOpen]);
     
+    useEffect(() => {
+        setSelectedStep('edit');
+    }, [resetValue]);
+
     return (
         <main
             className={cn(
