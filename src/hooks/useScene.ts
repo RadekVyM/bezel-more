@@ -4,6 +4,7 @@ import { supportedFormats } from '../supportedFormats'
 import { Video, createVideo } from '../types/Video'
 import { createSolidBackground } from '../types/Background'
 import { ProjectConfig } from '../types/ProjectConfig'
+import { hexToHsva } from '@uiw/react-color'
 
 const VIDEO_SIZE = 600;
 
@@ -74,7 +75,7 @@ function createInitialScene(createdVideos: Array<Video>): Scene {
         horizontalSpacing: 0,
         startTime: 0,
         endTime: 0,
-        background: createSolidBackground('#00000000'),
+        background: createSolidBackground(hexToHsva('#00000000')),
         formatKey: supportedFormats.webp.key,
     };
 }

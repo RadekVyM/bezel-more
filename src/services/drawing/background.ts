@@ -1,3 +1,4 @@
+import { hsvaToHexa } from '@uiw/react-color'
 import { Background, ImageBackground, LinearGradientBackground, RadialGradientBackground, SolidBackground } from '../../types/Background'
 import { Scene, getSceneSize } from '../../types/Scene'
 import { Size } from '../../types/Size'
@@ -48,19 +49,19 @@ export function drawBackground(context: CanvasRenderingContext2D, background: Ba
 }
 
 function drawSolidBackground(context: CanvasRenderingContext2D, background: SolidBackground, left: number, top: number, size: Size) {
-    context.fillStyle = background.color;
+    context.fillStyle = hsvaToHexa(background.color);
     context.fillRect(left, top, size.width, size.height);
 }
 
 function drawLinearBackground(context: CanvasRenderingContext2D, background: LinearGradientBackground, left: number, top: number, size: Size) {
     // TODO: Implement this
-    context.fillStyle = background.startColor;
+    context.fillStyle = hsvaToHexa(background.startColor);
     context.fillRect(left, top, size.width, size.height);
 }
 
 function drawRadialBackground(context: CanvasRenderingContext2D, background: RadialGradientBackground, left: number, top: number, size: Size) {
     // TODO: Implement this
-    context.fillStyle = background.innerColor;
+    context.fillStyle = hsvaToHexa(background.innerColor);
     context.fillRect(left, top, size.width, size.height);
 }
 

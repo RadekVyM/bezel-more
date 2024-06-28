@@ -4,23 +4,37 @@ type NumberInputProps = {
     label?: string,
     unit?: string,
     inputClassName?: string,
-    className?: string
+    className?: string,
+    variant?: NumberInputVariant
 } & React.InputHTMLAttributes<HTMLInputElement>
 
-export default function NumberInput({ className, id, label, min, max, unit, inputClassName, value, onChange, ...rest }: NumberInputProps) {
+type NumberInputVariant = 'default' | 'sm'
+
+export default function NumberInput({ className, id, label, min, max, unit, inputClassName, value, variant, onChange, ...rest }: NumberInputProps) {
+    variant = (variant || 'default') as NumberInputVariant;
+    
     return (
         <div
             className={className}>
             <label
                 htmlFor={id}
-                className='block text-sm font-medium mb-2 text-on-surface'>
+                className={cn(
+                    'block text-sm font-medium text-on-surface',
+                    variant === 'default' ?
+                        'mb-2' :
+                        variant === 'sm' && 'mb-0.5')}>
                 {label}
             </label>
             <div
                 className='relative'>
                 <input
                     {...rest}
-                    className={cn('py-2 px-3 block w-full border border-outline rounded-md bg-surface-container text-on-surface-container disabled:text-on-surface-muted', inputClassName)}
+                    className={cn(
+                        'block w-full border border-outline rounded-md bg-surface-container text-on-surface-container disabled:text-on-surface-muted',
+                        variant === 'default' ?
+                            'py-2 px-3' :
+                            variant === 'sm' && 'text-sm px-2 py-1.5',
+                        inputClassName)}
                     id={id}
                     type='number'
                     min={min} max={max}

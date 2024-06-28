@@ -1,3 +1,5 @@
+import { HsvaColor } from '@uiw/react-color'
+
 export type BackgroundType = 'solid' | 'linear-gradient' | 'radial-gradient' | 'image'
 
 export type Background = {
@@ -5,18 +7,18 @@ export type Background = {
 }
 
 export type SolidBackground = {
-    color: string
+    color: HsvaColor
 } & Background
 
 export type LinearGradientBackground = {
-    startColor: string,
-    endColor: string,
+    startColor: HsvaColor,
+    endColor: HsvaColor,
     angle: number
 } & Background
 
 export type RadialGradientBackground = {
-    innerColor: string,
-    outerColor: string,
+    innerColor: HsvaColor,
+    outerColor: HsvaColor,
     innerRadius: number
 } & Background
 
@@ -24,25 +26,25 @@ export type ImageBackground = {
     imageUrl: string
 } & Background
 
-export function createSolidBackground(color: string): SolidBackground {
+export function createSolidBackground(color: HsvaColor): SolidBackground {
     return {
         type: 'solid',
         color
     };
 }
 
-export function createLinearGradientBackground(startColor: string, endColor: string, angle: number): LinearGradientBackground {
+export function createLinearGradientBackground(startColor: HsvaColor, endColor: HsvaColor, angle: number): LinearGradientBackground {
     return {
-        type: 'solid',
+        type: 'linear-gradient',
         startColor,
         endColor,
         angle
     };
 }
 
-export function createRadialGradientBackground(innerColor: string, outerColor: string, innerRadius: number): RadialGradientBackground {
+export function createRadialGradientBackground(innerColor: HsvaColor, outerColor: HsvaColor, innerRadius: number): RadialGradientBackground {
     return {
-        type: 'solid',
+        type: 'radial-gradient',
         innerColor,
         outerColor,
         innerRadius
@@ -51,7 +53,7 @@ export function createRadialGradientBackground(innerColor: string, outerColor: s
 
 export function createImageBackground(imageUrl: string): ImageBackground {
     return {
-        type: 'solid',
+        type: 'image',
         imageUrl
     };
 }
