@@ -41,9 +41,7 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
             const maskImage = new Image(bezel.width, bezel.height);
 
             maskImage.src = maskSrc;
-            await new Promise((resolve) => {
-                maskImage.onload = () => resolve(undefined);
-            });
+            await new Promise((resolve) => maskImage.onload = () => resolve(undefined));
 
             context.drawImage(maskImage, videoX, videoY, videoWidth, videoHeight);
         }

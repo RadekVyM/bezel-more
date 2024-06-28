@@ -4,11 +4,14 @@ import { cn } from '../../../utils/tailwind'
 import SectionHeading from '../../SectionHeading'
 import Button from '../Button'
 import { MdClose } from 'react-icons/md'
-import { Background, BackgroundType, SolidBackground, createImageBackground, createLinearGradientBackground, createRadialGradientBackground, createSolidBackground } from '../../../types/Background'
+import { Background, BackgroundType, ImageBackground, LinearGradientBackground, RadialGradientBackground, SolidBackground, createImageBackground, createLinearGradientBackground, createRadialGradientBackground, createSolidBackground } from '../../../types/Background'
 import SolidColorPicker from './SolidColorPicker'
 import Tabs from '../../Tabs'
 import ComponentSwitch from '../../ComponentSwitch'
 import { hexToHsva } from '@uiw/react-color'
+import LinearGradientPicker from './LinearGradientPicker'
+import RadialGradientPicker from './RadialGradientPicker'
+import ImagePicker from './ImagePicker'
 
 type BackgroundPickerDialogProps = {
     currentBackground: Background,
@@ -49,6 +52,7 @@ const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDia
 
                 <Tabs
                     className='mb-5'
+                    variant='sm'
                     selectedTabKey={currentBackground.type}
                     tabs={[
                         { key: 'solid', title: 'Solid', onClick: (tab) => onPick(defaultBackgroundsRef.current.get('solid')!) },
@@ -62,13 +66,19 @@ const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDia
                     <SolidColorPicker
                         key='solid'
                         currentBackground={currentBackground as SolidBackground}
-                        onPick={onPick}/>
-                    <div
-                        key='linear-gradient'/>
-                    <div
-                        key='radial-gradient'/>
-                    <div
-                        key='image'/>
+                        onPick={onPick} />
+                    <LinearGradientPicker
+                        key='linear-gradient'
+                        currentBackground={currentBackground as LinearGradientBackground}
+                        onPick={onPick} />
+                    <RadialGradientPicker
+                        key='radial-gradient'
+                        currentBackground={currentBackground as RadialGradientBackground}
+                        onPick={onPick} />
+                    <ImagePicker
+                        key='image'
+                        currentBackground={currentBackground as ImageBackground}
+                        onPick={onPick} />
                 </ComponentSwitch>
             </article>
         </Dialog>

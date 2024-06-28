@@ -12,7 +12,6 @@ import { BiMoviePlay } from 'react-icons/bi'
 import { cn } from './utils/tailwind'
 import Container from './components/Container'
 import Tabs from './components/Tabs'
-import FileSelection from './components/inputs/FileSelection'
 import VideoTrimConfiguration from './components/video/VideoTrimConfiguration'
 import useConvert from './hooks/useConvert'
 import ResultPreviewer from './components/conversion/ResultPreviewer'
@@ -32,6 +31,7 @@ import MainScaffold from './components/app/MainScaffold'
 import useContentDialog from './hooks/useContentDialog'
 import { NewProjectDialog } from './components/app/NewProjectDialog'
 import { ProjectConfig } from './types/ProjectConfig'
+import VideoFileSelection from './components/inputs/VideoFileSelection'
 
 type EditProps = {
     scene: Scene,
@@ -257,9 +257,9 @@ function EditVideo({ video, updateVideo, onFileSelected }: EditVideoProps) {
             className='flex flex-col gap-6'>
             <div>
                 {isLarge && <SectionHeading>Edit video</SectionHeading>}
-                <FileSelection
-                    video={video.file}
-                    setVideo={onFileSelected} />
+                <VideoFileSelection
+                    file={video.file}
+                    onFileSelect={onFileSelected} />
             </div>
             <div>
                 <SubsectionHeading>Trim video</SubsectionHeading>

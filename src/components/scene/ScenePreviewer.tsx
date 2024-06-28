@@ -226,8 +226,6 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
                 continue;
             }
 
-            // TODO: Render the videos based on a template
-            // This is just a temporary solution
             try {
                 drawVideo(context, video, scene, bezelImagesRef.current[video.index], left, top, sceneWidth, sceneHeight, scale);
             }

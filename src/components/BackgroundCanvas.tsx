@@ -4,11 +4,12 @@ import { drawBackground } from '../services/drawing/background'
 
 type BackgroundCanvasProps = {
     background: Background,
+    canvasSize?: number,
     className?: string
 }
 
-export default function BackgroundCanvas({ background, className }: BackgroundCanvasProps) {
-    const size = 100;
+export default function BackgroundCanvas({ background, className, canvasSize }: BackgroundCanvasProps) {
+    const size = canvasSize || 100;
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {

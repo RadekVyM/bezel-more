@@ -14,7 +14,7 @@ export async function generateBackground(scene: Scene): Promise<File | null> {
         return null;
     }
 
-    drawSceneBackground(context, scene, 0, 0, size);
+    await drawSceneBackground(context, scene, 0, 0, size);
 
     return new Promise<File | null>((resolve) => {
         canvas.toBlob((blob) => {
@@ -54,20 +54,51 @@ function drawSolidBackground(context: CanvasRenderingContext2D, background: Soli
 }
 
 function drawLinearBackground(context: CanvasRenderingContext2D, background: LinearGradientBackground, left: number, top: number, size: Size) {
-    // TODO: Implement this
-    context.fillStyle = hsvaToHexa(background.startColor);
+    const w = size.width / 2;
+    const h = size.height / 2;
+    const a = w * Math.tan((background.angle / 180) * Math.PI);
+    const b = h / Math.tan((background.angle / 180) * Math.PI);
+
+    const x = Math.abs(Math.abs(a) > h ? b : w) * ((background.angle + 90) % 360 > 180 ? -1 : 1);
+    const y = Math.abs(Math.abs(a) > h ? h : a) * (background.angle > 180 ? 1 : -1);
+
+    const centerX = left + w;
+    const centerY = top + h;
+    const secondX = centerX + x;
+    const secondY = centerY + y;
+    const firstX = centerX - x;
+    const firstY = centerY - y;
+
+    const gradient = context.createLinearGradient(firstX, firstY, secondX, secondY);
+    gradient.addColorStop(0, hsvaToHexa(background.startColor));
+    gradient.addColorStop(1, hsvaToHexa(background.endColor));
+    context.fillStyle = gradient;
     context.fillRect(left, top, size.width, size.height);
 }
 
 function drawRadialBackground(context: CanvasRenderingContext2D, background: RadialGradientBackground, left: number, top: number, size: Size) {
-    // TODO: Implement this
-    context.fillStyle = hsvaToHexa(background.innerColor);
+    const w = size.width / 2;
+    const h = size.height / 2;
+    const centerX = left + w;
+    const centerY = top + h;
+    const radius = Math.sqrt((w * w) + (h * h));
+    const gradient = context.createRadialGradient(centerX, centerY, Math.min(background.innerRadius, 0.9999) * radius, centerX, centerY, radius);
+
+    gradient.addColorStop(0, hsvaToHexa(background.innerColor));
+    gradient.addColorStop(1, hsvaToHexa(background.outerColor));
+
+    context.fillStyle = gradient;
     context.fillRect(left, top, size.width, size.height);
 }
 
 function drawImageBackground(context: CanvasRenderingContext2D, background: ImageBackground, left: number, top: number, size: Size) {
-    // TODO: Implement this properly
-    const image = new Image();
-    image.src = background.imageUrl;
-    context.drawImage(image, left, top, size.width, size.height);
+    if (!background.image.complete && !(background.image as any).isLoaded) {
+        background.image.addEventListener('load', onLoaded);
+    }
+    context.drawImage(background.image, left, top, size.width, size.height);
+
+    function onLoaded() {
+        context.drawImage(background.image, left, top, size.width, size.height);
+        background.image.removeEventListener('load', onLoaded);
+    }
 }
