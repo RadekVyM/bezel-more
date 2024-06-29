@@ -1,17 +1,17 @@
 {
   "files": {
-    "main.css": "/bezel-more/static/css/main.512d4213.css",
-    "main.js": "/bezel-more/static/js/main.4c3c9aa3.js",
+    "main.css": "/bezel-more/static/css/main.2039a943.css",
+    "main.js": "/bezel-more/static/js/main.4a6ec7e5.js",
     "static/js/504.9c7439a3.chunk.js": "/bezel-more/static/js/504.9c7439a3.chunk.js",
     "static/js/592.1baa5993.chunk.js": "/bezel-more/static/js/592.1baa5993.chunk.js",
     "index.html": "/bezel-more/index.html",
-    "main.512d4213.css.map": "/bezel-more/static/css/main.512d4213.css.map",
-    "main.4c3c9aa3.js.map": "/bezel-more/static/js/main.4c3c9aa3.js.map",
+    "main.2039a943.css.map": "/bezel-more/static/css/main.2039a943.css.map",
+    "main.4a6ec7e5.js.map": "/bezel-more/static/js/main.4a6ec7e5.js.map",
     "504.9c7439a3.chunk.js.map": "/bezel-more/static/js/504.9c7439a3.chunk.js.map",
     "592.1baa5993.chunk.js.map": "/bezel-more/static/js/592.1baa5993.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.512d4213.css",
-    "static/js/main.4c3c9aa3.js"
+    "static/css/main.2039a943.css",
+    "static/js/main.4a6ec7e5.js"
   ]
 }
