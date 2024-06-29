@@ -1,7 +1,8 @@
 import { hsvaToHexa } from '@uiw/react-color'
 import { Background, ImageBackground, LinearGradientBackground, RadialGradientBackground, SolidBackground } from '../../types/Background'
-import { Scene, getSceneSize } from '../../types/Scene'
+import { Scene, getSceneSize, getVideoRectInScene } from '../../types/Scene'
 import { Size } from '../../types/Size'
+import { bezelTransparentMask, getBezel } from '../../bezels'
 
 export async function generateBackground(scene: Scene): Promise<File | null> {
     const canvas = document.createElement('canvas');
@@ -11,10 +12,12 @@ export async function generateBackground(scene: Scene): Promise<File | null> {
     const context = canvas.getContext('2d');
 
     if (!context) {
-        return null;
+        throw new Error('Canvas context could not be loaded'); 
     }
 
-    await drawSceneBackground(context, scene, 0, 0, size);
+    const maskImages = await createMaskImages(scene);
+
+    drawSceneBackground(context, scene, 0, 0, size, true, maskImages);
 
     return new Promise<File | null>((resolve) => {
         canvas.toBlob((blob) => {
@@ -27,8 +30,27 @@ export async function generateBackground(scene: Scene): Promise<File | null> {
     });
 }
 
-export function drawSceneBackground(context: CanvasRenderingContext2D, scene: Scene, left: number, top: number, size: Size) {
-    drawBackground(context, scene.background, left, top, size);
+export function drawSceneBackground(context: CanvasRenderingContext2D, scene: Scene, left: number, top: number, size: Size, withShadows?: boolean, maskImages?: Array<HTMLImageElement | null>) {
+    if (!Number.isFinite(size.width) || !Number.isFinite(size.width) || size.width === 0 || size.height === 0) {
+        return;
+    }
+
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = size.width + left;
+    tempCanvas.height = size.height + top;
+    const tempContext = tempCanvas.getContext('2d');
+
+    if (!tempContext) {
+        throw new Error('Canvas context could not be loaded');
+    }
+
+    drawBackground(tempContext, scene.background, left, top, size);
+
+    if (withShadows && maskImages) {
+        drawShadows(tempContext, scene, left, top, size, maskImages);
+    }
+
+    context.drawImage(tempCanvas, 0, 0);
 }
 
 export function drawBackground(context: CanvasRenderingContext2D, background: Background, left: number, top: number, size: Size) {
@@ -125,4 +147,78 @@ function drawImageBackgroundInner(context: CanvasRenderingContext2D, background:
     context.fillRect(left, top, size.width, size.height);
 
     context.restore();
+}
+
+function drawShadows(context: CanvasRenderingContext2D, scene: Scene, left: number, top: number, size: Size, maskImages: Array<HTMLImageElement | null>) {
+    const sceneSize = getSceneSize(scene);
+    const scale = Math.min(size.width / sceneSize.width, size.height / sceneSize.height);
+
+    for (const video of scene.videos) {
+        if (!video.withShadow) {
+            continue;
+        }
+
+        context.save();
+
+        const { videoWidth, videoHeight, videoX, videoY } = getVideoRectInScene(video, scene);
+
+        const x = ((videoX + video.shadowOffsetX) * scale) + left;
+        const y = ((videoY + video.shadowOffsetY) * scale) + top;
+        const w = videoWidth * scale;
+        const h = videoHeight * scale;
+        const contentOffsetX = -w - left;
+        const contentOffsetY = -h - top;
+
+        context.shadowColor = hsvaToHexa(video.shadowColor);
+        context.shadowBlur = video.shadowBlur;
+        context.fillStyle = hsvaToHexa(video.shadowColor);
+        context.shadowOffsetX = -contentOffsetX + x;
+        context.shadowOffsetY = -contentOffsetY + y;
+        // The formats I use do not support semitransparency,
+        // so it does not make sense to draw the shadows on transparent parts of the background
+        context.globalCompositeOperation = 'source-atop';
+
+        if (video.withBezel) {
+            const maskImage = maskImages[video.index];
+
+            if (!maskImage) {
+                throw new Error('Where is the mask image?');
+            }
+
+            context.drawImage(maskImage, contentOffsetX, contentOffsetY, w, h);
+        }
+        else {
+            context.fillRect(contentOffsetX, contentOffsetY, w, h);
+        }
+
+        context.restore();
+    }
+}
+
+async function createMaskImages(scene: Scene) {
+    const maskImages = scene.videos.map((video) => {
+        if (!video.withShadow || !video.withBezel) {
+            return null;
+        }
+
+        const bezel = getBezel(video.bezelKey);
+        const maskSrc = bezelTransparentMask(bezel.modelKey);
+        const maskImage = new Image(bezel.width, bezel.height);
+        maskImage.src = maskSrc;
+
+        return maskImage;
+    });
+
+    await Promise.allSettled(maskImages.map((m) => {
+        return new Promise((resolve) => {
+            if (!m || m.complete) {
+                resolve(undefined);
+            }
+            else {
+                m.onload = () => resolve(undefined);
+            }
+        })
+    }));
+
+    return maskImages;
 }

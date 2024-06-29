@@ -14,6 +14,7 @@ export type Video = {
     bezelKey: string,
     file: File | null | undefined,
     totalDuration: number,
+    withShadow?: boolean,
     shadowColor: HsvaColor,
     shadowBlur: number,
     shadowOffsetX: number,

@@ -233,7 +233,7 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
         };
 
         context.globalCompositeOperation ='destination-over';
-        drawSceneBackground(context, scene, left, top, { width: sceneWidth, height: sceneHeight });
+        drawSceneBackground(context, scene, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImagesRef.current.map((bi) => bi.maskImage));
     }
 
     return (

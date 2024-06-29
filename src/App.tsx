@@ -32,6 +32,7 @@ import useContentDialog from './hooks/useContentDialog'
 import { NewProjectDialog } from './components/app/NewProjectDialog'
 import { ProjectConfig } from './types/ProjectConfig'
 import VideoFileSelection from './components/inputs/VideoFileSelection'
+import VideoShadowConfiguration from './components/video/VideoShadowConfiguration'
 
 type EditProps = {
     scene: Scene,
@@ -264,6 +265,12 @@ function EditVideo({ video, updateVideo, onFileSelected }: EditVideoProps) {
             <div>
                 <SubsectionHeading>Trim video</SubsectionHeading>
                 <VideoTrimConfiguration
+                    video={video}
+                    updateVideo={updateVideo}/>
+            </div>
+            <div>
+                <SubsectionHeading>Shadow</SubsectionHeading>
+                <VideoShadowConfiguration
                     video={video}
                     updateVideo={updateVideo}/>
             </div>

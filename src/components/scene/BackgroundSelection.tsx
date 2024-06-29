@@ -12,7 +12,7 @@ type BackgroundSelectionProps = {
 }
 
 export default function BackgroundSelection({ scene, className, updateScene }: BackgroundSelectionProps) {
-    const [backgroundDialogRef, isOpen, backgroundDialogAnimation, showBackgrounDialog, hideBackgroundDialog] = useContentDialog(true);
+    const [backgroundDialogRef, isOpen, backgroundDialogAnimation, showBackgroundDialog, hideBackgroundDialog] = useContentDialog(true);
 
     return (
         <div
@@ -24,7 +24,7 @@ export default function BackgroundSelection({ scene, className, updateScene }: B
             <Button
                 id='background-selection'
                 className='p-1.5'
-                onClick={() => showBackgrounDialog()}>
+                onClick={() => showBackgroundDialog()}>
                 <BackgroundCanvas
                     className='w-8 h-8 checkered rounded-md border border-outline overflow-hidden'
                     background={scene.background}/>
