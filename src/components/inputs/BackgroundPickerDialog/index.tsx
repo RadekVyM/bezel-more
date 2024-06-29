@@ -23,7 +23,7 @@ const DEFAULT_BACKGROUNDS: Array<[BackgroundType, Background]> = [
     ['solid', createSolidBackground(hexToHsva('#00000000'))],
     ['linear-gradient', createLinearGradientBackground(hexToHsva('#ffffffff'), hexToHsva('#ffffffff'), 0)],
     ['radial-gradient', createRadialGradientBackground(hexToHsva('#ffffffff'), hexToHsva('#ffffffff'), 0)],
-    ['image', createImageBackground('')],
+    ['image', createImageBackground('', true)],
 ];
 
 const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDialogProps>(({ currentBackground, animation, className, hide, onPick }, ref) => {

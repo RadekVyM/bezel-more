@@ -1,4 +1,4 @@
-import { forwardRef, useState } from 'react'
+import { forwardRef } from 'react'
 import { Dialog, DialogProps } from '../Dialog'
 import { cn } from '../../utils/tailwind'
 import SectionHeading from '../SectionHeading'
@@ -39,7 +39,7 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
                 <div
                     className='grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] grid-rows-[auto] gap-3'>
                     <Button
-                        className='flex flex-col p-5 gap-4'
+                        className='grid grid-rows-[1fr_auto] p-5 gap-4 h-fit'
                         onClick={() => onProjectClick(1)}>
                         <BezelThumbnail
                             className='max-h-32 h-full w-full'
@@ -49,10 +49,10 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
                         One video
                     </Button>
                     <Button
-                        className='flex flex-col p-5 gap-4'
+                        className='grid grid-rows-[1fr_auto] p-5 gap-4 h-fit'
                         onClick={() => onProjectClick(2)}>
                         <div
-                            className='flex gap-4'>
+                            className='grid grid-cols-2 gap-4'>
                             <BezelThumbnail
                                 className='max-h-32 h-full w-full'
                                 bezelKey={BEZELS.iphone_15_black.key}

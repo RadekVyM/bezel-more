@@ -19,7 +19,7 @@ export default function NumberInput({ className, id, label, min, max, unit, inpu
             <label
                 htmlFor={id}
                 className={cn(
-                    'block text-sm font-medium text-on-surface',
+                    'block text-sm font-medium text-on-surface select-none',
                     variant === 'default' ?
                         'mb-2' :
                         variant === 'sm' && 'mb-0.5')}>

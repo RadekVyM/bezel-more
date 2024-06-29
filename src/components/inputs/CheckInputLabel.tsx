@@ -8,6 +8,6 @@ export default function CheckInputLabel({ className, ...props }: CheckInputLabel
     return (
         <label
             {...props}
-            className={cn('text-sm text-on-surface-muted pl-3', className)} />
+            className={cn('text-sm text-on-surface-muted pl-3 select-none', className)} />
     )
 }

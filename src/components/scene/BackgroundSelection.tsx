@@ -19,9 +19,10 @@ export default function BackgroundSelection({ scene, className, updateScene }: B
             className={cn(className)}
             role='radiogroup'
             aria-labelledby='background-selection-legend'>
-            <p id='background-selection-legend' className='block text-sm font-medium mb-2'>Background</p>
+            <label htmlFor='background-selection' className='block text-sm font-medium mb-2 select-none w-fit'>Background</label>
 
             <Button
+                id='background-selection'
                 className='p-1.5'
                 onClick={() => showBackgrounDialog()}>
                 <BackgroundCanvas

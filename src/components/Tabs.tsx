@@ -29,6 +29,7 @@ export default function Tabs({ className, tabs, isVertical, selectedTabKey, vari
                 key={tab.key}
                 className={cn(
                     'relative flex flex-row items-center justify-center',
+                    'select-none',
                     isVertical ?
                         'flex-col px-3 pt-2 pb-1 gap-1 text-xs' :
                         'flex-1',

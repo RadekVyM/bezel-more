@@ -25,7 +25,8 @@ export type RadialGradientBackground = {
 } & Background
 
 export type ImageBackground = {
-    image: HTMLImageElement
+    image: HTMLImageElement,
+    aspectFill: boolean
 } & Background
 
 export function createSolidBackground(color: HsvaColor): SolidBackground {
@@ -53,14 +54,24 @@ export function createRadialGradientBackground(innerColor: HsvaColor, outerColor
     };
 }
 
-export function createImageBackground(imageUrl: string): ImageBackground {
-    const image = new Image();
-    image.src = imageUrl;
+export function createImageBackground(image: string | HTMLImageElement, aspectFill: boolean): ImageBackground {
+    if (typeof image === 'string') {
+        const imageElement = new Image();
+        imageElement.src = image;
 
-    return {
-        type: 'image',
-        image: image
-    };
+        return {
+            type: 'image',
+            image: imageElement,
+            aspectFill
+        };
+    }
+    else {
+        return {
+            type: 'image',
+            image,
+            aspectFill
+        };
+    }
 }
 
 export function solidBackgroundsEqual(first: SolidBackground, second: SolidBackground) {
@@ -77,4 +88,8 @@ export function radialGradientBackgroundsEqual(first: RadialGradientBackground, 
     return equalHex(hsvaToHexa(first.innerColor), hsvaToHexa(second.innerColor)) &&
         equalHex(hsvaToHexa(first.outerColor), hsvaToHexa(second.outerColor)) &&
         first.innerRadius === second.innerRadius;
+}
+
+export function imageBackgroundsEqual(first: ImageBackground, second: ImageBackground) {
+    return first.image.src === second.image.src && first.aspectFill === second.aspectFill;
 }

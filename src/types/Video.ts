@@ -1,3 +1,4 @@
+import { HsvaColor, hexToHsva } from '@uiw/react-color'
 import { BEZELS, getBezel } from '../bezels'
 import { Point } from './Point'
 import { Size } from './Size'
@@ -13,6 +14,10 @@ export type Video = {
     bezelKey: string,
     file: File | null | undefined,
     totalDuration: number,
+    shadowColor: HsvaColor,
+    shadowBlur: number,
+    shadowOffsetX: number,
+    shadowOffsetY: number,
     naturalVideoDimensions?: Size,
     readonly htmlVideo: HTMLVideoElement,
 }
@@ -39,7 +44,11 @@ export function createVideo(index: number, file?: File): Video {
         position: { x: 0, y: 0 },
         withBezel: true,
         bezelKey: BEZELS.iphone_15_black.key,
-        htmlVideo
+        htmlVideo,
+        shadowBlur: 0,
+        shadowOffsetX: 0,
+        shadowOffsetY: 0,
+        shadowColor: hexToHsva('#000000ff')
     };
 }
 

@@ -54,13 +54,14 @@ function drawSolidBackground(context: CanvasRenderingContext2D, background: Soli
 }
 
 function drawLinearBackground(context: CanvasRenderingContext2D, background: LinearGradientBackground, left: number, top: number, size: Size) {
+    const angle = Number.isFinite(background.angle) ? background.angle : 0;
     const w = size.width / 2;
     const h = size.height / 2;
-    const a = w * Math.tan((background.angle / 180) * Math.PI);
-    const b = h / Math.tan((background.angle / 180) * Math.PI);
+    const a = w * Math.tan((angle / 180) * Math.PI);
+    const b = h / Math.tan((angle / 180) * Math.PI);
 
-    const x = Math.abs(Math.abs(a) > h ? b : w) * ((background.angle + 90) % 360 > 180 ? -1 : 1);
-    const y = Math.abs(Math.abs(a) > h ? h : a) * (background.angle > 180 ? 1 : -1);
+    const x = Math.abs(Math.abs(a) > h ? b : w) * ((angle + 90) % 360 > 180 ? -1 : 1);
+    const y = Math.abs(Math.abs(a) > h ? h : a) * (angle > 180 ? 1 : -1);
 
     const centerX = left + w;
     const centerY = top + h;
@@ -77,12 +78,13 @@ function drawLinearBackground(context: CanvasRenderingContext2D, background: Lin
 }
 
 function drawRadialBackground(context: CanvasRenderingContext2D, background: RadialGradientBackground, left: number, top: number, size: Size) {
+    const innerRadius = Number.isFinite(background.innerRadius) ? background.innerRadius: 0;
     const w = size.width / 2;
     const h = size.height / 2;
     const centerX = left + w;
     const centerY = top + h;
     const radius = Math.sqrt((w * w) + (h * h));
-    const gradient = context.createRadialGradient(centerX, centerY, Math.min(background.innerRadius, 0.9999) * radius, centerX, centerY, radius);
+    const gradient = context.createRadialGradient(centerX, centerY, Math.min(innerRadius, 0.9999) * radius, centerX, centerY, radius);
 
     gradient.addColorStop(0, hsvaToHexa(background.innerColor));
     gradient.addColorStop(1, hsvaToHexa(background.outerColor));
@@ -95,10 +97,32 @@ function drawImageBackground(context: CanvasRenderingContext2D, background: Imag
     if (!background.image.complete && !(background.image as any).isLoaded) {
         background.image.addEventListener('load', onLoaded);
     }
-    context.drawImage(background.image, left, top, size.width, size.height);
+    drawImageBackgroundInner(context, background, left, top, size);
 
     function onLoaded() {
-        context.drawImage(background.image, left, top, size.width, size.height);
+        drawImageBackgroundInner(context, background, left, top, size);
         background.image.removeEventListener('load', onLoaded);
     }
+}
+
+function drawImageBackgroundInner(context: CanvasRenderingContext2D, background: ImageBackground, left: number, top: number, size: Size) {
+    if (background.aspectFill) {
+        const scale = Math.max(size.width / background.image.naturalWidth, size.height / background.image.naturalHeight);
+        const w = background.image.naturalWidth * scale;
+        const h = background.image.naturalHeight * scale;
+        const x = (size.width - w) / 2;
+        const y = (size.height - h) / 2;
+        context.drawImage(background.image, left + x, top + y, w, h);
+    }
+    else {
+        context.drawImage(background.image, left, top, size.width, size.height);
+    }
+
+    context.save();
+
+    context.globalCompositeOperation = 'destination-in';
+    context.fillStyle = 'white';
+    context.fillRect(left, top, size.width, size.height);
+
+    context.restore();
 }

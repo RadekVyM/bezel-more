@@ -8,7 +8,7 @@ type BackgroundsListProps = {
     backgrounds: Array<Background>,
     predefinedBackgrounds: Array<Background>,
     currentBackground: Background,
-    removeBackground: (background: any) => void,
+    removeBackground?: (background: any) => void,
     onPick: (background: Background) => void,
     backgroundsEqual: (first: any, second: any) => boolean,
 }
@@ -41,7 +41,7 @@ export default function BackgroundsList({ className, backgrounds, predefinedBack
                                     className='row-start-1 row-end-2 col-start1 col-end-2 place-self-center w-4 h-4 rounded-md bg-white border border-outline shadow-md'/>}
                         </div>
 
-                        {!bg.isPredefined &&
+                        {removeBackground && !bg.isPredefined &&
                             <button
                                 className='opacity-0 peer-focus-within:opacity-100 peer-hover:opacity-100 hover:opacity-100 focus:opacity-100
                                     transition-opacity
