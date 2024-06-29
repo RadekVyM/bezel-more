@@ -116,10 +116,12 @@ function drawRadialBackground(context: CanvasRenderingContext2D, background: Rad
 }
 
 function drawImageBackground(context: CanvasRenderingContext2D, background: ImageBackground, left: number, top: number, size: Size) {
-    if (!background.image.complete && !(background.image as any).isLoaded) {
+    if (!background.image.complete) {
         background.image.addEventListener('load', onLoaded);
     }
-    drawImageBackgroundInner(context, background, left, top, size);
+    else {
+        drawImageBackgroundInner(context, background, left, top, size);
+    }
 
     function onLoaded() {
         drawImageBackgroundInner(context, background, left, top, size);

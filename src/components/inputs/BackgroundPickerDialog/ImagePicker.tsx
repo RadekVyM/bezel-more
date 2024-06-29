@@ -11,18 +11,18 @@ type ImagePickerProps = {
 }
 
 const PREDEFINED_IMAGE_BACKGROUNDS: Array<ImageBackground> = [
-    createImageBackground('/images/backgrounds/04.jpg', true),
-    createImageBackground('/images/backgrounds/07.jpg', true),
-    createImageBackground('/images/backgrounds/05.jpg', true),
-    createImageBackground('/images/backgrounds/01.jpg', true),
-    createImageBackground('/images/backgrounds/02.jpg', true),
-    createImageBackground('/images/backgrounds/03.jpg', true),
-    createImageBackground('/images/backgrounds/09.jpg', true),
-    createImageBackground('/images/backgrounds/08.jpg', true),
-    createImageBackground('/images/backgrounds/11.jpg', true),
-    createImageBackground('/images/backgrounds/06.jpg', true),
-    createImageBackground('/images/backgrounds/10.jpg', true),
-    createImageBackground('/images/backgrounds/12.jpg', true),
+    createImageBackground('images/backgrounds/04.jpg', true),
+    createImageBackground('images/backgrounds/07.jpg', true),
+    createImageBackground('images/backgrounds/05.jpg', true),
+    createImageBackground('images/backgrounds/01.jpg', true),
+    createImageBackground('images/backgrounds/02.jpg', true),
+    createImageBackground('images/backgrounds/03.jpg', true),
+    createImageBackground('images/backgrounds/09.jpg', true),
+    createImageBackground('images/backgrounds/08.jpg', true),
+    createImageBackground('images/backgrounds/11.jpg', true),
+    createImageBackground('images/backgrounds/06.jpg', true),
+    createImageBackground('images/backgrounds/10.jpg', true),
+    createImageBackground('images/backgrounds/12.jpg', true),
 ];
 
 export default function ImagePicker({ currentBackground, onPick }: ImagePickerProps) {
