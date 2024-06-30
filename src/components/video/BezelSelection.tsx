@@ -1,4 +1,4 @@
-import { BEZELS, bezelMask, bezelSmallImage } from '../../bezels'
+import { BEZELS } from '../../bezels'
 import { Video } from '../../types/Video'
 import { cn } from '../../utils/tailwind'
 import BezelThumbnail from '../BezelThumbnail'

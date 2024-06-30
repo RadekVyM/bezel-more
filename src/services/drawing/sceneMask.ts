@@ -1,4 +1,4 @@
-import { bezelMask, getBezel } from '../../bezels';
+import { bezelMask, getBezel } from '../../bezels'
 import { Scene, getSceneSize, getVideoRectInScene } from '../../types/Scene'
 import { Size } from '../../types/Size'
 
@@ -35,13 +35,23 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
 
         context.save();
 
+        context.fillStyle = 'white';
+
+        context.beginPath();
+        context.roundRect(videoX, videoY, videoWidth, videoHeight, Math.min(video.cornerRadius, videoWidth / 2, videoHeight / 2));
+        context.fill();
+
+        context.globalCompositeOperation = 'multiply';
+        
         if (video.withBezel) {
             const bezel = getBezel(video.bezelKey);
             const maskSrc = bezelMask(bezel.modelKey);
             const maskImage = new Image(bezel.width, bezel.height);
 
             maskImage.src = maskSrc;
-            await new Promise((resolve) => maskImage.onload = () => resolve(undefined));
+            if (!maskImage.complete) {
+                await new Promise((resolve) => maskImage.onload = () => resolve(undefined));
+            }
 
             context.drawImage(maskImage, videoX, videoY, videoWidth, videoHeight);
         }

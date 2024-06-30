@@ -190,7 +190,9 @@ function drawShadows(context: CanvasRenderingContext2D, scene: Scene, left: numb
             context.drawImage(maskImage, contentOffsetX, contentOffsetY, w, h);
         }
         else {
-            context.fillRect(contentOffsetX, contentOffsetY, w, h);
+            context.beginPath();
+            context.roundRect(contentOffsetX, contentOffsetY, w, h, Math.min(video.cornerRadius, w / 2, h / 2));
+            context.fill();
         }
 
         context.restore();

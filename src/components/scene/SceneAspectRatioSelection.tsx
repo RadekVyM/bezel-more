@@ -50,6 +50,7 @@ export default function SceneAspectRatioSelection({ className, scene, updateScen
                 </AspectRatioCard>
                 {PREDEFINED_ASPECT_RATIOS.map((aspectRatio) => 
                     <AspectRatioCard
+                        key={aspectRatioToString(aspectRatio)}
                         checked={!!scene.requestedAspectRatio && shallowEqual(aspectRatio, scene.requestedAspectRatio)}
                         onClick={() => updateScene({ requestedAspectRatio: { ...aspectRatio } })}>
                         <span>{aspectRatio.width} : {aspectRatio.height}</span>

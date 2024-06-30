@@ -19,6 +19,7 @@ export type Video = {
     shadowBlur: number,
     shadowOffsetX: number,
     shadowOffsetY: number,
+    cornerRadius: number,
     naturalVideoDimensions?: Size,
     readonly htmlVideo: HTMLVideoElement,
 }
@@ -49,6 +50,7 @@ export function createVideo(index: number, file?: File): Video {
         shadowBlur: 0,
         shadowOffsetX: 0,
         shadowOffsetY: 0,
+        cornerRadius: 0,
         shadowColor: hexToHsva('#000000ff')
     };
 }

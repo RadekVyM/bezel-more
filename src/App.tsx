@@ -34,6 +34,7 @@ import { ProjectConfig } from './types/ProjectConfig'
 import VideoFileSelection from './components/inputs/VideoFileSelection'
 import VideoShadowConfiguration from './components/video/VideoShadowConfiguration'
 import SceneAspectRatioSelection from './components/scene/SceneAspectRatioSelection'
+import VideoSizeConfiguration from './components/video/VideoSizeConfiguration'
 
 type EditProps = {
     scene: Scene,
@@ -69,12 +70,6 @@ type ConvertButtonProps = {
 }
 
 type MainContentProps = {
-    ffmpeg: FFmpeg,
-    progress: ConversionProgress | null,
-    resetProgress: () => void
-}
-
-type ProjectProps = {
     ffmpeg: FFmpeg,
     progress: ConversionProgress | null,
     resetProgress: () => void
@@ -233,10 +228,16 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
             <div>
                 {isLarge && <SectionHeading>Edit scene</SectionHeading>}
                 <BackgroundSelection
-                    className='mb-4'
                     scene={scene}
                     updateScene={updateScene}/>
-
+            </div>
+            <div>
+                {<SubsectionHeading>Trim scene</SubsectionHeading>}
+                <SceneTrimConfiguration
+                    scene={scene}
+                    updateScene={updateScene}/>
+            </div>
+            <div>
                 {<SubsectionHeading>Scene layout</SubsectionHeading>}
 
                 <SceneSizeConfiguration
@@ -245,12 +246,6 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
                     updateScene={updateScene}/>
 
                 <SceneAspectRatioSelection
-                    scene={scene}
-                    updateScene={updateScene}/>
-            </div>
-            <div>
-                {<SubsectionHeading>Trim scene</SubsectionHeading>}
-                <SceneTrimConfiguration
                     scene={scene}
                     updateScene={updateScene}/>
             </div>
@@ -269,6 +264,11 @@ function EditVideo({ video, updateVideo, onFileSelected }: EditVideoProps) {
                 <VideoFileSelection
                     file={video.file}
                     onFileSelect={onFileSelected} />
+            </div>
+            <div>
+                <VideoSizeConfiguration
+                    video={video}
+                    updateVideo={updateVideo}/>
             </div>
             <div>
                 <SubsectionHeading>Trim video</SubsectionHeading>

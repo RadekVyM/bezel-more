@@ -14,7 +14,7 @@ import { useUnmount } from 'usehooks-ts'
 import useDimensions from '../../hooks/useDimensions'
 import { drawSceneBackground } from '../../services/drawing/background'
 import { BezelImages } from '../../types/BezelImages'
-import { drawVideo } from '../../services/drawing/video'
+import { drawVideo, drawVideos } from '../../services/drawing/video'
 
 type ScenePreviewerProps = {
     scene: Scene,
@@ -221,16 +221,7 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
         context.globalCompositeOperation = 'source-over';
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-        for (const video of scene.videos) {
-            if (!bezelImagesRef.current[video.index]) {
-                continue;
-            }
-
-            try {
-                drawVideo(context, video, scene, bezelImagesRef.current[video.index], left, top, sceneWidth, sceneHeight, scale);
-            }
-            catch { }
-        };
+        drawVideos(context, scene, bezelImagesRef.current, left, top, sceneWidth, sceneHeight, scale);
 
         context.globalCompositeOperation ='destination-over';
         drawSceneBackground(context, scene, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImagesRef.current.map((bi) => bi.maskImage));
