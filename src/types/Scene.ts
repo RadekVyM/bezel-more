@@ -1,11 +1,12 @@
 import { SupportedFormat } from '../supportedFormats'
+import { AspectRatio } from './AspectRatio'
 import { Background } from './Background'
 import { Size } from './Size'
 import { Video, getVideoSize } from './Video'
 
 export type Scene = {
     videos: Array<Video>,
-    requestedSize?: Size,
+    requestedAspectRatio?: AspectRatio,
     requestedMaxSize: number,
     horizontalPadding: number,
     verticalPadding: number,
@@ -27,8 +28,9 @@ export function getTotalSceneDuration(scene: Scene): number {
 }
 
 export function getSceneSize(scene: Scene): Size {
-    if (scene.requestedSize) {
-        return { width: Math.round(scene.requestedSize.width), height: Math.round(scene.requestedSize.height) };
+    if (scene.requestedAspectRatio) {
+        const scale = Math.max(scene.requestedAspectRatio.width / scene.requestedMaxSize, scene.requestedAspectRatio.height / scene.requestedMaxSize);
+        return { width: Math.round(scene.requestedAspectRatio.width / scale), height: Math.round(scene.requestedAspectRatio.height / scale) };
     }
 
     const { totalVideosWidth, totalVideosHeight } = getVideoSizes(scene);
@@ -46,11 +48,12 @@ export function getVideoRectInScene(video: Video, scene: Scene) {
     const { horizontalSpacingPadding, verticalSpacingPadding } = getSpacingPaddings(scene);
     const scale = Math.max(totalVideosWidth / (sceneSize.width - horizontalSpacingPadding), totalVideosHeight / (sceneSize.height - verticalSpacingPadding));
 
+    const left = (sceneSize.width - (totalVideosWidth / scale) - horizontalSpacingPadding) / 2;
     const index = scene.videos.indexOf(video);
     const videoSize = videoSizes[index];
     const videoWidth = Math.max(1, Math.round(videoSize.width / scale));
     const videoHeight = Math.max(1, Math.round(videoSize.height / scale));
-    const x = (scene.horizontalPadding / 2) + (index * scene.horizontalSpacing) + videoSizes.slice(0, index).reduce((prev, current) => prev + (current.width / scale), 0);
+    const x = left + (scene.horizontalPadding / 2) + (index * scene.horizontalSpacing) + videoSizes.slice(0, index).reduce((prev, current) => prev + (current.width / scale), 0);
     const y = (sceneSize.height - videoHeight) / 2;
 
     return { videoWidth: videoWidth, videoHeight: videoHeight, videoX: x, videoY: y };

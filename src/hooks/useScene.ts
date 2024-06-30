@@ -68,7 +68,7 @@ function createInitialScene(createdVideos: Array<Video>): Scene {
         videos: createdVideos,
         fps: 20,
         maxColors: 255,
-        requestedSize: undefined,
+        requestedAspectRatio: undefined,
         requestedMaxSize: 480,
         horizontalPadding: 0,
         verticalPadding: 0,

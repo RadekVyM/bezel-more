@@ -33,6 +33,7 @@ import { NewProjectDialog } from './components/app/NewProjectDialog'
 import { ProjectConfig } from './types/ProjectConfig'
 import VideoFileSelection from './components/inputs/VideoFileSelection'
 import VideoShadowConfiguration from './components/video/VideoShadowConfiguration'
+import SceneAspectRatioSelection from './components/scene/SceneAspectRatioSelection'
 
 type EditProps = {
     scene: Scene,
@@ -236,7 +237,14 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
                     scene={scene}
                     updateScene={updateScene}/>
 
+                {<SubsectionHeading>Scene layout</SubsectionHeading>}
+
                 <SceneSizeConfiguration
+                    className='mb-4'
+                    scene={scene}
+                    updateScene={updateScene}/>
+
+                <SceneAspectRatioSelection
                     scene={scene}
                     updateScene={updateScene}/>
             </div>

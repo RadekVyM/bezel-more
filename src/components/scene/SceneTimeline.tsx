@@ -5,6 +5,7 @@ import useDimensions from '../../hooks/useDimensions'
 import { cn } from '../../utils/tailwind'
 import { useEventListener } from 'usehooks-ts'
 import { round } from '../../utils/numbers'
+import OutlinedText from '../OutlinedText'
 
 type SceneTimelineProps = {
     scene: Scene,
@@ -22,6 +23,7 @@ type VideoTimelineProps = {
     height: number,
     video: Video,
     totalDuration: number,
+    displayCaption?: boolean,
     updateVideo: (index: number, video: Partial<Video>) => void,
 }
 
@@ -132,7 +134,8 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
                         top={timeAxisHeight + timeAxisSceneSpacing + sceneRangeHeight + videoTimelineSpacing + (videoTimelineHeight + videoTimelineSpacing) * index}
                         width={width}
                         height={videoTimelineHeight}
-                        updateVideo={updateVideo} />)}
+                        updateVideo={updateVideo}
+                        displayCaption={scene.videos.length > 1} />)}
                 
                 <TimeAxisAndSlider
                     currentTime={currentTime}
@@ -148,7 +151,7 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
     )
 }
 
-function VideoTimeline({ width, height, left, top, video, totalDuration, updateVideo }: VideoTimelineProps) {
+function VideoTimeline({ width, height, left, top, video, totalDuration, displayCaption, updateVideo }: VideoTimelineProps) {
     const gRef = useRef<SVGGElement>(null);
     const downXRef = useRef<number>(0);
     const downSceneOffsetRef = useRef<number>(0);
@@ -249,7 +252,8 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, updateV
 
     return (
         <g
-            ref={gRef}>
+            ref={gRef}
+            className='group'>
             <rect
                 className='stroke-secondary stroke-2 fill-transparent opacity-90'
                 strokeDasharray={5}
@@ -274,6 +278,17 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, updateV
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerLeave={() => !isMoving() && setCursor('')} />
+            {displayCaption &&
+                <OutlinedText
+                    className='group-hover:opacity-50 pointer-events-none transition-opacity text-xs'
+                    outlineClassName='stroke-surface-container'
+                    fillClassName='fill-on-surface-container'
+                    x={left + 8} y={top + height - 6}
+                    strokeWidth={3}
+                    strokeLinecap='round'
+                    strokeLinejoin='round'>
+                    {`Video #${video.index + 1}`}
+                </OutlinedText>}
         </g>
     )
 }

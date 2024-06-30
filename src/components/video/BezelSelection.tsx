@@ -2,6 +2,7 @@ import { BEZELS, bezelMask, bezelSmallImage } from '../../bezels'
 import { Video } from '../../types/Video'
 import { cn } from '../../utils/tailwind'
 import BezelThumbnail from '../BezelThumbnail'
+import RadioCircle from '../RadioCircle'
 import CheckInput from '../inputs/CheckInput'
 import CheckInputLabel from '../inputs/CheckInputLabel'
 
@@ -29,7 +30,7 @@ export default function BezelSelection({ className, video, updateVideo }: BezelS
                 className={cn(className, 'grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-2')}
                 aria-labelledby='bezel-selection-legend'
                 role='radiogroup'>
-                <p id='bezel-selection-legend' className='block text-sm font-medium col-start-1 col-end-[-1] sr-only'>Bezel Type</p>
+                <legend id='bezel-selection-legend' className='block text-sm font-medium col-start-1 col-end-[-1] sr-only'>Bezel Type</legend>
 
                 {Object.values(BEZELS).map(b =>
                     <article
@@ -48,20 +49,16 @@ export default function BezelSelection({ className, video, updateVideo }: BezelS
                             className='row-start-2 row-end-3 col-start-2 col-end-3 text-xs text-on-surface-container'>
                             {b.title}
                         </h4>
+
                         <BezelThumbnail
                             className='row-start-1 row-end-2 col-start-1 col-end-3 max-h-60 w-full h-full'
                             bezelKey={b.key}
                             modelKey={b.modelKey}
                             bezelTitle={b.title} />
-                        <div
-                            aria-hidden
-                            className={cn('w-5 h-5 flex justify-center items-center',
-                                'row-start-2 row-end-3 col-start-1 col-end-2',
-                                'rounded-full border border-outline',
-                                video.bezelKey === b.key ?
-                                    'bg-on-surface-container-muted before:content-[""] before:block before:w-2 before:h-2 before:aspect-square before:bg-white before:rounded-full' :
-                                    'bg-surface-container')}>
-                        </div>
+
+                        <RadioCircle
+                            className='row-start-2 row-end-3 col-start-1 col-end-2'
+                            checked={video.bezelKey === b.key} />
                     </article>)}
             </div>
         </>
