@@ -38,6 +38,8 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
 
     context.fillStyle = 'black';
     context.fillRect(0, 0, size.width, size.height);
+    tempContext.fillStyle = 'black';
+    tempContext.fillRect(0, 0, size.width, size.height);
 
     for (const video of scene.videos) {
         const { videoWidth, videoHeight, videoX, videoY } = getVideoRectInScene(video, scene);
@@ -61,17 +63,16 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
             context.fillRect(videoX, videoY, videoWidth, videoHeight);
         }
 
-        tempContext.fillStyle = 'black';
-        tempContext.fillRect(0, 0, size.width, size.height);
         tempContext.fillStyle = 'white';
-        
         tempContext.beginPath();
         tempContext.roundRect(videoX, videoY, videoWidth, videoHeight, Math.min(video.cornerRadius, videoWidth / 2, videoHeight / 2));
         tempContext.fill();
         
-        context.globalCompositeOperation = 'multiply';
-        context.drawImage(tempCanvas, 0, 0);
-
         context.restore();
     }
+
+    context.save();
+    context.globalCompositeOperation = 'multiply';
+    context.drawImage(tempCanvas, 0, 0);
+    context.restore();
 }
