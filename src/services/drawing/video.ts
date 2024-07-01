@@ -66,7 +66,7 @@ function drawMask(
             tempContext.globalCompositeOperation = 'source-over';
     
             tempContext.beginPath();
-            tempContext.roundRect(totalX, totalY, totalWidth, totalHeight, Math.min(video.cornerRadius, totalWidth / 2, totalHeight / 2));
+            tempContext.roundRect(totalX, totalY, totalWidth, totalHeight, Math.min(video.cornerRadius * sceneScale, totalWidth / 2, totalHeight / 2));
             tempContext.fill();
         }
     }

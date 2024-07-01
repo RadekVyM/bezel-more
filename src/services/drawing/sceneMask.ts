@@ -10,7 +10,7 @@ export async function generateSceneMask(scene: Scene): Promise<File | null> {
     const context = canvas.getContext('2d');
 
     if (!context) {
-        return null;
+        throw new Error('Canvas context not found');
     }
 
     await drawSceneMask(context, scene, size);
@@ -27,6 +27,15 @@ export async function generateSceneMask(scene: Scene): Promise<File | null> {
 }
 
 async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, size: Size) {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = size.width;
+    tempCanvas.height = size.height;
+    const tempContext = tempCanvas.getContext('2d');
+
+    if (!tempContext) {
+        throw new Error('Canvas context not found');
+    }
+
     context.fillStyle = 'black';
     context.fillRect(0, 0, size.width, size.height);
 
@@ -35,14 +44,6 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
 
         context.save();
 
-        context.fillStyle = 'white';
-
-        context.beginPath();
-        context.roundRect(videoX, videoY, videoWidth, videoHeight, Math.min(video.cornerRadius, videoWidth / 2, videoHeight / 2));
-        context.fill();
-
-        context.globalCompositeOperation = 'multiply';
-        
         if (video.withBezel) {
             const bezel = getBezel(video.bezelKey);
             const maskSrc = bezelMask(bezel.modelKey);
@@ -59,6 +60,17 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
             context.fillStyle = 'white';
             context.fillRect(videoX, videoY, videoWidth, videoHeight);
         }
+
+        tempContext.fillStyle = 'black';
+        tempContext.fillRect(0, 0, size.width, size.height);
+        tempContext.fillStyle = 'white';
+        
+        tempContext.beginPath();
+        tempContext.roundRect(videoX, videoY, videoWidth, videoHeight, Math.min(video.cornerRadius, videoWidth / 2, videoHeight / 2));
+        tempContext.fill();
+        
+        context.globalCompositeOperation = 'multiply';
+        context.drawImage(tempCanvas, 0, 0);
 
         context.restore();
     }
