@@ -5,6 +5,7 @@ import SectionHeading from '../SectionHeading'
 import Button from './Button'
 import { MdClose } from 'react-icons/md'
 import { Alpha, HsvaColor, Hue, Saturation, hsvaToHexa } from '@uiw/react-color'
+import HexColorInput from './HexColorInput'
 
 type ColorPickerDialogProps = {
     color: HsvaColor,
@@ -54,11 +55,17 @@ export const ColorPickerDialog = forwardRef<HTMLDialogElement, ColorPickerDialog
                         onChange={(newAplha) => onPick({ ...color, ...newAplha })} />
 
                     <div
-                        className='checkered col-start-1 col-end-4 h-8 rounded-[0.4rem] overflow-hidden'>
+                        className='checkered col-start-1 col-end-4 h-8 rounded-[0.4rem] overflow-hidden border border-outline'>
                         <div
                             style={{ background: hsvaToHexa(color) }}
-                            className='col-start-1 col-end-4 h-full w-full' />
+                            className='h-full w-full' />
                     </div>
+
+                    <HexColorInput
+                        className='col-start-1 col-end-4'
+                        hexa
+                        color={color}
+                        onColorChange={(newColor) => onPick({ ...newColor })} />
                 </div>
             </article>
         </Dialog>

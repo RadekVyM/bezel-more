@@ -37,7 +37,7 @@ export default function LinearGradientPicker({ currentBackground, onPick }: Line
                 inputClassName='pr-6'
                 label='Angle'
                 id='linear-angle'
-                min={0} max={360} step={0.01}
+                min={0} max={360} step={0.1}
                 variant='sm'
                 unit='°'
                 value={currentBackground.angle}

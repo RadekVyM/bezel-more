@@ -37,7 +37,7 @@ export default function RadialGradientPicker({ currentBackground, onPick }: Radi
                 inputClassName='pr-6'
                 label='Inner circle radius'
                 id='inner-circle-radius'
-                min={0} max={100} step={0.01}
+                min={0} max={100} step={0.1}
                 variant='sm'
                 unit='%'
                 value={currentBackground.innerRadius * 100}

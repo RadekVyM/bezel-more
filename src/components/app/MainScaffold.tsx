@@ -103,7 +103,7 @@ export default function MainScaffold({ edit, convert, videoPreviewer, resultPrev
                         </div>
                         <Container
                             key='convert'
-                            className='h-full max-h-full overflow-auto thin-scrollbar py-7 px-5 flex-1'>
+                            className='flex flex-col h-full max-h-full overflow-auto thin-scrollbar py-7 px-5 flex-1'>
                             <SectionHeading>Convert</SectionHeading>
                             {convert}
                         </Container>

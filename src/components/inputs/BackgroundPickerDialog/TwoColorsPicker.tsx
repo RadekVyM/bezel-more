@@ -2,6 +2,7 @@ import { cn } from '../../../utils/tailwind'
 import { HsvaColor, Hue, Saturation } from '@uiw/react-color'
 import { Background } from '../../../types/Background'
 import BackgroundPreview from './BackgroundPreview'
+import HexColorInput from '../HexColorInput'
 
 type TwoColorsPickerProps = {
     className?: string,
@@ -25,7 +26,7 @@ type ColorPickerProps = {
 export default function TwoColorsPicker({ className, firstColor, secondColor, background, onAddClick, onFirstColorChange, onFirstColorHueChange, onSecondColorChange, onSecondColorHueChange }: TwoColorsPickerProps) {
     return (
         <div
-            className={cn('grid grid-rows-[8rem_8rem] grid-cols-[1fr_auto] gap-3', className)}>
+            className={cn('grid grid-rows-[10rem_10rem] grid-cols-[1fr_auto] gap-3', className)}>
             <ColorPicker
                 color={firstColor}
                 onChange={onFirstColorChange}
@@ -49,7 +50,7 @@ export default function TwoColorsPicker({ className, firstColor, secondColor, ba
 function ColorPicker({ className, color, onChange, onHueChange }: ColorPickerProps) {
     return (
         <div
-            className={cn('grid grid-cols-[1fr_auto] gap-3', className)}>
+            className={cn('grid grid-rows-[1fr_auto] grid-cols-[1fr_auto] gap-2', className)}>
             <Saturation
                 className='border border-outline'
                 style={{ borderRadius: '0.4rem', height: '100%', width: '100%' }}
@@ -63,6 +64,11 @@ function ColorPicker({ className, color, onChange, onHueChange }: ColorPickerPro
                 direction='vertical'
                 hue={color.h}
                 onChange={onHueChange}/>
+                
+            <HexColorInput
+                className='col-start-1 col-end-3'
+                color={color}
+                onColorChange={onChange} />
         </div>
     )
 }

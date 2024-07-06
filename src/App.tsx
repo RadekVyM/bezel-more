@@ -164,6 +164,8 @@ function MainContent({ ffmpeg, progress, resetProgress }: MainContentProps) {
                 animation={newProjectDialogAnimation}
                 hide={hideNewProjectDialog}
                 onProjectConfigSelected={setProjectConfig} />
+
+            <Popovers />
         </>
     )
 }
@@ -294,7 +296,8 @@ function EditVideo({ video, updateVideo, onFileSelected }: EditVideoProps) {
 
 function Convert({ scene, canConvert, converting, convert, updateScene }: ConvertProps) {
     return (
-        <>
+        <div
+            className='flex-1 flex flex-col'>
             <ConversionConfiguration
                 scene={scene}
                 updateScene={updateScene} />
@@ -303,8 +306,16 @@ function Convert({ scene, canConvert, converting, convert, updateScene }: Conver
                 convert={convert}
                 disabled={converting || !canConvert}
                 converting={converting}
-                className='mt-5' />
-        </>
+                className='mt-7 py-3' />
+            
+            <div
+                className='flex-1 grid'>
+                <span
+                    className='place-self-end text-xs text-on-surface-container-muted'>
+                    Powered by <a className='text-secondary' href='https://ffmpegwasm.netlify.app/'>ffmpeg.wasm</a>
+                </span>
+            </div>
+        </div>
     )
 }
 
@@ -323,3 +334,12 @@ function ConvertButton({ convert, disabled, converting, className }: ConvertButt
         </Button>
     )
 }
+
+function Popovers() {
+    return (
+      <div
+        id='popover-container'
+        className='fixed inset-0 pointer-events-none overflow-clip'>
+      </div>
+    )
+  }

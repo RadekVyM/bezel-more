@@ -8,6 +8,7 @@ import BackgroundCanvas from '../../BackgroundCanvas'
 import { FaSave } from 'react-icons/fa'
 import BackgroundsList from './BackgroundsList'
 import BackgroundPreview from './BackgroundPreview'
+import HexColorInput from '../HexColorInput'
 
 type SolidColorPickerProps = {
     currentBackground: SolidBackground,
@@ -36,12 +37,14 @@ const PREDEFINED_SOLID_BACKGROUNDS: Array<SolidBackground> = [
     createSolidBackground(hexToHsva('#7469b6ff')),
 ];
 
+const TRANSPARENT_COLOR_PATTERN = /#00000000/;
+
 export default function SolidColorPicker({ currentBackground, onPick }: SolidColorPickerProps) {
     const { solidBackgrounds, addSolidBackground, removeSolidBackground } = useSolidBackgrounds();
 
     return (
         <div
-            className='grid grid-rows-[10rem_auto] gap-x-3 gap-y-5'>
+            className='grid grid-rows-[10rem_auto_auto] gap-x-3 gap-y-5'>
             <div
                 className='grid grid-rows-[1fr_auto] grid-cols-[1fr_auto] gap-3'>
                 <Saturation
@@ -64,6 +67,11 @@ export default function SolidColorPicker({ currentBackground, onPick }: SolidCol
                     hue={currentBackground.color.h}
                     onChange={(newHue) => onPick(createSolidBackground({ ...currentBackground.color, ...newHue, a: 1 }))}/>
             </div>
+
+            <HexColorInput
+                customHexaPattern={TRANSPARENT_COLOR_PATTERN}
+                color={currentBackground.color}
+                onColorChange={(newColor) => onPick(createSolidBackground({ ...newColor }))} />
 
             <BackgroundsList
                 backgrounds={solidBackgrounds}

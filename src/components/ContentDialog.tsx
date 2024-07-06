@@ -19,7 +19,7 @@ export const ContentDialog = forwardRef<HTMLDialogElement, ContentDialogProps>((
             animation={animation}
             className={cn(className, 'w-full h-full px-6 pb-6 thin-scrollbar overflow-y-scroll', slideInFromBottom ? 'max-w-full max-h-[90vh] mt-auto mb-0' : 'max-w-[30rem] max-h-full ml-auto mr-0')}>
             <article
-                className='isolate bg-inherit'>
+                className='isolate bg-inherit flex flex-col min-h-full'>
                 <header
                     className='flex justify-between items-start sticky top-0 z-50 bg-inherit pt-8'>
                     <SectionHeading>{heading}</SectionHeading>
