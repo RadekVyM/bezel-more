@@ -1,57 +1,42 @@
 {
   "name": "bezel-more",
-  "version": "0.1.0",
-  "homepage": "",
   "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "upload": "json -I -f package.json -e 'this.homepage=\"https://radekvym.github.io/bezel-more\"' && npm run deploy && json -I -f package.json -e 'this.homepage=\"\"'",
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "preview": "vite preview"
+  },
   "dependencies": {
     "@ffmpeg/ffmpeg": "^0.12.7",
     "@ffmpeg/types": "^0.12.2",
     "@ffmpeg/util": "^0.12.1",
     "@tailwindcss/forms": "^0.5.6",
-    "@testing-library/jest-dom": "^5.17.0",
-    "@testing-library/react": "^13.4.0",
-    "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
-    "@types/node": "^16.18.79",
-    "@types/react": "^18.2.52",
-    "@types/react-dom": "^18.2.18",
     "@uiw/react-color": "^2.3.0",
     "clsx": "^2.0.0",
-    "imagemagick": "^0.1.3",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-icons": "^4.11.0",
-    "react-scripts": "5.0.1",
     "tailwind-merge": "^1.14.0",
-    "typescript": "^4.9.5",
-    "usehooks-ts": "^2.12.1",
-    "web-vitals": "^2.1.4"
+    "imagemagick": "^0.1.3",
+    "usehooks-ts": "^2.12.1"
   },
-  "scripts": {
-    "upload": "json -I -f package.json -e 'this.homepage=\"https://radekvym.github.io/bezel-more\"' && npm run deploy && json -I -f package.json -e 'this.homepage=\"\"'",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@typescript-eslint/eslint-plugin": "^7.13.1",
+    "@typescript-eslint/parser": "^7.13.1",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint-plugin-react-refresh": "^0.4.7",
+    "postcss": "^8.4.39",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.2.2",
+    "vite": "^5.3.1"
   }
 }

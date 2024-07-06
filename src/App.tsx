@@ -85,7 +85,7 @@ export default function App() {
     }, []);
 
     async function loadFFmpeg() {
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd'
+        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/esm'
         const ffmpeg = ffmpegRef.current;
         ffmpeg.on('log', ({ message }) => {
             console.log(message);
