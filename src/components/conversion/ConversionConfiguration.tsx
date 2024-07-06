@@ -31,11 +31,11 @@ export default function ConversionConfiguration({
     return (
         <div
             className={cn('flex flex-col gap-4', className)}>
-            <NumberInputs
+            <FormatSelection
                 scene={scene}
                 updateScene={updateScene} />
-
-            <FormatSelection
+        
+            <NumberInputs
                 scene={scene}
                 updateScene={updateScene} />
         </div>
@@ -61,6 +61,15 @@ function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
                 disabled={scene.formatKey !== supportedFormats.gif.key}
                 onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
                 onChange={(e) => updateScene({ maxColors: parseFloat(e.target.value) })} />
+            <div>
+                <CheckInput
+                    id='aspect-fill-checkbox'
+                    className='rounded col-span-2'
+                    type='checkbox'
+                    checked={scene.isPrerenderingEnabled}
+                    onChange={(e) => updateScene({ isPrerenderingEnabled: e.currentTarget.checked })} />
+                <CheckInputLabel htmlFor='aspect-fill-checkbox' className='pl-3'>Use prerendering</CheckInputLabel>
+            </div>
         </div>
     )
 }

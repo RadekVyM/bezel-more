@@ -207,15 +207,9 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
     let index = 0;
 
     for (const video of scene.videos) {
-        if (!video.file)
-            throw new Error('No video file selected');
-        
-        const videoFile = video.file;
-        const videoName = `${videoFile.name.split('.').slice(0, -1).join('.')}_${video.index}.${videoFile.name.split('.').at(-1)}`;
+        const videoName = await loadVideo(ffmpeg, scene, video);
         const videoInput = `${index++}:v`;
         inputs.push('-i', videoName);
-
-        await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
 
         if (video.withBezel) {
             const bezel = getBezel(video.bezelKey);
@@ -264,17 +258,74 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
     };
 }
 
+async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video) {
+    if (!video.file)
+        throw new Error('No video file selected');
+
+    const videoFile = video.file;
+    const extension = videoFile.name.split('.').at(-1);
+    const videoName = `${videoFile.name.split('.').slice(0, -1).join('.')}_${video.index}.${extension}`;
+
+    await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
+
+    if (!scene.isPrerenderingEnabled) {
+        return videoName;
+    }
+
+    const prerenderedVideoName = `prerendered_${videoName}`;
+    const { videoWidth, videoHeight } = getVideoRectInScene(video, scene);
+    /*
+    const { videoStart, videoEnd } = calculateTrim(scene, video);
+    */
+
+    await ffmpeg.exec([
+        '-i', videoName,
+        '-filter_complex',
+        fc.scale({
+            input: ['0:v'],
+            width: roundToEven(videoWidth),
+            height: roundToEven(videoHeight)
+        }),
+        /*
+        // When I trim the video, there may be some missing frames
+        // I was not able to solve this problem
+        // However, if I manage to figure this problem out, it could reduce the rendering time
+        ...(videoStart ? ['-ss', videoStart.toString()] : []),
+        ...(videoEnd ? ['-to', videoEnd.toString()] : []),
+        */
+        '-an', '-sn', '-c:v', 'libx264',
+        '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
+        prerenderedVideoName
+    ]);
+
+    return prerenderedVideoName;
+}
+
 function calculateTrimAndTpad(scene: Scene, video: Video) {
+    const trim = calculateTrim(scene, video);
+
+    return {
+        videoStart: trim.videoStart,
+        videoEnd: trim.videoEnd,
+        /*
+        videoStart: scene.isPrerenderingEnabled ? null : trim.videoStart,
+        videoEnd: scene.isPrerenderingEnabled ? null : trim.videoEnd,
+        */
+        videoStartPadDuration: Math.max(0, trim.calculatedVideoStart + video.sceneOffset - scene.startTime),
+        videoEndPadDuration: Math.max(0, scene.endTime - (trim.calculatedVideoEnd + video.sceneOffset)),
+    };
+}
+
+function calculateTrim(scene: Scene, video: Video) {
     const videoStart = Math.max(video.startTime, scene.startTime - video.sceneOffset);
     const videoEnd = Math.min(video.endTime, scene.endTime - video.sceneOffset);
-
     const totalDuration = getTotalSceneDuration(scene);
 
     return {
+        calculatedVideoStart: videoStart,
+        calculatedVideoEnd: videoEnd,
         videoStart: videoStart <= 0 ? null : videoStart,
-        videoEnd: videoEnd >= totalDuration ? null : videoEnd,
-        videoStartPadDuration: Math.max(0, videoStart + video.sceneOffset - scene.startTime),
-        videoEndPadDuration: Math.max(0, scene.endTime - (videoEnd + video.sceneOffset)),
+        videoEnd: videoEnd >= totalDuration ? null : videoEnd
     };
 }
 
@@ -298,7 +349,7 @@ function gifOutput(fileName: string) {
 
 function mp4Output(fileName: string, size?: [number, number]) {
     return [
-        '-an', '-sn','-c:v', 'libx264',
+        '-an', '-sn', '-c:v', 'libx264',
         ...(size ? ['-s', `${roundToEven(size[0])}:${roundToEven(size[1])}`] : []), // size has to be divisible by 2
         fileName
     ];

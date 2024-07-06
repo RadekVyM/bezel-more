@@ -77,6 +77,7 @@ function createInitialScene(createdVideos: Array<Video>): Scene {
         endTime: 0,
         background: createSolidBackground(hexToHsva('#00000000')),
         formatKey: supportedFormats.webp.key,
+        isPrerenderingEnabled: false,
     };
 }
 

@@ -16,7 +16,8 @@ export type Scene = {
     endTime: number,
     formatKey: SupportedFormat,
     fps: number,
-    maxColors: number
+    maxColors: number,
+    isPrerenderingEnabled: boolean
 }
 
 export function getFirstVideo(scene: Scene): Video {
