@@ -4,7 +4,6 @@ import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { toBlobURL } from '@ffmpeg/util'
 import ScenePreviewer from './components/scene/ScenePreviewer'
 import Loading from './components/Loading'
-import { ConversionProgress } from './types/ConversionProgress'
 import SectionHeading from './components/SectionHeading'
 import BezelSelection from './components/video/BezelSelection'
 import { RiLoopLeftLine } from 'react-icons/ri'
@@ -35,6 +34,7 @@ import VideoFileSelection from './components/inputs/VideoFileSelection'
 import VideoShadowConfiguration from './components/video/VideoShadowConfiguration'
 import SceneAspectRatioSelection from './components/scene/SceneAspectRatioSelection'
 import VideoSizeConfiguration from './components/video/VideoSizeConfiguration'
+import useConversionProgress from './hooks/useConversionProgress'
 
 type EditProps = {
     scene: Scene,
@@ -71,14 +71,11 @@ type ConvertButtonProps = {
 
 type MainContentProps = {
     ffmpeg: FFmpeg,
-    progress: ConversionProgress | null,
-    resetProgress: () => void
 }
 
 export default function App() {
     const ffmpegRef = useRef(new FFmpeg());
     const [ready, setReady] = useState(false);
-    const [progress, setProgress] = useState<ConversionProgress | null>(null);
 
     useEffect(() => {
         loadFFmpeg();
@@ -87,13 +84,7 @@ export default function App() {
     async function loadFFmpeg() {
         const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd'
         const ffmpeg = ffmpegRef.current;
-        ffmpeg.on('log', ({ message }) => {
-            console.log(message);
-        });
-        ffmpeg.on('progress', ({ progress, time }) => {
-            console.log(`progress: ${progress} time: ${time}`);
-            setProgress({ progress, time });
-        });
+        
         // toBlobURL is used to bypass CORS issue, urls with the same
         // domain can be used directly.
         await ffmpeg.load({
@@ -105,9 +96,7 @@ export default function App() {
 
     return ready ? (
         <MainContent
-            ffmpeg={ffmpegRef.current}
-            progress={progress}
-            resetProgress={() => setProgress(null)} />
+            ffmpeg={ffmpegRef.current} />
         ) :
         (<main
             className='min-h-screen w-full grid place-content-center bg-surface text-on-surface'>
@@ -116,10 +105,11 @@ export default function App() {
         </main>)
 }
 
-function MainContent({ ffmpeg, progress, resetProgress }: MainContentProps) {
+function MainContent({ ffmpeg }: MainContentProps) {
     const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ videosCount: 1 });
     const { scene, updateScene, updateVideo } = useScene(projectConfig);
-    const { convert, converting, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene, ffmpeg, resetProgress);
+    const { progress, resetProgress, updateProgress } = useConversionProgress(ffmpeg);
+    const { convert, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene, ffmpeg, resetProgress, updateProgress);
     const [newProjectDialogRef, isOpen, newProjectDialogAnimation, showNewProjectDialog, hideNewProjectDialog] = useContentDialog(true);
 
     return (
@@ -138,7 +128,7 @@ function MainContent({ ffmpeg, progress, resetProgress }: MainContentProps) {
                         updateScene={updateScene}
                         canConvert={!!getFirstVideo(scene).file}
                         convert={convert}
-                        converting={converting} />
+                        converting={progress.converting} />
                 }
                 videoPreviewer={
                     <ScenePreviewer
@@ -337,9 +327,9 @@ function ConvertButton({ convert, disabled, converting, className }: ConvertButt
 
 function Popovers() {
     return (
-      <div
-        id='popover-container'
-        className='fixed inset-0 pointer-events-none overflow-clip'>
-      </div>
+        <div
+            id='popover-container'
+            className='fixed inset-0 pointer-events-none overflow-clip'>
+        </div>
     )
   }

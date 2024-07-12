@@ -16,14 +16,15 @@ type VideoFileInputs = {
     bezelInput?: string,
 }
 
-export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
+export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (state: string) => void) {
     const fileName = `result${supportedFormats[scene.formatKey].suffix}`;
     const {
         inputs,
         backgroundInputName,
         sceneMaskInputName,
-        videoInputNamesMap
-    } = await loadVideos(ffmpeg, scene);
+        videoInputNamesMap,
+        fileNames
+    } = await loadVideos(ffmpeg, scene, onProgressStateChange);
     const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
     const mergedVideosOutputName = 'merged-videos';
 
@@ -58,6 +59,7 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
         ] : [])
     );
 
+    onProgressStateChange('Rendering scene');
     await ffmpeg.exec([
         ...inputs,
         '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
@@ -70,7 +72,12 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene) {
                 webpOutput(fileName, [sceneWidth, sceneHeight]))
     ]);
 
-    return await ffmpeg.readFile(fileName);
+    const data = await ffmpeg.readFile(fileName);
+
+    onProgressStateChange('Removing old files');
+    await removeFiles(ffmpeg, fileNames);
+
+    return data;
 }
 
 function videosFfmpegArgs(scene: Scene, inputNamesMap: Map<Video, VideoFileInputs>, outputName: string) {
@@ -201,20 +208,25 @@ function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs
     );
 }
 
-async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
+async function loadVideos(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (state: string) => void) {
     const videoInputNamesMap = new Map<Video, VideoFileInputs>();
     const inputs: Array<string> = [];
+    const fileNames: Array<string> = [];
     let index = 0;
 
+    onProgressStateChange('Loading videos');
+
     for (const video of scene.videos) {
-        const videoName = await loadVideo(ffmpeg, scene, video);
+        const videoName = await loadVideo(ffmpeg, scene, video, onProgressStateChange);
         const videoInput = `${index++}:v`;
         inputs.push('-i', videoName);
+        fileNames.push(videoName);
 
         if (video.withBezel) {
             const bezel = getBezel(video.bezelKey);
             const bezelName = `bezel_${video.index}.png`;
             inputs.push('-i', bezelName);
+            fileNames.push(bezelName);
 
             await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
 
@@ -230,6 +242,7 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
         }
     }
     
+    onProgressStateChange(`Generating background`);
     const background = await generateBackground(scene);
     if (!background)
         throw new Error('Background could not be generated');
@@ -237,9 +250,11 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
     const backgroundName = 'background.png';
     const backgroundInputName = `${index++}:v`;
     inputs.push('-i', backgroundName);
+    fileNames.push(backgroundName);
 
     await ffmpeg.writeFile(backgroundName, await fetchFile(background));
 
+    onProgressStateChange(`Generating scene mask`);
     const sceneMask = await generateSceneMask(scene);
     if (!sceneMask)
         throw new Error('Scene mask could not be generated');
@@ -247,6 +262,7 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
     const sceneMaskName = 'scene-mask.png';
     const sceneMaskInputName = `${index++}:v`;
     inputs.push('-i', sceneMaskName);
+    fileNames.push(sceneMaskName);
 
     await ffmpeg.writeFile(sceneMaskName, await fetchFile(sceneMask));
 
@@ -254,18 +270,20 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene) {
         inputs,
         backgroundInputName,
         sceneMaskInputName,
-        videoInputNamesMap
+        videoInputNamesMap,
+        fileNames
     };
 }
 
-async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video) {
+async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video, onProgressStateChange: (state: string) => void) {
     if (!video.file)
         throw new Error('No video file selected');
 
     const videoFile = video.file;
     const extension = videoFile.name.split('.').at(-1);
     const videoName = `${videoFile.name.split('.').slice(0, -1).join('.')}_${video.index}.${extension}`;
-
+    
+    onProgressStateChange(`Loading video #${video.index + 1}`);
     await ffmpeg.writeFile(videoName, await fetchFile(videoFile));
 
     if (!scene.isPrerenderingEnabled) {
@@ -278,6 +296,7 @@ async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video) {
     const { videoStart, videoEnd } = calculateTrim(scene, video);
     */
 
+    onProgressStateChange(`Prerendering video #${video.index + 1}`);
     await ffmpeg.exec([
         '-i', videoName,
         '-filter_complex',
@@ -298,6 +317,7 @@ async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video) {
         prerenderedVideoName
     ]);
 
+    ffmpeg.deleteFile(videoName);
     return prerenderedVideoName;
 }
 
@@ -357,4 +377,10 @@ function mp4Output(fileName: string, size?: [number, number]) {
 
 function generateOutputName(output: string, video: Video) {
     return `${output}_${video.index}`;
+}
+
+async function removeFiles(ffmpeg: FFmpeg, fileNames: Array<string>) {
+    for (const file of fileNames) {
+        ffmpeg.deleteFile(file);
+    }
 }

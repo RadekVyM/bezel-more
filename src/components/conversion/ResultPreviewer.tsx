@@ -10,9 +10,14 @@ type ResultPreviewerProps = {
     resultUrl: string | null,
     fileName: string | null,
     resultSize: number,
-    progress: ConversionProgress | null,
+    progress: ConversionProgress,
     formatKey: SupportedFormat,
     className?: string
+}
+
+type ProgressProps = {
+    className?: string,
+    progress: ConversionProgress
 }
 
 export default function ResultPreviewer({ resultUrl, fileName, resultSize, progress, formatKey, className }: ResultPreviewerProps) {
@@ -28,22 +33,9 @@ export default function ResultPreviewer({ resultUrl, fileName, resultSize, progr
                                 <img className='max-h-full m-auto object-contain' src={resultUrl} alt='Result' /> :
                                 <video className='max-h-full m-auto object-contain' loop autoPlay controls src={resultUrl} />}
                         </> :
-                        <div
-                            className='flex flex-col items-center justify-center pt-5 pb-6 w-full text-on-surface-container-muted'>
-                            <MdOutlineVideoLibrary
-                                className='w-8 h-8 mb-4' />
-                            {
-                                progress && progress.progress <= 1 ?
-                                    <p
-                                        className='text-sm font-semibold'>
-                                        {progress.progress.toLocaleString(undefined, { style: 'percent' })}
-                                    </p> :
-                                    <p
-                                        className='text-sm'>
-                                        No results yet
-                                    </p>
-                            }
-                        </div>
+                        <Progress
+                            className='w-full'
+                            progress={progress} />
                 }
             </div>
             {
@@ -64,5 +56,26 @@ export default function ResultPreviewer({ resultUrl, fileName, resultSize, progr
                 </div>
             }
         </Container>
+    )
+}
+
+function Progress({ className, progress }: ProgressProps) {
+    return (
+        <div
+            className={cn('flex flex-col items-center justify-center pt-5 pb-6 text-on-surface-container-muted', className)}>
+            <MdOutlineVideoLibrary
+                className='w-8 h-8 mb-4' />
+            <p
+                className='text-sm font-semibold mb-2'>
+                {progress.state}
+            </p>
+            {
+                progress.converting && progress.progress <= 1 &&
+                <p
+                    className='text-sm'>
+                    Progress: <span className='font-semibold'>{progress.progress.toLocaleString(undefined, { style: 'percent' })}</span> | Frame: <span className='font-semibold'>{progress.frame}</span> | Speed: <span className='font-semibold'>{progress.speed}</span>
+                </p>
+            }
+        </div>
     )
 }
