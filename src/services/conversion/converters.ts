@@ -380,7 +380,8 @@ function generateOutputName(output: string, video: Video) {
 }
 
 async function removeFiles(ffmpeg: FFmpeg, fileNames: Array<string>) {
+    // TODO: May this be done in parallel and not sequentially?
     for (const file of fileNames) {
-        ffmpeg.deleteFile(file);
+        await ffmpeg.deleteFile(file);
     }
 }

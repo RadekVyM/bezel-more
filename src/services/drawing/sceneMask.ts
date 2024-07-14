@@ -47,16 +47,21 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
         context.save();
 
         if (video.withBezel) {
+            // Corners of a video are sometimes visible outside the bezel - clipping is not perfect
+            // Scaling the mask down tries to mitigate that a bit
+            const maskScale = 0.999;
             const bezel = getBezel(video.bezelKey);
             const maskSrc = bezelMask(bezel.modelKey);
             const maskImage = new Image(bezel.width, bezel.height);
+            const maskWidth = videoWidth * maskScale;
+            const maskHeight = videoHeight * maskScale;
 
             maskImage.src = maskSrc;
             if (!maskImage.complete) {
                 await new Promise((resolve) => maskImage.onload = () => resolve(undefined));
             }
 
-            context.drawImage(maskImage, videoX, videoY, videoWidth, videoHeight);
+            context.drawImage(maskImage, videoX + ((videoWidth - maskWidth) / 2), videoY + ((maskHeight - maskHeight) / 2), maskWidth, maskHeight);
         }
         else {
             context.fillStyle = 'white';

@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { MdOutlineUploadFile } from 'react-icons/md'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
@@ -14,7 +14,7 @@ import { useUnmount } from 'usehooks-ts'
 import useDimensions from '../../hooks/useDimensions'
 import { drawSceneBackground } from '../../services/drawing/background'
 import { BezelImages } from '../../types/BezelImages'
-import { drawVideo, drawVideos } from '../../services/drawing/video'
+import { drawVideos } from '../../services/drawing/video'
 
 type ScenePreviewerProps = {
     scene: Scene,
@@ -196,7 +196,7 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
 
     useEffect(() => {
         render();
-    }, [canvasWidth, canvasHeight]);
+    }, [canvasWidth, canvasHeight, scene]);
 
     function render() {
         if (!canvasRef.current) {
@@ -254,7 +254,7 @@ function useBezelImages(scene: Scene, render: () => void) {
                 bezelImages.bezel = bezel;
                 bezelImages.showBezel = video.withBezel;
 
-                if (bezelImages.image.src !== currentImageSrc) {
+                if (!bezelImages.image.src.endsWith(currentImageSrc)) {
                     if (bezelImages.image?.onload) {
                         bezelImages.image.onload = null;
                     }
@@ -293,7 +293,7 @@ function useBezelImages(scene: Scene, render: () => void) {
 
             render();
         }
-    }, [scene]);
+    }, [scene.videos]);
 
     return bezelImagesRef;
 }

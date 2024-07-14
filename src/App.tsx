@@ -1,7 +1,5 @@
 import './App.css'
-import { useEffect, useRef, useState } from 'react'
-import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { toBlobURL } from '@ffmpeg/util'
+import { useEffect, useState } from 'react'
 import ScenePreviewer from './components/scene/ScenePreviewer'
 import Loading from './components/Loading'
 import SectionHeading from './components/SectionHeading'
@@ -34,7 +32,6 @@ import VideoFileSelection from './components/inputs/VideoFileSelection'
 import VideoShadowConfiguration from './components/video/VideoShadowConfiguration'
 import SceneAspectRatioSelection from './components/scene/SceneAspectRatioSelection'
 import VideoSizeConfiguration from './components/video/VideoSizeConfiguration'
-import useConversionProgress from './hooks/useConversionProgress'
 
 type EditProps = {
     scene: Scene,
@@ -70,46 +67,18 @@ type ConvertButtonProps = {
 }
 
 type MainContentProps = {
-    ffmpeg: FFmpeg,
 }
 
 export default function App() {
-    const ffmpegRef = useRef(new FFmpeg());
-    const [ready, setReady] = useState(false);
-
-    useEffect(() => {
-        loadFFmpeg();
-    }, []);
-
-    async function loadFFmpeg() {
-        const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd'
-        const ffmpeg = ffmpegRef.current;
-        
-        // toBlobURL is used to bypass CORS issue, urls with the same
-        // domain can be used directly.
-        await ffmpeg.load({
-            coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-            wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-        });
-        setReady(true);
-    }
-
-    return ready ? (
-        <MainContent
-            ffmpeg={ffmpegRef.current} />
-        ) :
-        (<main
-            className='min-h-screen w-full grid place-content-center bg-surface text-on-surface'>
-            <Loading
-                className='h-10 w-10 border-4' />
-        </main>)
+    return (
+        <MainContent />
+    )
 }
 
-function MainContent({ ffmpeg }: MainContentProps) {
+function MainContent({ }: MainContentProps) {
     const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ videosCount: 1 });
     const { scene, updateScene, updateVideo } = useScene(projectConfig);
-    const { progress, resetProgress, updateProgress } = useConversionProgress(ffmpeg);
-    const { convert, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene, ffmpeg, resetProgress, updateProgress);
+    const { convert, progress, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene);
     const [newProjectDialogRef, isOpen, newProjectDialogAnimation, showNewProjectDialog, hideNewProjectDialog] = useContentDialog(true);
 
     return (
