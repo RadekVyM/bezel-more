@@ -7,6 +7,7 @@ import { MdClose } from 'react-icons/md'
 import { ProjectConfig } from '../../types/ProjectConfig'
 import BezelThumbnail from '../BezelThumbnail'
 import { BEZELS } from '../../bezels'
+import { DEFAULT_SCENE_TEMPLATES, SceneTemplate } from '../../types/SceneTemplate'
 
 type NewProjectDialogProps = {
     hide: () => void,
@@ -14,8 +15,8 @@ type NewProjectDialogProps = {
 } & DialogProps
 
 export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogProps>(({ animation, className, hide, onProjectConfigSelected }, ref) => {
-    function onProjectClick(videosCount: number) {
-        onProjectConfigSelected({ videosCount });
+    function onProjectClick(sceneTemplate: SceneTemplate) {
+        onProjectConfigSelected({ sceneTemplate: { ...sceneTemplate } });
         hide();
     }
     
@@ -40,31 +41,31 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
                     className='grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] grid-rows-[auto] gap-3'>
                     <Button
                         className='grid grid-rows-[1fr_auto] p-5 gap-4 h-fit'
-                        onClick={() => onProjectClick(1)}>
+                        onClick={() => onProjectClick(DEFAULT_SCENE_TEMPLATES[0])}>
                         <BezelThumbnail
                             className='max-h-32 h-full w-full'
                             bezelKey={BEZELS.iphone_15_black.key}
                             modelKey={BEZELS.iphone_15_black.modelKey}
                             bezelTitle={BEZELS.iphone_15_black.title} />
-                        One video
+                        {DEFAULT_SCENE_TEMPLATES[0].title}
                     </Button>
                     <Button
                         className='grid grid-rows-[1fr_auto] p-5 gap-4 h-fit'
-                        onClick={() => onProjectClick(2)}>
+                        onClick={() => onProjectClick(DEFAULT_SCENE_TEMPLATES[1])}>
                         <div
                             className='grid grid-cols-2 gap-4'>
+                            <BezelThumbnail
+                                className='max-h-32 h-full w-full'
+                                bezelKey={BEZELS['android_gold_19,5_9'].key}
+                                modelKey={BEZELS['android_gold_19,5_9'].modelKey}
+                                bezelTitle={BEZELS['android_gold_19,5_9'].title} />
                             <BezelThumbnail
                                 className='max-h-32 h-full w-full'
                                 bezelKey={BEZELS.iphone_15_black.key}
                                 modelKey={BEZELS.iphone_15_black.modelKey}
                                 bezelTitle={BEZELS.iphone_15_black.title} />
-                            <BezelThumbnail
-                                className='max-h-32 h-full w-full'
-                                bezelKey={BEZELS['android_gray_19,5_9'].key}
-                                modelKey={BEZELS['android_gray_19,5_9'].modelKey}
-                                bezelTitle={BEZELS['android_gray_19,5_9'].title} />
                         </div>
-                        Two videos
+                        {DEFAULT_SCENE_TEMPLATES[1].title}
                     </Button>
                 </div>
             </article>

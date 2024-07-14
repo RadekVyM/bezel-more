@@ -5,7 +5,7 @@ import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
 import { bezelImage, bezelTransparentMask, getBezel } from '../../bezels'
 import { cn } from '../../utils/tailwind'
 import Button from '../inputs/Button'
-import { Scene, getSceneSize, getTotalSceneDuration } from '../../types/Scene'
+import { Scene, getTotalSceneDuration } from '../../types/Scene'
 import useTimeline from '../../hooks/useTimeline'
 import SceneTimeline from '../scene/SceneTimeline'
 import { Video } from '../../types/Video'
@@ -15,6 +15,7 @@ import useDimensions from '../../hooks/useDimensions'
 import { drawSceneBackground } from '../../services/drawing/background'
 import { BezelImages } from '../../types/BezelImages'
 import { drawVideos } from '../../services/drawing/video'
+import { getSceneSize } from '../../types/SceneLayout'
 
 type ScenePreviewerProps = {
     scene: Scene,

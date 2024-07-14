@@ -1,26 +1,27 @@
 import { useCallback, useEffect, useMemo, useReducer } from 'react'
-import { Scene, getMaxPadding } from '../types/Scene'
+import { Scene } from '../types/Scene'
 import { supportedFormats } from '../supportedFormats'
 import { Video, createVideo } from '../types/Video'
-import { createSolidBackground } from '../types/Background'
 import { ProjectConfig } from '../types/ProjectConfig'
-import { hexToHsva } from '@uiw/react-color'
+import { VideoTemplate } from '../types/VideoTemplate'
+import { SceneTemplate } from '../types/SceneTemplate'
+import { getMaxPadding } from '../types/SceneLayout'
 
 const VIDEO_SIZE = 600;
 
 export default function useScene(projectConfig: ProjectConfig) {
-    const createdVideos = useMemo(() => createVideos(projectConfig.videosCount), [projectConfig]);
+    const createdVideos = useMemo(() => createVideos(projectConfig.sceneTemplate.videos), [projectConfig]);
     const [scene, updateScene] = useReducer(
         (state: Scene, newState: Partial<Scene>) => (makeSceneValid({
             ...state,
             ...newState,
         })),
-        createInitialScene(createdVideos)
+        createInitialScene(projectConfig.sceneTemplate, createdVideos)
     );
 
     useEffect(() => {
-        updateScene(createInitialScene(createdVideos));
-    }, [createdVideos]);
+        updateScene(createInitialScene(projectConfig.sceneTemplate, createdVideos));
+    }, [projectConfig, createdVideos]);
 
     const updateVideo = useCallback((index: number, update: Partial<Video>) => {
         const updatedVideos = updateVideoOnIndex(scene, index, update);
@@ -63,19 +64,19 @@ export default function useScene(projectConfig: ProjectConfig) {
     };
 }
 
-function createInitialScene(createdVideos: Array<Video>): Scene {
+function createInitialScene(template: SceneTemplate, createdVideos: Array<Video>): Scene {
     return {
         videos: createdVideos,
         fps: 20,
         maxColors: 255,
-        requestedAspectRatio: undefined,
-        requestedMaxSize: 480,
-        horizontalPadding: 0,
-        verticalPadding: 0,
-        horizontalSpacing: 0,
+        requestedAspectRatio: template.requestedAspectRatio,
+        requestedMaxSize: template.requestedMaxSize,
+        horizontalPadding: template.horizontalPadding,
+        verticalPadding: template.verticalPadding,
+        horizontalSpacing: template.horizontalSpacing,
         startTime: 0,
         endTime: 0,
-        background: createSolidBackground(hexToHsva('#00000000')),
+        background: template.background,
         formatKey: supportedFormats.webp.key,
         isPrerenderingEnabled: false,
     };
@@ -104,11 +105,11 @@ function updateVideoOnIndex(scene: Scene, index: number, update: Partial<Video>)
     return updatedVideos;
 }
 
-function createVideos(count: number) {
+function createVideos(videoTemplates: Array<VideoTemplate>) {
     const videos: Array<Video> = [];
 
-    for (let i = 0; i < count; i++) {
-        videos[i] = createVideo(i);
+    for (const template of videoTemplates) {
+        videos[template.index] = createVideo(template.index, template);
     }
 
     const container = document.getElementById('videos-container');

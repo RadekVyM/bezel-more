@@ -32,6 +32,7 @@ import VideoFileSelection from './components/inputs/VideoFileSelection'
 import VideoShadowConfiguration from './components/video/VideoShadowConfiguration'
 import SceneAspectRatioSelection from './components/scene/SceneAspectRatioSelection'
 import VideoSizeConfiguration from './components/video/VideoSizeConfiguration'
+import { DEFAULT_SCENE_TEMPLATES } from './types/SceneTemplate'
 
 type EditProps = {
     scene: Scene,
@@ -76,7 +77,7 @@ export default function App() {
 }
 
 function MainContent({ }: MainContentProps) {
-    const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ videosCount: 1 });
+    const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ sceneTemplate: DEFAULT_SCENE_TEMPLATES[0] });
     const { scene, updateScene, updateVideo } = useScene(projectConfig);
     const { convert, progress, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene);
     const [newProjectDialogRef, isOpen, newProjectDialogAnimation, showNewProjectDialog, hideNewProjectDialog] = useContentDialog(true);

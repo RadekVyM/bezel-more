@@ -1,7 +1,7 @@
 import { HsvaColor, hexToHsva } from '@uiw/react-color'
-import { BEZELS, getBezel } from '../bezels'
-import { Point } from './Point'
-import { Size } from './Size'
+import { BEZELS } from '../bezels'
+import { VideoTemplate } from './VideoTemplate'
+import { VideoLayout } from './VideoLayout'
 
 export type Video = {
     /** Offset from the start of a scene. */
@@ -9,9 +9,6 @@ export type Video = {
     sceneOffset: number,
     startTime: number,
     endTime: number,
-    position: Point,
-    withBezel: boolean,
-    bezelKey: string,
     file: File | null | undefined,
     totalDuration: number,
     withShadow?: boolean,
@@ -20,15 +17,11 @@ export type Video = {
     shadowOffsetX: number,
     shadowOffsetY: number,
     cornerRadius: number,
-    naturalVideoDimensions?: Size,
     readonly htmlVideo: HTMLVideoElement,
-}
+} & VideoLayout
 
-export function createVideo(index: number, file?: File): Video {
+export function createVideo(index: number, template?: VideoTemplate): Video {
     const htmlVideo = document.createElement('video');
-    if (file) {
-        htmlVideo.src = URL.createObjectURL(file);
-    }
     htmlVideo.disablePictureInPicture = true;
     htmlVideo.disableRemotePlayback = true;
     htmlVideo.muted = true;
@@ -38,39 +31,19 @@ export function createVideo(index: number, file?: File): Video {
     
     return {
         index,
-        file,
+        file: undefined,
         sceneOffset: 0,
         startTime: 0,
         endTime: 0,
         totalDuration: 0,
-        position: { x: 0, y: 0 },
-        withBezel: true,
-        bezelKey: BEZELS.iphone_15_black.key,
+        withBezel: template ? template.withBezel : true,
+        bezelKey: template?.bezelKey || BEZELS.iphone_15_black.key,
         htmlVideo,
-        shadowBlur: 0,
-        shadowOffsetX: 0,
-        shadowOffsetY: 0,
-        cornerRadius: 0,
-        shadowColor: hexToHsva('#000000ff')
+        withShadow: template ? template.withShadow : true,
+        shadowBlur: template?.shadowBlur || 0,
+        shadowOffsetX: template?.shadowOffsetX || 0,
+        shadowOffsetY: template?.shadowOffsetY || 0,
+        cornerRadius: template?.cornerRadius || 0,
+        shadowColor: template?.shadowColor || hexToHsva('#000000ff')
     };
-}
-
-export function getVideoSize(video: Video, requestedMaxSize: number): Size | undefined {
-    if (video.naturalVideoDimensions && !video.withBezel) {
-        const scale = Math.max(video.naturalVideoDimensions.width / requestedMaxSize, video.naturalVideoDimensions.height / requestedMaxSize);
-        return {
-            width: video.naturalVideoDimensions.width / scale,
-            height: video.naturalVideoDimensions.height / scale,
-        };
-    }
-    if (video.withBezel) {
-        const bezel = getBezel(video.bezelKey);
-        const scale = Math.max(bezel.width / requestedMaxSize, bezel.height / requestedMaxSize);
-        return {
-            width: bezel.width / scale,
-            height: bezel.height / scale,
-        };
-    }
-
-    return undefined;
 }

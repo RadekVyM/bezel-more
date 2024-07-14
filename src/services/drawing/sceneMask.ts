@@ -1,5 +1,6 @@
 import { bezelMask, getBezel } from '../../bezels'
-import { Scene, getSceneSize, getVideoRectInScene } from '../../types/Scene'
+import { Scene } from '../../types/Scene'
+import { getSceneSize, getVideoRectInScene } from '../../types/SceneLayout'
 import { Size } from '../../types/Size'
 
 export async function generateSceneMask(scene: Scene): Promise<File | null> {

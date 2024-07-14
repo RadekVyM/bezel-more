@@ -1,5 +1,6 @@
 import { BezelImages } from '../../types/BezelImages'
-import { Scene, getVideoRectInScene } from '../../types/Scene'
+import { Scene } from '../../types/Scene'
+import { getVideoRectInScene } from '../../types/SceneLayout';
 import { Video } from '../../types/Video'
 
 /** Canvas that is used for drawing intermediate steps. */ 

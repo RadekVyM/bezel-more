@@ -1,3 +1,5 @@
+import { SceneTemplate } from './SceneTemplate'
+
 export type ProjectConfig = {
-    videosCount: number
+    sceneTemplate: SceneTemplate
 }

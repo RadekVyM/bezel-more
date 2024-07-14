@@ -3,11 +3,12 @@ import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { bezelImage, getBezel } from '../../bezels'
 import * as fc from './filterComplex'
 import { supportedFormats } from '../../supportedFormats'
-import { Scene, getSceneSize, getTotalSceneDuration, getVideoRectInScene } from '../../types/Scene'
+import { Scene, getTotalSceneDuration } from '../../types/Scene'
 import { Video } from '../../types/Video'
 import { roundToEven } from '../../utils/numbers'
 import { generateBackground } from '../drawing/background'
 import { generateSceneMask } from '../drawing/sceneMask'
+import { getSceneSize, getVideoRectInScene } from '../../types/SceneLayout'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 

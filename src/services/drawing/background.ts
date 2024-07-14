@@ -1,8 +1,9 @@
 import { hsvaToHexa } from '@uiw/react-color'
 import { Background, ImageBackground, LinearGradientBackground, RadialGradientBackground, SolidBackground } from '../../types/Background'
-import { Scene, getSceneSize, getVideoRectInScene } from '../../types/Scene'
+import { Scene } from '../../types/Scene'
 import { Size } from '../../types/Size'
 import { bezelTransparentMask, getBezel } from '../../bezels'
+import { getSceneSize, getVideoRectInScene } from '../../types/SceneLayout'
 
 export async function generateBackground(scene: Scene): Promise<File | null> {
     const canvas = document.createElement('canvas');

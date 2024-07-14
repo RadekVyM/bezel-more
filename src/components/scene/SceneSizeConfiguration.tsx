@@ -1,4 +1,5 @@
-import { Scene, getMaxPadding } from '../../types/Scene'
+import { Scene } from '../../types/Scene'
+import { getMaxPadding } from '../../types/SceneLayout'
 import { cn } from '../../utils/tailwind'
 import NumberInput from '../inputs/NumberInput'
 
