@@ -80,7 +80,7 @@ function MainContent({ }: MainContentProps) {
     const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ sceneTemplate: DEFAULT_SCENE_TEMPLATES[0] });
     const { scene, updateScene, updateVideo } = useScene(projectConfig);
     const { convert, progress, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene);
-    const [newProjectDialogRef, isOpen, newProjectDialogAnimation, showNewProjectDialog, hideNewProjectDialog] = useContentDialog(true);
+    const [newProjectDialogRef, isNewProjectDialogOpen, newProjectDialogAnimation, showNewProjectDialog, hideNewProjectDialog] = useContentDialog(true);
 
     return (
         <>
@@ -121,6 +121,8 @@ function MainContent({ }: MainContentProps) {
             
             <NewProjectDialog
                 ref={newProjectDialogRef}
+                isOpen={isNewProjectDialogOpen}
+                currentScene={scene}
                 animation={newProjectDialogAnimation}
                 hide={hideNewProjectDialog}
                 onProjectConfigSelected={setProjectConfig} />

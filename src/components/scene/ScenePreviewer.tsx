@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react'
 import { MdOutlineUploadFile } from 'react-icons/md'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
-import { bezelImage, bezelTransparentMask, getBezel } from '../../bezels'
 import { cn } from '../../utils/tailwind'
 import Button from '../inputs/Button'
 import { Scene, getTotalSceneDuration } from '../../types/Scene'
@@ -11,11 +10,11 @@ import SceneTimeline from '../scene/SceneTimeline'
 import { Video } from '../../types/Video'
 import Container from '../Container'
 import { useUnmount } from 'usehooks-ts'
-import useDimensions from '../../hooks/useDimensions'
 import { drawSceneBackground } from '../../services/drawing/background'
-import { BezelImages } from '../../types/BezelImages'
 import { drawVideos } from '../../services/drawing/video'
-import { getSceneSize } from '../../types/SceneLayout'
+import { getSceneSize } from '../../types/DrawableScene'
+import { Canvas } from '../Canvas'
+import useBezelImages from '../../hooks/useBezelImages'
 
 type ScenePreviewerProps = {
     scene: Scene,
@@ -176,11 +175,9 @@ function VideoControls({ className, scene, currentTime, isPlaying, loop, play, p
 
 function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
     const fps = 30;
-    const outerDivRef = useRef<HTMLDivElement>(null);
     const previousRenderRef = useRef<number>(0);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
     const bezelImagesRef = useBezelImages(scene, render);
-    const { width: canvasWidth, height: canvasHeight } = useDimensions(outerDivRef);
 
     // This is a bit hacky solution, but I guess... who cares...
     scene.videos.forEach((v) => v.htmlVideo.ontimeupdate = () => render());
@@ -197,7 +194,7 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
 
     useEffect(() => {
         render();
-    }, [canvasWidth, canvasHeight, scene]);
+    }, [scene]);
 
     function render() {
         if (!canvasRef.current) {
@@ -211,90 +208,28 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
         }
 
         const sceneSize = getSceneSize(scene);
-
         const shouldScale = !(sceneSize.width <= canvasRef.current.width && sceneSize.height <= canvasRef.current.height);
         const scale = shouldScale ? Math.min(canvasRef.current.width / sceneSize.width, canvasRef.current.height / sceneSize.height) : 1;
-        const sceneWidth = shouldScale ? sceneSize.width * scale : sceneSize.width;
-        const sceneHeight = shouldScale ? sceneSize.height * scale : sceneSize.height;
+        const sceneWidth = sceneSize.width * scale;
+        const sceneHeight = sceneSize.height * scale;
         const left = (canvasRef.current.width - sceneWidth) / 2;
         const top = (canvasRef.current.height - sceneHeight) / 2;
 
         context.globalCompositeOperation = 'source-over';
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-        drawVideos(context, scene, bezelImagesRef.current, left, top, sceneWidth, sceneHeight, scale);
+        drawVideos(context, scene, bezelImagesRef.current, left, top, sceneWidth, sceneHeight, scale,
+            (context, video, x, y, width, height) => 
+                context.drawImage((video as Video).htmlVideo, x, y, width, height));
 
         context.globalCompositeOperation ='destination-over';
         drawSceneBackground(context, scene, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImagesRef.current.map((bi) => bi.maskImage));
     }
 
     return (
-        <div
-            ref={outerDivRef}
-            className={cn('h-full w-full overflow-hidden', className)}>
-            <canvas
-                ref={canvasRef}
-                className='h-full w-full'
-                width={canvasWidth}
-                height={canvasHeight}/>
-        </div>
+        <Canvas
+            ref={canvasRef}
+            className={className}
+            onDimensionsChanges={render} />
     )
-}
-
-function useBezelImages(scene: Scene, render: () => void) {
-    const bezelImagesRef = useRef<Array<BezelImages>>([]);
-
-    useEffect(() => {
-        for (const video of scene.videos) {
-            const bezel = getBezel(video.bezelKey);
-            const currentImageSrc = bezelImage(bezel.key);
-            const currentMaskSrc = bezelTransparentMask(bezel.modelKey);
-            const bezelImages = bezelImagesRef.current[video.index];
-
-            if (bezelImages) {
-                bezelImages.bezel = bezel;
-                bezelImages.showBezel = video.withBezel;
-
-                if (!bezelImages.image.src.endsWith(currentImageSrc)) {
-                    if (bezelImages.image?.onload) {
-                        bezelImages.image.onload = null;
-                    }
-                    bezelImages.image = new Image(bezel.width, bezel.height);
-                    bezelImages.image.src = currentImageSrc;
-                    bezelImages.image.onload = () => render();
-
-                    if (bezelImages.maskImage?.onload) {
-                        bezelImages.maskImage.onload = null;
-                    }
-                    bezelImages.maskImage = new Image(bezel.width, bezel.height);
-                    bezelImages.maskImage.src = currentMaskSrc;
-                    bezelImages.maskImage.onload = () => render();
-                }
-                else {
-                    render();
-                }
-
-                continue;
-            }
-
-            const image = new Image(bezel.width, bezel.height);
-            image.src = currentImageSrc;
-            image.onload = () => render();
-
-            const mask = new Image(bezel.width, bezel.height);
-            mask.src = currentMaskSrc;
-            mask.onload = () => render();
-
-            bezelImagesRef.current[video.index] = {
-                bezel,
-                showBezel: video.withBezel,
-                image,
-                maskImage: mask,
-            };
-
-            render();
-        }
-    }, [scene.videos]);
-
-    return bezelImagesRef;
 }

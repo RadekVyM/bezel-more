@@ -1,17 +1,10 @@
-import { hexToHsva, HsvaColor } from '@uiw/react-color'
+import { hexToHsva } from '@uiw/react-color'
 import { Video } from './Video'
 import { BEZELS } from '../bezels'
-import { VideoLayout } from './VideoLayout'
+import { DrawableVideo } from './DrawableVideo'
 
 export type VideoTemplate = {
-    index: number,
-    withShadow?: boolean,
-    shadowColor: HsvaColor,
-    shadowBlur: number,
-    shadowOffsetX: number,
-    shadowOffsetY: number,
-    cornerRadius: number,
-} & VideoLayout
+} & DrawableVideo
 
 export function createVideoTemplate(video: Video): VideoTemplate {
     return {

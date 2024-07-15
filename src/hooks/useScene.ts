@@ -5,7 +5,7 @@ import { Video, createVideo } from '../types/Video'
 import { ProjectConfig } from '../types/ProjectConfig'
 import { VideoTemplate } from '../types/VideoTemplate'
 import { SceneTemplate } from '../types/SceneTemplate'
-import { getMaxPadding } from '../types/SceneLayout'
+import { getMaxPadding } from '../types/DrawableScene'
 
 const VIDEO_SIZE = 600;
 

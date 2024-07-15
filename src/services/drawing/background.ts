@@ -2,8 +2,8 @@ import { hsvaToHexa } from '@uiw/react-color'
 import { Background, ImageBackground, LinearGradientBackground, RadialGradientBackground, SolidBackground } from '../../types/Background'
 import { Scene } from '../../types/Scene'
 import { Size } from '../../types/Size'
-import { bezelTransparentMask, getBezel } from '../../bezels'
-import { getSceneSize, getVideoRectInScene } from '../../types/SceneLayout'
+import { DrawableScene, getSceneSize, getVideoRectInScene } from '../../types/DrawableScene'
+import { createMaskImages } from '../images'
 
 export async function generateBackground(scene: Scene): Promise<File | null> {
     const canvas = document.createElement('canvas');
@@ -31,7 +31,7 @@ export async function generateBackground(scene: Scene): Promise<File | null> {
     });
 }
 
-export function drawSceneBackground(context: CanvasRenderingContext2D, scene: Scene, left: number, top: number, size: Size, withShadows?: boolean, maskImages?: Array<HTMLImageElement | null>) {
+export function drawSceneBackground(context: CanvasRenderingContext2D, scene: DrawableScene, left: number, top: number, size: Size, withShadows?: boolean, maskImages?: Array<HTMLImageElement | null>) {
     if (!Number.isFinite(size.width) || !Number.isFinite(size.width) || size.width === 0 || size.height === 0) {
         return;
     }
@@ -152,7 +152,7 @@ function drawImageBackgroundInner(context: CanvasRenderingContext2D, background:
     context.restore();
 }
 
-function drawShadows(context: CanvasRenderingContext2D, scene: Scene, left: number, top: number, size: Size, maskImages: Array<HTMLImageElement | null>) {
+function drawShadows(context: CanvasRenderingContext2D, scene: DrawableScene, left: number, top: number, size: Size, maskImages: Array<HTMLImageElement | null>) {
     const sceneSize = getSceneSize(scene);
     const scale = Math.min(size.width / sceneSize.width, size.height / sceneSize.height);
 
@@ -198,32 +198,4 @@ function drawShadows(context: CanvasRenderingContext2D, scene: Scene, left: numb
 
         context.restore();
     }
-}
-
-async function createMaskImages(scene: Scene) {
-    const maskImages = scene.videos.map((video) => {
-        if (!video.withShadow || !video.withBezel) {
-            return null;
-        }
-
-        const bezel = getBezel(video.bezelKey);
-        const maskSrc = bezelTransparentMask(bezel.modelKey);
-        const maskImage = new Image(bezel.width, bezel.height);
-        maskImage.src = maskSrc;
-
-        return maskImage;
-    });
-
-    await Promise.allSettled(maskImages.map((m) => {
-        return new Promise((resolve) => {
-            if (!m || m.complete) {
-                resolve(undefined);
-            }
-            else {
-                m.onload = () => resolve(undefined);
-            }
-        })
-    }));
-
-    return maskImages;
 }

@@ -1,20 +1,22 @@
 import { BezelImages } from '../../types/BezelImages'
-import { Scene } from '../../types/Scene'
-import { getVideoRectInScene } from '../../types/SceneLayout';
-import { Video } from '../../types/Video'
+import { DrawableScene, getVideoRectInScene } from '../../types/DrawableScene'
+import { DrawableVideo } from '../../types/DrawableVideo'
+
+type DrawVideoCallback = (context: CanvasRenderingContext2D, video: DrawableVideo, left: number, top: number, width: number, height: number) => void
 
 /** Canvas that is used for drawing intermediate steps. */ 
 const tempCanvas = document.createElement('canvas');
 
 export function drawVideos(
     context: CanvasRenderingContext2D,
-    scene: Scene,
+    scene: DrawableScene,
     bezelImages: Array<BezelImages>,
     sceneX: number,
     sceneY: number,
     sceneWidth: number,
     sceneHeight: number,
-    sceneScale: number
+    sceneScale: number,
+    drawOneVideo: DrawVideoCallback
 ) {
     try {
         drawMask(context, scene, bezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale);
@@ -29,7 +31,7 @@ export function drawVideos(
         }
 
         try {
-            drawVideo(context, video, scene, videoBezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale);
+            drawVideo(context, video, scene, videoBezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale, drawOneVideo);
         }
         catch { }
     };
@@ -37,7 +39,7 @@ export function drawVideos(
 
 function drawMask(
     context: CanvasRenderingContext2D,
-    scene: Scene,
+    scene: DrawableScene,
     bezelImages: Array<BezelImages>,
     sceneX: number,
     sceneY: number,
@@ -103,16 +105,17 @@ function drawMask(
     }
 }
 
-export function drawVideo(
+function drawVideo(
     context: CanvasRenderingContext2D,
-    video: Video,
-    scene: Scene,
+    video: DrawableVideo,
+    scene: DrawableScene,
     bezelImages: BezelImages,
     sceneX: number,
     sceneY: number,
     sceneWidth: number,
     sceneHeight: number,
-    sceneScale: number
+    sceneScale: number,
+    draw: DrawVideoCallback
 ) {
     const {
         totalX,
@@ -127,7 +130,7 @@ export function drawVideo(
 
     context.globalCompositeOperation = 'source-atop';
 
-    context.drawImage(video.htmlVideo, videoX, videoY, videoWidth, videoHeight);
+    draw(context, video, videoX, videoY, videoWidth, videoHeight);
     
     if (bezelImages.showBezel) {
         context.drawImage(bezelImages.image, totalX, totalY, totalWidth, totalHeight);
@@ -136,7 +139,7 @@ export function drawVideo(
     context.globalCompositeOperation = 'source-over';
 }
 
-function calculateVideoDimensions(video: Video, scene: Scene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {
+function calculateVideoDimensions(video: DrawableVideo, scene: DrawableScene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {
     if (!video.naturalVideoDimensions) {
         throw new Error('Size of the video could not be determined');
     }

@@ -1,24 +1,17 @@
-import { HsvaColor, hexToHsva } from '@uiw/react-color'
+import { hexToHsva } from '@uiw/react-color'
 import { BEZELS } from '../bezels'
 import { VideoTemplate } from './VideoTemplate'
-import { VideoLayout } from './VideoLayout'
+import { DrawableVideo } from './DrawableVideo'
 
 export type Video = {
     /** Offset from the start of a scene. */
-    index: number,
     sceneOffset: number,
     startTime: number,
     endTime: number,
     file: File | null | undefined,
     totalDuration: number,
-    withShadow?: boolean,
-    shadowColor: HsvaColor,
-    shadowBlur: number,
-    shadowOffsetX: number,
-    shadowOffsetY: number,
-    cornerRadius: number,
     readonly htmlVideo: HTMLVideoElement,
-} & VideoLayout
+} & DrawableVideo
 
 export function createVideo(index: number, template?: VideoTemplate): Video {
     const htmlVideo = document.createElement('video');

@@ -17,6 +17,7 @@ export const ColorPickerDialog = forwardRef<HTMLDialogElement, ColorPickerDialog
     return (
         <Dialog
             ref={ref}
+            hide={hide}
             animation={animation}
             className={cn(className, 'px-6 pb-6 rounded-lg')}>
             <article

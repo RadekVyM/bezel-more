@@ -1,17 +1,18 @@
 import { hexToHsva } from '@uiw/react-color'
 import { BEZELS } from '../bezels'
-import { AspectRatio } from './AspectRatio'
 import { Background, createSolidBackground, ImageBackground } from './Background'
 import { Scene } from './Scene'
 import { createDefaultVideoTemplate, createVideoTemplate, VideoTemplate } from './VideoTemplate'
 import { PREDEFINED_IMAGE_BACKGROUND_PATHS } from '../backgrounds'
-import { SceneLayout } from './SceneLayout'
+import { DrawableScene } from './DrawableScene'
+import { v4 as uuidv4 } from 'uuid'
 
 export type SceneTemplate = {
+    id: string,
     title: string,
     videos: Array<VideoTemplate>,
     background: Background
-} & SceneLayout
+} & DrawableScene
 
 export const DEFAULT_SCENE_TEMPLATES = [
     createDefaultSceneTemplate('One video', [createDefaultVideoTemplate(0)]),
@@ -20,6 +21,7 @@ export const DEFAULT_SCENE_TEMPLATES = [
 
 export function createSceneTemplate(title: string, scene: Scene): SceneTemplate {
     return {
+        id: uuidv4(),
         title,
         videos: scene.videos.map((v) => createVideoTemplate(v)),
         requestedAspectRatio: scene.requestedAspectRatio,
@@ -35,6 +37,7 @@ export function createSceneTemplate(title: string, scene: Scene): SceneTemplate 
 
 export function createDefaultSceneTemplate(title: string, videos?: Array<VideoTemplate>): SceneTemplate {
     return {
+        id: uuidv4(),
         title,
         videos: videos || [createDefaultVideoTemplate(0)],
         requestedAspectRatio: undefined,

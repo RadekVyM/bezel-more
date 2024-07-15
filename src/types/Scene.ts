@@ -1,18 +1,16 @@
 import { SupportedFormat } from '../supportedFormats'
-import { Background } from './Background'
-import { SceneLayout } from './SceneLayout'
+import { DrawableScene } from './DrawableScene'
 import { Video } from './Video'
 
 export type Scene = {
     videos: Array<Video>,
-    background: Background,
     startTime: number,
     endTime: number,
     formatKey: SupportedFormat,
     fps: number,
     maxColors: number,
     isPrerenderingEnabled: boolean
-} & SceneLayout
+} & DrawableScene
 
 export function getFirstVideo(scene: Scene): Video {
     return scene.videos[0];

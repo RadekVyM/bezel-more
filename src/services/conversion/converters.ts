@@ -8,7 +8,7 @@ import { Video } from '../../types/Video'
 import { roundToEven } from '../../utils/numbers'
 import { generateBackground } from '../drawing/background'
 import { generateSceneMask } from '../drawing/sceneMask'
-import { getSceneSize, getVideoRectInScene } from '../../types/SceneLayout'
+import { getSceneSize, getVideoRectInScene } from '../../types/DrawableScene'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 

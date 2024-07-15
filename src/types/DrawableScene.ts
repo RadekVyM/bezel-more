@@ -1,9 +1,11 @@
 import { AspectRatio } from './AspectRatio'
 import { Size } from './Size'
-import { getVideoSize, VideoLayout } from './VideoLayout'
+import { getVideoSize, DrawableVideo } from './DrawableVideo'
+import { Background } from './Background'
 
-export type SceneLayout = {
-    videos: Array<VideoLayout>,
+export type DrawableScene = {
+    videos: Array<DrawableVideo>,
+    background: Background,
     requestedAspectRatio?: AspectRatio,
     requestedMaxSize: number,
     horizontalPadding: number,
@@ -11,7 +13,7 @@ export type SceneLayout = {
     horizontalSpacing: number,
 }
 
-export function getSceneSize(scene: SceneLayout): Size {
+export function getSceneSize(scene: DrawableScene): Size {
     if (scene.requestedAspectRatio) {
         const scale = Math.max(scene.requestedAspectRatio.width / scene.requestedMaxSize, scene.requestedAspectRatio.height / scene.requestedMaxSize);
         return { width: Math.round(scene.requestedAspectRatio.width / scale), height: Math.round(scene.requestedAspectRatio.height / scale) };
@@ -26,7 +28,7 @@ export function getSceneSize(scene: SceneLayout): Size {
     return { width: Math.round(width), height: Math.round(height) };
 }
 
-export function getVideoRectInScene(video: VideoLayout, scene: SceneLayout) {
+export function getVideoRectInScene(video: DrawableVideo, scene: DrawableScene) {
     const sceneSize = getSceneSize(scene);
     const { videoSizes, totalVideosWidth, totalVideosHeight } = getVideoSizes(scene);
     const { horizontalSpacingPadding, verticalSpacingPadding } = getSpacingPaddings(scene);
@@ -43,19 +45,15 @@ export function getVideoRectInScene(video: VideoLayout, scene: SceneLayout) {
     return { videoWidth: videoWidth, videoHeight: videoHeight, videoX: x, videoY: y };
 }
 
-export function getMaxPadding(scene: SceneLayout) {
+export function getMaxPadding(scene: DrawableScene) {
     return Math.round(scene.requestedMaxSize * 0.95);;
 }
 
-function getVideoSizes(scene: SceneLayout) {
+function getVideoSizes(scene: DrawableScene) {
     const videoSizes = scene.videos.map((video) => getVideoSize(video, Math.max(0, scene.requestedMaxSize * 10)));
     const maxHeight = Math.max(...videoSizes.map((size) => size ? size.height : 0));
 
     for (const size of videoSizes) {
-        if (!size) {
-            throw new Error('Video size could not be loaded');
-        }
-
         size.width = size.width * (maxHeight / size.height);
         size.height = maxHeight;
     }
@@ -66,7 +64,7 @@ function getVideoSizes(scene: SceneLayout) {
     return { videoSizes: videoSizes as Array<Size>, totalVideosWidth, totalVideosHeight };
 }
 
-function getSpacingPaddings(scene: SceneLayout) {
+function getSpacingPaddings(scene: DrawableScene) {
     const horizontalSpacingPadding = scene.horizontalPadding + ((scene.videos.length - 1) * scene.horizontalSpacing);
     const verticalSpacingPadding = scene.verticalPadding;
 

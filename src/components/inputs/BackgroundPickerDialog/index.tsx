@@ -36,6 +36,7 @@ const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDia
     return (
         <Dialog
             ref={ref}
+            hide={hide}
             animation={animation}
             className={cn(className, 'px-6 pb-6 rounded-lg sm:max-w-lg w-full')}>
             <article
