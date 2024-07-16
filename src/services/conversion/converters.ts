@@ -1,6 +1,6 @@
 import { fetchFile } from '@ffmpeg/util'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { bezelImage, getBezel } from '../../bezels'
+import { getBezel } from '../../bezels'
 import * as fc from './filterComplex'
 import { supportedFormats } from '../../supportedFormats'
 import { Scene, getTotalSceneDuration } from '../../types/Scene'
@@ -9,12 +9,12 @@ import { roundToEven } from '../../utils/numbers'
 import { generateBackground } from '../drawing/background'
 import { generateSceneMask } from '../drawing/sceneMask'
 import { getSceneSize, getVideoRectInScene } from '../../types/DrawableScene'
+import { generateBezelsImage } from '../drawing/bezels'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
 type VideoFileInputs = {
     videoInput: string,
-    bezelInput?: string,
 }
 
 export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (state: string) => void) {
@@ -23,6 +23,7 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressState
         inputs,
         backgroundInputName,
         sceneMaskInputName,
+        bezelsImageInputName,
         videoInputNamesMap,
         fileNames
     } = await loadVideos(ffmpeg, scene, onProgressStateChange);
@@ -39,8 +40,12 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressState
             input: [backgroundInputName, 'alphamerged-videos'],
             output: ['background-merged']
         }),
+        fc.overlay({
+            input: ['background-merged', bezelsImageInputName],
+            output: ['bezels-merged']
+        }),
         fc.fps({
-            input: ['background-merged'],
+            input: ['bezels-merged'],
             output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
             fps: scene.fps
         }),
@@ -134,7 +139,7 @@ function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs
         videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
     } = calculateTrimAndTpad(scene, video);
 
-    if (video.withBezel && inputNames.bezelInput) {
+    if (video.withBezel) {
         const bezel = getBezel(video.bezelKey);
 
         return fc.compose(
@@ -158,18 +163,8 @@ function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs
                 width: videoWidth,
                 height: videoHeight
             }),
-            fc.scale({
-                input: [inputNames.bezelInput],
-                output: [generateOutputName('scaled-bezel', video)],
-                width: videoWidth,
-                height: videoHeight
-            }),
-            fc.overlay({
-                input: [generateOutputName('padded-video', video), generateOutputName('scaled-bezel', video)],
-                output: [generateOutputName('merged', video)]
-            }),
             fc.pad({
-                input: [generateOutputName('merged', video)],
+                input: [generateOutputName('padded-video', video)],
                 output: [outputName],
                 width: sceneWidth,
                 height: sceneHeight,
@@ -220,27 +215,10 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (
     for (const video of scene.videos) {
         const videoName = await loadVideo(ffmpeg, scene, video, onProgressStateChange);
         const videoInput = `${index++}:v`;
+        
         inputs.push('-i', videoName);
         fileNames.push(videoName);
-
-        if (video.withBezel) {
-            const bezel = getBezel(video.bezelKey);
-            const bezelName = `bezel_${video.index}.png`;
-            inputs.push('-i', bezelName);
-            fileNames.push(bezelName);
-
-            await ffmpeg.writeFile(bezelName, await fetchFile(bezelImage(bezel.key)));
-
-            videoInputNamesMap.set(
-                video,
-                {
-                    videoInput: videoInput,
-                    bezelInput: `${index++}:v`
-                });
-        }
-        else {
-            videoInputNamesMap.set(video, { videoInput: videoInput });
-        }
+        videoInputNamesMap.set(video, { videoInput: videoInput });
     }
     
     onProgressStateChange(`Generating background`);
@@ -248,32 +226,43 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (
     if (!background)
         throw new Error('Background could not be generated');
 
-    const backgroundName = 'background.png';
-    const backgroundInputName = `${index++}:v`;
-    inputs.push('-i', backgroundName);
-    fileNames.push(backgroundName);
-
-    await ffmpeg.writeFile(backgroundName, await fetchFile(background));
+    let backgroundInputName;
+    ({ imageInputName: backgroundInputName, index } = await writeImageFile(ffmpeg, index, inputs, fileNames, 'background.png', background));
 
     onProgressStateChange(`Generating scene mask`);
     const sceneMask = await generateSceneMask(scene);
     if (!sceneMask)
         throw new Error('Scene mask could not be generated');
 
-    const sceneMaskName = 'scene-mask.png';
-    const sceneMaskInputName = `${index++}:v`;
-    inputs.push('-i', sceneMaskName);
-    fileNames.push(sceneMaskName);
+    let sceneMaskInputName;
+    ({ imageInputName: sceneMaskInputName, index } = await writeImageFile(ffmpeg, index, inputs, fileNames, 'scene-mask.png', sceneMask));
 
-    await ffmpeg.writeFile(sceneMaskName, await fetchFile(sceneMask));
+    onProgressStateChange(`Generating bezels`);
+    const bezelsImage = await generateBezelsImage(scene);
+    if (!bezelsImage)
+        throw new Error('Bezels image could not be generated');
+
+    let bezelsImageInputName;
+    ({ imageInputName: bezelsImageInputName, index } = await writeImageFile(ffmpeg, index, inputs, fileNames, 'bezels-image.png', bezelsImage));
 
     return {
         inputs,
         backgroundInputName,
         sceneMaskInputName,
+        bezelsImageInputName,
         videoInputNamesMap,
         fileNames
     };
+}
+
+async function writeImageFile(ffmpeg: FFmpeg, index: number, inputs: Array<string>, fileNames: Array<string>, imageFileName: string, imageFile: File) {
+    const imageInputName = `${index++}:v`;
+    inputs.push('-i', imageFileName);
+    fileNames.push(imageFileName);
+
+    await ffmpeg.writeFile(imageFileName, await fetchFile(imageFile));
+
+    return { imageInputName, index };
 }
 
 async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video, onProgressStateChange: (state: string) => void) {

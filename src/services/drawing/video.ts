@@ -132,11 +132,11 @@ function drawVideo(
 
     draw(context, video, videoX, videoY, videoWidth, videoHeight);
     
+    context.globalCompositeOperation = 'source-over';
+
     if (bezelImages.showBezel) {
         context.drawImage(bezelImages.image, totalX, totalY, totalWidth, totalHeight);
     }
-
-    context.globalCompositeOperation = 'source-over';
 }
 
 function calculateVideoDimensions(video: DrawableVideo, scene: DrawableScene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {

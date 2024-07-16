@@ -37,12 +37,12 @@ export function getVideoRectInScene(video: DrawableVideo, scene: DrawableScene) 
     const left = (sceneSize.width - (totalVideosWidth / scale) - horizontalSpacingPadding) / 2;
     const index = scene.videos.indexOf(video);
     const videoSize = videoSizes[index];
-    const videoWidth = Math.max(1, Math.round(videoSize.width / scale));
-    const videoHeight = Math.max(1, Math.round(videoSize.height / scale));
+    const videoWidth = Math.max(1, videoSize.width / scale);
+    const videoHeight = Math.max(1, videoSize.height / scale);
     const x = left + (scene.horizontalPadding / 2) + (index * scene.horizontalSpacing) + videoSizes.slice(0, index).reduce((prev, current) => prev + (current.width / scale), 0);
     const y = (sceneSize.height - videoHeight) / 2;
 
-    return { videoWidth: videoWidth, videoHeight: videoHeight, videoX: x, videoY: y };
+    return { videoWidth: Math.round(videoWidth), videoHeight: Math.round(videoHeight), videoX: Math.round(x), videoY: Math.round(y) };
 }
 
 export function getMaxPadding(scene: DrawableScene) {

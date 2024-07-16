@@ -96,7 +96,7 @@ function MainContent({ }: MainContentProps) {
                     <Convert
                         scene={scene}
                         updateScene={updateScene}
-                        canConvert={!!getFirstVideo(scene).file}
+                        canConvert={scene.videos.every((v) => v.file)}
                         convert={convert}
                         converting={progress.converting} />
                 }

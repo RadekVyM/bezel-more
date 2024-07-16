@@ -32,7 +32,7 @@ export async function generateBackground(scene: Scene): Promise<File | null> {
 }
 
 export function drawSceneBackground(context: CanvasRenderingContext2D, scene: DrawableScene, left: number, top: number, size: Size, withShadows?: boolean, maskImages?: Array<HTMLImageElement | null>) {
-    if (!Number.isFinite(size.width) || !Number.isFinite(size.width) || size.width === 0 || size.height === 0) {
+    if (!Number.isFinite(size.width) || !Number.isFinite(size.height) || size.width === 0 || size.height === 0) {
         return;
     }
 
