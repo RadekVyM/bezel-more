@@ -2,7 +2,7 @@
     Simple script for automatic generation of transparent variants of mask images.
     
     sudo apt install imagemagick
-    node .\generate-transparent-masks.js
+    node ./generate-transparent-masks.js
 */
 
 const path = require('path');
@@ -29,6 +29,9 @@ function generateTransparentVariants(images) {
         const [fileName, fileExtension] = splitFileName(image);
         const imagePath = path.resolve(`${bezelsDirectory}/${image}`);
         const newImagePath = path.resolve(`${bezelsDirectory}/${fileName}${TRANSPARENT_MASK_IMAGE_SUFFIX}${fileExtension}`);
+
+        if (FS.existsSync(newImagePath))
+            continue;
 
         im.convert(
             [imagePath, '-transparent', 'black', '-fill', 'black', '+opaque', 'none', newImagePath],

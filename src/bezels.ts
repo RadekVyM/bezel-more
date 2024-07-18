@@ -1,5 +1,12 @@
 import { Bezel } from './types/Bezel'
 
+/**
+ * Sources:
+ * - https://developer.apple.com/design/resources/#product-bezels
+ * - https://www.figma.com/community/file/1200838447651398282
+ * - https://www.figma.com/community/file/1267909887907329958
+ */
+
 const BEZEL_IMAGE_EXTENSION = '.png';
 const BEZEL_IMAGES_DIRECOTORY_PATH = 'images/bezels';
 
@@ -155,6 +162,150 @@ export const BEZELS = {
         width: 2131,
         height: 4297,
         contentScale: 0.956
+    } as Bezel,
+    samsung_s23_phantom_black: {
+        key: 'samsung_s23_phantom_black',
+        modelKey: 'samsung_s23',
+        title: 'Samsung Galaxy S23 Phantom Black (19.5:9)',
+        width: 1275,
+        height: 2614,
+        contentScale: 0.956
+    } as Bezel,
+    samsung_s23_green: {
+        key: 'samsung_s23_green',
+        modelKey: 'samsung_s23',
+        title: 'Samsung Galaxy S23 Green (19.5:9)',
+        width: 1275,
+        height: 2614,
+        contentScale: 0.956
+    } as Bezel,
+    samsung_s23_lavender: {
+        key: 'samsung_s23_lavender',
+        modelKey: 'samsung_s23',
+        title: 'Samsung Galaxy S23 Lavender (19.5:9)',
+        width: 1275,
+        height: 2614,
+        contentScale: 0.956
+    } as Bezel,
+    samsung_s23_cream: {
+        key: 'samsung_s23_cream',
+        modelKey: 'samsung_s23',
+        title: 'Samsung Galaxy S23 Cream (19.5:9)',
+        width: 1275,
+        height: 2614,
+        contentScale: 0.956
+    } as Bezel,
+    samsung_s23_ultra_phantom_black: {
+        key: 'samsung_s23_ultra_phantom_black',
+        modelKey: 'samsung_s23_ultra',
+        title: 'Samsung Galaxy S23 Ultra Phantom Black (19.3:9)',
+        width: 1390,
+        height: 2912,
+        contentScale: 0.946
+    } as Bezel,
+    samsung_s23_ultra_green: {
+        key: 'samsung_s23_ultra_green',
+        modelKey: 'samsung_s23_ultra',
+        title: 'Samsung Galaxy S23 Ultra Green (19.3:9)',
+        width: 1390,
+        height: 2912,
+        contentScale: 0.946
+    } as Bezel,
+    samsung_s23_ultra_lavender: {
+        key: 'samsung_s23_ultra_lavender',
+        modelKey: 'samsung_s23_ultra',
+        title: 'Samsung Galaxy S23 Ultra Lavender (19.3:9)',
+        width: 1390,
+        height: 2912,
+        contentScale: 0.946
+    } as Bezel,
+    samsung_s23_ultra_cream: {
+        key: 'samsung_s23_ultra_cream',
+        modelKey: 'samsung_s23_ultra',
+        title: 'Samsung Galaxy S23 Ultra Cream (19.3:9)',
+        width: 1390,
+        height: 2912,
+        contentScale: 0.946
+    } as Bezel,
+    oneplus_7t_pro: {
+        key: 'oneplus_7t_pro',
+        modelKey: 'oneplus_7t_pro',
+        title: 'OnePlus 7T Pro (19.5:9)',
+        width: 1234,
+        height: 2618,
+        contentScale: 0.956
+    } as Bezel,
+    oneplus_8_pro: {
+        key: 'oneplus_8_pro',
+        modelKey: 'oneplus_8_pro',
+        title: 'OnePlus 8 Pro (19.8:9)',
+        width: 1188,
+        height: 2606,
+        contentScale: 0.952
+    } as Bezel,
+    sony_xperia_1_ii: {
+        key: 'sony_xperia_1_ii',
+        modelKey: 'sony_xperia_1_ii',
+        title: 'Sony Experia 1 II (21:9)',
+        width: 1134,
+        height: 2609,
+        contentScale: 0.915
+    } as Bezel,
+    pixel_8_obsidian: {
+        key: 'pixel_8_obsidian',
+        modelKey: 'pixel_8',
+        title: 'Pixel 8 Obsidian (20:9)',
+        width: 1235,
+        height: 2575,
+        contentScale: 0.947
+    } as Bezel,
+    pixel_8_hazel: {
+        key: 'pixel_8_hazel',
+        modelKey: 'pixel_8',
+        title: 'Pixel 8 Hazel (20:9)',
+        width: 1235,
+        height: 2575,
+        contentScale: 0.947
+    } as Bezel,
+    pixel_8_rose: {
+        key: 'pixel_8_rose',
+        modelKey: 'pixel_8',
+        title: 'Pixel 8 Rose (20:9)',
+        width: 1235,
+        height: 2575,
+        contentScale: 0.947
+    } as Bezel,
+    pixel_8_pro_obsidian: {
+        key: 'pixel_8_pro_obsidian',
+        modelKey: 'pixel_8_pro',
+        title: 'Pixel 8 Pro Obsidian (20:9)',
+        width: 1336,
+        height: 2816,
+        contentScale: 0.95
+    } as Bezel,
+    pixel_8_pro_bay: {
+        key: 'pixel_8_pro_bay',
+        modelKey: 'pixel_8_pro',
+        title: 'Pixel 8 Pro Bay (20:9)',
+        width: 1336,
+        height: 2816,
+        contentScale: 0.95
+    } as Bezel,
+    pixel_8_pro_porcelain: {
+        key: 'pixel_8_pro_porcelain',
+        modelKey: 'pixel_8_pro',
+        title: 'Pixel 8 Pro Porcelain (20:9)',
+        width: 1336,
+        height: 2816,
+        contentScale: 0.95
+    } as Bezel,
+    pixel_5: {
+        key: 'pixel_5',
+        modelKey: 'pixel_5',
+        title: 'Pixel 5 (19.5:9)',
+        width: 1260,
+        height: 2564,
+        contentScale: 0.95
     } as Bezel,
     'android_gold_19,5_9': {
         key: 'android_gold_19,5_9',

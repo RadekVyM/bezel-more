@@ -2,7 +2,7 @@
     Simple script for automatic generation of resized variants of bezel images.
     
     sudo apt install imagemagick
-    node .\generate-bezel-variants.js
+    node ./generate-bezel-variants.js
 */
 
 const path = require('path');
@@ -12,7 +12,7 @@ const FS = require('node:fs');
 const SMALL_IMAGE_HEIGHT = 400;
 const SMALL_IMAGE_SUFFIX = '_small';
 
-const filteredStrings = ['_mask', SMALL_IMAGE_SUFFIX];
+const filteredStrings = ['_mask', '_maskt',SMALL_IMAGE_SUFFIX];
 const bezelsDirectory = './public/images/bezels';
 const files = FS.readdirSync(bezelsDirectory);
 
@@ -29,6 +29,9 @@ function generateResizedVariants(images) {
         const [fileName, fileExtension] = splitFileName(image);
         const imagePath = path.resolve(`${bezelsDirectory}/${image}`);
         const newImagePath = path.resolve(`${bezelsDirectory}/${fileName}${SMALL_IMAGE_SUFFIX}${fileExtension}`);
+
+        if (FS.existsSync(newImagePath))
+            continue;
 
         im.identify(imagePath, (err, features) => {
             if (err)

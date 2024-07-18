@@ -56,7 +56,7 @@ export default function MainScaffold({ edit, convert, videoPreviewer, resultPrev
             )}>
             <header
                 className={cn(
-                    'flex items-center pt-8 pb-6 gap-2',
+                    'flex items-center pt-5 pb-2 gap-2',
                     isLarge ?
                         'row-start-1 row-end-2 col-start-1 col-end-3' :
                         'row-start-1 row-end-2 col-start-1 col-end-2'
@@ -157,7 +157,7 @@ export default function MainScaffold({ edit, convert, videoPreviewer, resultPrev
 function PageHeading() {
     return (
         <h1 title='bezel-more' className='font-bold text-xl flex-1'>
-            bezel<span aria-hidden className='line-through text-on-surface-muted'>-less</span><span className='handwritten text-2xl'>-more</span>
+            bezel<span aria-hidden className='line-through text-on-surface-muted select-none'>-less</span><span className='handwritten text-2xl'>-more</span>
         </h1>
     )
 }
