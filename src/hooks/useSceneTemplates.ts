@@ -2,17 +2,24 @@ import { useLocalStorage } from 'usehooks-ts'
 import { createSceneTemplate, SceneTemplate } from '../types/SceneTemplate'
 import { useCallback, useMemo } from 'react'
 import { Scene } from '../types/Scene'
-import { createImageBackground, ImageBackground } from '../types/Background'
+import { Background, createImageBackground, ImageBackground } from '../types/Background'
 
 const SCENE_TEMPLATES_KEY = 'SCENE_TEMPLATES_KEY';
+
+type SceneTemplateImageBackground = {
+    image: string,
+    aspectFill: boolean
+} & Background
 
 export default function useSceneTemplates() {
     const [savedSceneTemplates, setSceneTemplates] = useLocalStorage<Array<SceneTemplate>>(SCENE_TEMPLATES_KEY, []);
     const sceneTemplates = useMemo(() => savedSceneTemplates.map((st) => {
         if (st.background.type === 'image') {
-            const src = (st.background as any).image as string;
-            const imageBackground = st.background as ImageBackground;
-            st.background = createImageBackground(src, imageBackground.aspectFill);
+            // I do not save whole HTMLImageElements, but only image paths
+            const newSceneTemplate = { ...st };
+            const background = st.background as SceneTemplateImageBackground;
+            newSceneTemplate.background = createImageBackground(background.image, background.aspectFill);
+            st = newSceneTemplate;
         }
         return st;
     }), [savedSceneTemplates]);
@@ -20,8 +27,9 @@ export default function useSceneTemplates() {
     const addSceneTemplate = useCallback((title: string, scene: Scene) => {
         const template = createSceneTemplate(title, scene);
         if (template.background.type === 'image') {
+            // I do not want to save whole HTMLImageElements, but only image paths
             const imageBackground = template.background as ImageBackground;
-            (template.background as any).image = imageBackground.image.src;
+            (template.background as SceneTemplateImageBackground).image = imageBackground.image.src;
         }
         setSceneTemplates((old) => [...old, template]);
     }, [setSceneTemplates]);

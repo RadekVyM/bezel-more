@@ -56,7 +56,7 @@ export function createRadialGradientBackground(innerColor: HsvaColor, outerColor
 
 export function createImageBackground(image: string | HTMLImageElement, aspectFill: boolean): ImageBackground {
     if (typeof image === 'string') {
-        const imageElement = new Image();
+        const imageElement = document.createElement('img');
         imageElement.src = image;
 
         return {

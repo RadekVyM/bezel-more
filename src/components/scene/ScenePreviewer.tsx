@@ -15,6 +15,8 @@ import { drawVideos } from '../../services/drawing/video'
 import { getSceneSize } from '../../types/DrawableScene'
 import { Canvas } from '../Canvas'
 import useBezelImages from '../../hooks/useBezelImages'
+import { LuFileVideo } from 'react-icons/lu'
+import { LargeVideoFileSelection } from '../inputs/VideoFileSelection'
 
 type ScenePreviewerProps = {
     scene: Scene,
@@ -56,13 +58,18 @@ export default function ScenePreviewer({ scene, className, updateScene, updateVi
             updateScene={updateScene}
             updateVideo={updateVideo} /> :
         <Container
-            className={cn('grid place-content-center justify-items-center text-on-surface-container-muted', className)}>
-            <MdOutlineUploadFile
-                className='w-8 h-8 mb-4' />
-            <p
-                className='mb-2 text-sm'>
-                No video uploaded
-            </p>
+            className={cn('flex flex-wrap gap-5 p-6 flex-col @2xl:flex-row', className)}>
+            {scene.videos.map((video, index) => 
+                <LargeVideoFileSelection
+                    key={video.index}
+                    className='flex-1'
+                    label={`Choose video file${scene.videos.length > 1 ? ` #${index + 1}` : ''}`}
+                    file={video.file}
+                    onFileSelect={(file) => {
+                        if (file) {
+                            updateVideo(video.index, { file });
+                        }
+                    }} />)}
         </Container>
 }
 

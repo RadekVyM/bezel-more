@@ -115,7 +115,7 @@ export default function MainScaffold({ edit, convert, videoPreviewer, resultPrev
                 className='h-full max-h-full overflow-hidden'>
                 <ComponentSwitch
                     selectedKey={selectedStep}>
-                    <div key='edit' className='h-full'>{videoPreviewer}</div>
+                    <div key='edit' className='h-full @container'>{videoPreviewer}</div>
                     <div key='convert' className='h-full'>{resultPreviewer}</div>
                 </ComponentSwitch>
             </div>
