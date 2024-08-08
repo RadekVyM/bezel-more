@@ -76,7 +76,7 @@ function createInitialScene(template: SceneTemplate, createdVideos: Array<Video>
         horizontalSpacing: template.horizontalSpacing,
         startTime: 0,
         endTime: 0,
-        background: template.background,
+        background: {...template.background},
         formatKey: supportedFormats.webp.key,
         isPrerenderingEnabled: false,
     };

@@ -1,6 +1,7 @@
 import { BezelImages } from '../../types/BezelImages'
 import { DrawableScene, getVideoRectInScene } from '../../types/DrawableScene'
 import { DrawableVideo } from '../../types/DrawableVideo'
+import { NoBezelImagesError, NoDimensionsError } from '../../types/Errors';
 
 type DrawVideoCallback = (context: CanvasRenderingContext2D, video: DrawableVideo, left: number, top: number, width: number, height: number) => void
 
@@ -21,7 +22,13 @@ export function drawVideos(
     try {
         drawMask(context, scene, bezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale);
     }
-    catch { }
+    catch (error) {
+        // NoDimensionsError and NoBezelImagesError are caused by trying to draw too early
+        // They can be ignored
+        if (!(error instanceof NoDimensionsError || error instanceof NoBezelImagesError)) {
+            throw error;
+        }
+    }
 
     for (const video of scene.videos) {
         const videoBezelImages = bezelImages[video.index];
@@ -33,7 +40,13 @@ export function drawVideos(
         try {
             drawVideo(context, video, scene, videoBezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale, drawOneVideo);
         }
-        catch { }
+        catch (error) {
+            // NoDimensionsError and NoBezelImagesError are caused by trying to draw too early
+            // They can be ignored
+            if (!(error instanceof NoDimensionsError || error instanceof NoBezelImagesError)) {
+                throw error;
+            }
+        }
     };
 }
 
@@ -141,7 +154,10 @@ function drawVideo(
 
 function calculateVideoDimensions(video: DrawableVideo, scene: DrawableScene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {
     if (!video.naturalVideoDimensions) {
-        throw new Error('Size of the video could not be determined');
+        throw new NoDimensionsError('Size of the video could not be determined');
+    }
+    if (!bezelImages) {
+        throw new NoBezelImagesError('No bezel images passed in');
     }
 
     const { videoWidth: w, videoHeight: h, videoX: x, videoY: y } = getVideoRectInScene(video, scene);
