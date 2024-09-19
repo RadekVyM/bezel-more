@@ -1,9 +1,9 @@
-import { Scene } from '../../types/Scene'
 import { cn } from '../../utils/tailwind'
 import Button from '../inputs/Button'
 import useContentDialog from '../../hooks/useContentDialog'
 import BackgroundCanvas from '../BackgroundCanvas'
 import BackgroundPickerDialog from '../inputs/BackgroundPickerDialog'
+import { Scene } from '../../types/Scene'
 
 type BackgroundSelectionProps = {
     scene: Scene,

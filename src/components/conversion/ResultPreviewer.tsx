@@ -4,14 +4,14 @@ import Button from '../inputs/Button'
 import { ConversionProgress } from '../../types/ConversionProgress'
 import { FiDownload } from 'react-icons/fi'
 import Container from '../Container'
-import { SupportedFormat, supportedFormats } from '../../supportedFormats'
+import { SupportedImageFormat, supportedImageFormats, SupportedVideoFormat, supportedVideoFormats } from '../../supportedFormats'
 
 type ResultPreviewerProps = {
     resultUrl: string | null,
     fileName: string | null,
     resultSize: number,
     progress: ConversionProgress,
-    formatKey: SupportedFormat,
+    formatKey: SupportedVideoFormat | SupportedImageFormat,
     className?: string
 }
 
@@ -29,7 +29,7 @@ export default function ResultPreviewer({ resultUrl, fileName, resultSize, progr
                 {
                     resultUrl ?
                         <>
-                            {supportedFormats[formatKey].type.startsWith('image') ?
+                            {{...supportedVideoFormats, ...supportedImageFormats}[formatKey].type.startsWith('image') ?
                                 <img className='max-h-full m-auto object-contain' src={resultUrl} alt='Result' /> :
                                 <video className='max-h-full m-auto object-contain' loop autoPlay controls src={resultUrl} />}
                         </> :

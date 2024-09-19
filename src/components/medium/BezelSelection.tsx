@@ -1,5 +1,5 @@
 import { BEZELS } from '../../bezels'
-import { Video } from '../../types/Video'
+import { Medium } from '../../types/Medium'
 import { cn } from '../../utils/tailwind'
 import BezelThumbnail from '../BezelThumbnail'
 import RadioCircle from '../RadioCircle'
@@ -7,12 +7,12 @@ import CheckInput from '../inputs/CheckInput'
 import CheckInputLabel from '../inputs/CheckInputLabel'
 
 type BezelSelectionProps = {
-    video: Video,
-    updateVideo: (video: Partial<Video>) => void,
+    medium: Medium,
+    updateMedium: (medium: Partial<Medium>) => void,
     className?: string
 }
 
-export default function BezelSelection({ className, video, updateVideo }: BezelSelectionProps) {
+export default function BezelSelection({ className, medium, updateMedium }: BezelSelectionProps) {
     return (
         <>
             <div
@@ -21,8 +21,8 @@ export default function BezelSelection({ className, video, updateVideo }: BezelS
                     id='use-bezel-check'
                     className='rounded'
                     type='checkbox'
-                    defaultChecked={video.withBezel}
-                    onChange={(e) => updateVideo({ withBezel: e.target.checked })} />
+                    defaultChecked={medium.withBezel}
+                    onChange={(e) => updateMedium({ withBezel: e.target.checked })} />
                 <CheckInputLabel htmlFor='use-bezel-check' className='pl-3'>Use bezel</CheckInputLabel>
             </div>
 
@@ -42,9 +42,9 @@ export default function BezelSelection({ className, video, updateVideo }: BezelS
                             disabled:text-on-surface-container-muted bg-surface-container hover:bg-surface-dim-container'
                         tabIndex={0}
                         role='radio'
-                        aria-checked={video.bezelKey === b.key}
-                        onClick={() => updateVideo({ bezelKey: b.key })}
-                        onKeyUp={(e) => e.key === 'Enter' && updateVideo({ bezelKey: b.key })}>
+                        aria-checked={medium.bezelKey === b.key}
+                        onClick={() => updateMedium({ bezelKey: b.key })}
+                        onKeyUp={(e) => e.key === 'Enter' && updateMedium({ bezelKey: b.key })}>
                         <h4
                             className='row-start-2 row-end-3 col-start-2 col-end-3 text-xs text-on-surface-container'>
                             {b.title}
@@ -58,7 +58,7 @@ export default function BezelSelection({ className, video, updateVideo }: BezelS
 
                         <RadioCircle
                             className='row-start-2 row-end-3 col-start-1 col-end-2'
-                            checked={video.bezelKey === b.key} />
+                            checked={medium.bezelKey === b.key} />
                     </article>)}
             </div>
         </>

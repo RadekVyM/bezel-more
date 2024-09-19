@@ -1,12 +1,13 @@
 import NumberInput from '../inputs/NumberInput'
 import CheckInput from '../inputs/CheckInput'
 import CheckInputLabel from '../inputs/CheckInputLabel'
-import { SupportedFormat, supportedFormats } from '../../supportedFormats'
+import { supportedImageFormats, SupportedVideoFormat, supportedVideoFormats } from '../../supportedFormats'
 import { cn } from '../../utils/tailwind'
-import { Scene } from '../../types/Scene'
+import { VideoScene } from '../../types/VideoScene'
 import usePopoverAnchorHover from '../../hooks/usePopoverAnchorHover'
 import Popover from '../Popover'
 import { FaQuestionCircle } from 'react-icons/fa'
+import { Scene } from '../../types/Scene'
 
 type ConversionConfigurationProps = {
     scene: Scene,
@@ -15,8 +16,8 @@ type ConversionConfigurationProps = {
 }
 
 type NumberInputsProps = {
-    scene: Scene,
-    updateScene: (scene: Partial<Scene>) => void,
+    scene: VideoScene,
+    updateScene: (scene: Partial<VideoScene>) => void,
     className?: string
 }
 
@@ -37,10 +38,10 @@ export default function ConversionConfiguration({
             <FormatSelection
                 scene={scene}
                 updateScene={updateScene} />
-        
-            <NumberInputs
-                scene={scene}
-                updateScene={updateScene} />
+            {scene.sceneType === 'video' &&
+                <NumberInputs
+                    scene={scene}
+                    updateScene={updateScene} />}
         </div>
     )
 }
@@ -63,7 +64,7 @@ function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
                 id='max-colors'
                 min={32} max={255} step={1}
                 value={scene.maxColors}
-                disabled={scene.formatKey !== supportedFormats.gif.key}
+                disabled={scene.formatKey !== supportedVideoFormats.gif.key}
                 onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
                 onChange={(e) => updateScene({ maxColors: parseFloat(e.target.value) })} />
             <div
@@ -94,12 +95,16 @@ function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
 }
 
 function FormatSelection({ className, updateScene, scene }: FormatSelectionProps) {
+    const formats = scene.sceneType === 'video' ?
+        supportedVideoFormats :
+        supportedImageFormats;
+
     return (
         <fieldset
             className={className}>
             <legend className='block text-sm font-medium mb-2'>Output format</legend>
 
-            {Object.values(supportedFormats).map(f =>
+            {Object.values(formats).map(f =>
                 <div
                     key={f.key}
                     className='mb-2'>
@@ -109,7 +114,7 @@ function FormatSelection({ className, updateScene, scene }: FormatSelectionProps
                         id={f.key}
                         value={f.key}
                         checked={scene.formatKey === f.key}
-                        onChange={(e) => updateScene({ formatKey: e.currentTarget.value as SupportedFormat })} />
+                        onChange={(e) => updateScene({ formatKey: e.currentTarget.value as SupportedVideoFormat })} />
                     <CheckInputLabel
                         htmlFor={f.key}>
                         {f.title}

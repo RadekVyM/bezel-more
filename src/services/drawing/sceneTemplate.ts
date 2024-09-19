@@ -1,12 +1,12 @@
 import { getBezel } from '../../bezels'
 import { BezelImages } from '../../types/BezelImages'
 import { getSceneSize } from '../../types/DrawableScene'
-import { DrawableVideo } from '../../types/DrawableVideo'
+import { DrawableMedium } from '../../types/DrawableMedium'
 import { SceneTemplate } from '../../types/SceneTemplate'
 import { Size } from '../../types/Size'
-import { VideoTemplate } from '../../types/VideoTemplate'
 import { drawSceneBackground } from './background'
-import { drawVideos } from './video'
+import { drawMedia } from './media'
+import { MediumTemplate } from '../../types/MediumTemplate'
 
 export async function drawSceneTemplate(context: CanvasRenderingContext2D, sceneTemplate: SceneTemplate, bezelImages: Array<BezelImages>, size: Size) {
     const clonedSceneTemplate = cloneSceneTemplateWithNaturalDimensions(sceneTemplate);
@@ -20,13 +20,13 @@ export async function drawSceneTemplate(context: CanvasRenderingContext2D, scene
     context.globalCompositeOperation = 'source-over';
     context.clearRect(0, 0, size.width, size.height);
 
-    drawVideos(context, clonedSceneTemplate, bezelImages, left, top, sceneWidth, sceneHeight, scale, drawVideo);
+    drawMedia(context, clonedSceneTemplate, bezelImages, left, top, sceneWidth, sceneHeight, scale, drawVideo);
 
     context.globalCompositeOperation ='destination-over';
     drawSceneBackground(context, clonedSceneTemplate, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImages.map((bi) => bi.maskImage));
 }
 
-function drawVideo(context: CanvasRenderingContext2D, video: DrawableVideo, left: number, top: number, width: number, height: number) {
+function drawVideo(context: CanvasRenderingContext2D, medium: DrawableMedium, left: number, top: number, width: number, height: number) {
     const computedStyle = getComputedStyle(context.canvas);
     const primaryColor = computedStyle.getPropertyValue('--primary');
     const secondaryColor = computedStyle.getPropertyValue('--secondary');
@@ -41,12 +41,12 @@ function drawVideo(context: CanvasRenderingContext2D, video: DrawableVideo, left
 function cloneSceneTemplateWithNaturalDimensions(sceneTemplate: SceneTemplate) {
     return {
         ...sceneTemplate,
-        videos: sceneTemplate.videos.map((video): VideoTemplate => {
+        media: sceneTemplate.media.map((video): MediumTemplate => {
             const bezel = getBezel(video.bezelKey);
             
             return {
                 ...video,
-                naturalVideoDimensions: { width: bezel.width, height: bezel.height }
+                naturalDimensions: { width: bezel.width, height: bezel.height }
             };
         })
     };

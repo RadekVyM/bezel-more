@@ -1,11 +1,11 @@
 import { hsvaToHexa } from '@uiw/react-color'
 import { Background, ImageBackground, LinearGradientBackground, RadialGradientBackground, SolidBackground } from '../../types/Background'
-import { Scene } from '../../types/Scene'
+import { VideoScene } from '../../types/VideoScene'
 import { Size } from '../../types/Size'
-import { DrawableScene, getSceneSize, getVideoRectInScene } from '../../types/DrawableScene'
+import { DrawableScene, getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { createMaskImages } from '../images'
 
-export async function generateBackground(scene: Scene): Promise<File | null> {
+export async function generateBackground(scene: VideoScene): Promise<File | null> {
     const canvas = document.createElement('canvas');
     const size = getSceneSize(scene);
     canvas.width = size.width;
@@ -156,19 +156,19 @@ function drawShadows(context: CanvasRenderingContext2D, scene: DrawableScene, le
     const sceneSize = getSceneSize(scene);
     const scale = Math.min(size.width / sceneSize.width, size.height / sceneSize.height);
 
-    for (const video of scene.videos) {
+    for (const video of scene.media) {
         if (!video.withShadow) {
             continue;
         }
 
         context.save();
 
-        const { videoWidth, videoHeight, videoX, videoY } = getVideoRectInScene(video, scene);
+        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(video, scene);
 
-        const x = ((videoX + video.shadowOffsetX) * scale) + left;
-        const y = ((videoY + video.shadowOffsetY) * scale) + top;
-        const w = videoWidth * scale;
-        const h = videoHeight * scale;
+        const x = ((mediumX + video.shadowOffsetX) * scale) + left;
+        const y = ((mediumY + video.shadowOffsetY) * scale) + top;
+        const w = mediumWidth * scale;
+        const h = mediumHeight * scale;
         const contentOffsetX = -w - left;
         const contentOffsetY = -h - top;
 

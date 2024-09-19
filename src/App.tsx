@@ -3,13 +3,13 @@ import { useEffect, useState } from 'react'
 import ScenePreviewer from './components/scene/ScenePreviewer'
 import Loading from './components/Loading'
 import SectionHeading from './components/SectionHeading'
-import BezelSelection from './components/video/BezelSelection'
+import BezelSelection from './components/medium/BezelSelection'
 import { RiLoopLeftLine } from 'react-icons/ri'
 import { BiMoviePlay } from 'react-icons/bi'
 import { cn } from './utils/tailwind'
 import Container from './components/Container'
 import Tabs from './components/Tabs'
-import VideoTrimConfiguration from './components/video/VideoTrimConfiguration'
+import VideoTrimConfiguration from './components/medium/VideoTrimConfiguration'
 import useConvert from './hooks/useConvert'
 import ResultPreviewer from './components/conversion/ResultPreviewer'
 import ConversionConfiguration from './components/conversion/ConversionConfiguration'
@@ -18,7 +18,6 @@ import ComponentSwitch from './components/ComponentSwitch'
 import SubsectionHeading from './components/SubsectionHeading'
 import useScene from './hooks/useScene'
 import { Video } from './types/Video'
-import { Scene } from './types/Scene'
 import SceneSizeConfiguration from './components/scene/SceneSizeConfiguration'
 import SceneTrimConfiguration from './components/scene/SceneTrimConfiguration'
 import { TbVideo } from 'react-icons/tb'
@@ -28,17 +27,20 @@ import MainScaffold from './components/app/MainScaffold'
 import useContentDialog from './hooks/useContentDialog'
 import { NewProjectDialog } from './components/app/NewProjectDialog'
 import { ProjectConfig } from './types/ProjectConfig'
-import { VideoFileSelection } from './components/inputs/VideoFileSelection'
-import VideoShadowConfiguration from './components/video/VideoShadowConfiguration'
+import { MediumFileSelection } from './components/inputs/MediumFileSelection'
+import MediumShadowConfiguration from './components/medium/MediumShadowConfiguration'
 import SceneAspectRatioSelection from './components/scene/SceneAspectRatioSelection'
-import VideoSizeConfiguration from './components/video/VideoSizeConfiguration'
+import MediumSizeConfiguration from './components/medium/MediumSizeConfiguration'
 import { DEFAULT_SCENE_TEMPLATES } from './types/SceneTemplate'
+import { Scene } from './types/Scene'
+import { Medium } from './types/Medium'
+import { FaRegImage } from 'react-icons/fa'
 
 type EditProps = {
     scene: Scene,
     resetValue?: any,
     updateScene: (scene: Partial<Scene>) => void,
-    updateVideo: (index: number, video: Partial<Video>) => void,
+    updateMedium: (index: number, medium: Partial<Medium>) => void,
 }
 
 type EditSceneProps = {
@@ -46,10 +48,10 @@ type EditSceneProps = {
     updateScene: (scene: Partial<Scene>) => void,
 }
 
-type EditVideoProps = {
-    video: Video,
-    onFileSelected: (video: File | null | undefined) => void,
-    updateVideo: (video: Partial<Video>) => void,
+type EditMediumProps = {
+    medium: Medium,
+    onFileSelected: (file: File | null | undefined) => void,
+    updateMedium: (medium: Partial<Medium>) => void,
 }
 
 type ConvertProps = {
@@ -87,7 +89,7 @@ function MainContent({ }: MainContentProps) {
             <MainScaffold
                 edit={
                     <Edit
-                        updateVideo={updateVideo}
+                        updateMedium={updateVideo}
                         resetValue={projectConfig}
                         scene={scene}
                         updateScene={updateScene} />
@@ -96,11 +98,11 @@ function MainContent({ }: MainContentProps) {
                     <Convert
                         scene={scene}
                         updateScene={updateScene}
-                        canConvert={scene.videos.every((v) => v.file)}
+                        canConvert={scene.media.every((v) => v.file)}
                         convert={convert}
                         converting={progress.converting} />
                 }
-                videoPreviewer={
+                scenePreviewer={
                     <ScenePreviewer
                         className='h-full'
                         scene={scene}
@@ -132,7 +134,7 @@ function MainContent({ }: MainContentProps) {
     )
 }
 
-function Edit({ scene, resetValue, updateScene, updateVideo }: EditProps) {
+function Edit({ scene, resetValue, updateScene, updateMedium }: EditProps) {
     const [selection, setSelection] = useState<string>('scene');
     const isLarge = useIsLarge();
 
@@ -144,14 +146,14 @@ function Edit({ scene, resetValue, updateScene, updateVideo }: EditProps) {
                     key='scene'
                     scene={scene}
                     updateScene={updateScene} />,
-                ...scene.videos.map((video, index) => 
-                    <EditVideo
-                        key={`video-${index}`}
-                        updateVideo={(update) => updateVideo(video.index, update)}
-                        video={video}
+                ...(scene.media as Array<Medium>).map((medium, index) => 
+                    <EditMedium
+                        key={`medium-${index}`}
+                        updateMedium={(update) => updateMedium(medium.index, update)}
+                        medium={medium}
                         onFileSelected={(file) => {
                             if (file) {
-                                updateVideo(video.index, { file });
+                                updateMedium(medium.index, { file });
                             }
                         }} />)
             ]}
@@ -168,8 +170,13 @@ function Edit({ scene, resetValue, updateScene, updateVideo }: EditProps) {
             <Tabs
                 tabs={[
                     { key: 'scene', title: 'Scene', icon: <BiMoviePlay className='w-5 h-5' />, onClick: () => setSelection('scene') },
-                    ...scene.videos.map((video, index) =>
-                        ({ key: `video-${index}`, title: scene.videos.length > 1 ? `Video #${index + 1}` : 'Video', icon: <TbVideo className='w-5 h-5' />, onClick: () => setSelection(`video-${index}`) }))
+                    ...(scene.media as Array<Medium>).map((medium, index) =>
+                        ({
+                            key: `medium-${index}`,
+                            title: scene.media.length > 1 ? `${getMediumTabTitle(medium)} #${index + 1}` : getMediumTabTitle(medium),
+                            icon: medium.mediumType === 'video' ? <TbVideo className='w-5 h-5' /> : <FaRegImage className='w-5 h-5' />,
+                            onClick: () => setSelection(`medium-${index}`)
+                        }))
                 ]}
                 selectedTabKey={selection}/>
             {!isLarge ?
@@ -195,12 +202,13 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
                     scene={scene}
                     updateScene={updateScene}/>
             </div>
-            <div>
-                {<SubsectionHeading>Trim scene</SubsectionHeading>}
-                <SceneTrimConfiguration
-                    scene={scene}
-                    updateScene={updateScene}/>
-            </div>
+            {scene.sceneType === 'video' &&
+                <div>
+                    {<SubsectionHeading>Trim scene</SubsectionHeading>}
+                    <SceneTrimConfiguration
+                        scene={scene}
+                        updateScene={updateScene}/>
+                </div>}
             <div>
                 {<SubsectionHeading>Scene layout</SubsectionHeading>}
 
@@ -217,40 +225,42 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
     )
 }
 
-function EditVideo({ video, updateVideo, onFileSelected }: EditVideoProps) {
+function EditMedium({ medium, updateMedium, onFileSelected }: EditMediumProps) {
     const isLarge = useIsLarge();
 
     return (
         <article
             className='flex flex-col gap-6'>
             <div>
-                {isLarge && <SectionHeading>Edit video</SectionHeading>}
-                <VideoFileSelection
-                    file={video.file}
+                {isLarge && <SectionHeading>{`Edit ${medium.mediumType}`}</SectionHeading>}
+                <MediumFileSelection
+                    mediumType={medium.mediumType}
+                    file={medium.file}
                     onFileSelect={onFileSelected} />
             </div>
             <div>
-                <VideoSizeConfiguration
-                    video={video}
-                    updateVideo={updateVideo}/>
+                <MediumSizeConfiguration
+                    medium={medium}
+                    updateMedium={updateMedium}/>
             </div>
-            <div>
-                <SubsectionHeading>Trim video</SubsectionHeading>
-                <VideoTrimConfiguration
-                    video={video}
-                    updateVideo={updateVideo}/>
-            </div>
+            {medium.mediumType === 'video' &&
+                <div>
+                    <SubsectionHeading>Trim video</SubsectionHeading>
+                    <VideoTrimConfiguration
+                        video={medium}
+                        updateVideo={updateMedium}/>
+                </div>}
             <div>
                 <SubsectionHeading>Shadow</SubsectionHeading>
-                <VideoShadowConfiguration
-                    video={video}
-                    updateVideo={updateVideo}/>
+                <MediumShadowConfiguration
+                    medium={medium}
+                    updateMedium={updateMedium}/>
             </div>
             <div>
                 <SubsectionHeading>Bezels</SubsectionHeading>
                 <BezelSelection
-                    video={video}
-                    updateVideo={updateVideo} />
+                    medium={medium}
+                    updateMedium={updateMedium} />
             </div>
         </article>
     )
@@ -304,4 +314,8 @@ function Popovers() {
             className='fixed inset-0 pointer-events-none overflow-clip'>
         </div>
     )
-  }
+}
+
+function getMediumTabTitle(medium: Medium) {
+    return medium.mediumType === 'video' ? 'Video' : 'Image';
+}

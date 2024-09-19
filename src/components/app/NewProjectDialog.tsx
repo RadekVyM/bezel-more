@@ -5,15 +5,15 @@ import SectionHeading from '../SectionHeading'
 import Button from '../inputs/Button'
 import { MdClose, MdOutlineCreateNewFolder } from 'react-icons/md'
 import { ProjectConfig } from '../../types/ProjectConfig'
-import { DEFAULT_SCENE_TEMPLATES, SceneTemplate } from '../../types/SceneTemplate'
+import { DEFAULT_SCENE_TEMPLATES, ImageSceneTemplate, SceneTemplate, VideoSceneTemplate } from '../../types/SceneTemplate'
 import { Canvas } from '../Canvas'
 import { drawSceneTemplate } from '../../services/drawing/sceneTemplate'
 import useBezelImages from '../../hooks/useBezelImages'
 import SubsectionHeading from '../SubsectionHeading'
 import useSceneTemplates from '../../hooks/useSceneTemplates'
-import { Scene } from '../../types/Scene'
 import { FiTrash2 } from 'react-icons/fi'
 import Input from '../inputs/Input'
+import { Scene } from '../../types/Scene'
 
 type NewProjectDialogProps = {
     currentScene: Scene,
@@ -23,9 +23,9 @@ type NewProjectDialogProps = {
 } & DialogProps
 
 type TemplateButtonProps = {
-    sceneTemplate: SceneTemplate,
+    sceneTemplate: VideoSceneTemplate | ImageSceneTemplate,
     className?: string,
-    onClick: (sceneTemplate: SceneTemplate) => void
+    onClick: (sceneTemplate: VideoSceneTemplate | ImageSceneTemplate) => void
 }
 
 type TemplatePreviewProps = {
@@ -46,7 +46,7 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
         isOpen && setNewTemplateTitle(''); 
     }, [isOpen]);
 
-    function onProjectClick(sceneTemplate: SceneTemplate) {
+    function onProjectClick(sceneTemplate: VideoSceneTemplate | ImageSceneTemplate) {
         onProjectConfigSelected({ sceneTemplate: { ...sceneTemplate } });
         hide();
     }

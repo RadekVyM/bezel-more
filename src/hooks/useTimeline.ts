@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Scene } from '../types/Scene'
+import { VideoScene } from '../types/VideoScene'
 
-export default function useTimeline(scene: Scene) {
+export default function useTimeline(scene: VideoScene) {
     const previousTimeRef = useRef<number>(0);
     const timeLoopRef = useRef<Loop | null>(null);
     const loopRef = useRef<boolean>(false);
-    const sceneRef = useRef<Scene>(scene);
+    const sceneRef = useRef<VideoScene>(scene);
     const [currentTime, setCurrentTime] = useState<number>(scene.startTime);
     const [loop, setLoop] = useState<boolean>(false);
     const [isPlaying, setIsPlaying] = useState<boolean>(false);
@@ -21,7 +21,7 @@ export default function useTimeline(scene: Scene) {
             const difference = (now - previousTimeRef.current) / 1000;
             previousTimeRef.current = now;
 
-            if (sceneRef.current.videos.some((v) => (v.htmlVideo as any).loadingData)) {
+            if (sceneRef.current.media.some((v) => (v.htmlVideo as any).loadingData)) {
                 // If some videos are not loaded, timeline will wait
                 return;
             }
@@ -103,19 +103,19 @@ export default function useTimeline(scene: Scene) {
     };
 }
 
-function pauseAllVideos(scene: Scene) {
-    scene.videos.forEach((v) => {
+function pauseAllVideos(scene: VideoScene) {
+    scene.media.forEach((v) => {
         if (!v.htmlVideo.paused) {
             v.htmlVideo.pause();
         }
     });
 }
 
-function updateVideosCurrentTime(scene: Scene, currentTime: number, isPlaying: boolean) {
+function updateVideosCurrentTime(scene: VideoScene, currentTime: number, isPlaying: boolean) {
     // Browsers do not like frequent changes of the currentTime while playing the video
     const fps = 2;
 
-    scene.videos.forEach((v) => {
+    scene.media.forEach((v) => {
         const offsetCurrentTime = currentTime - v.sceneOffset;
         
         const shouldPause = !isPlaying || offsetCurrentTime < v.startTime || offsetCurrentTime > v.endTime;

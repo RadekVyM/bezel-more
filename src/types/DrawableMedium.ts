@@ -2,7 +2,7 @@ import { HsvaColor } from '@uiw/react-color'
 import { getBezel } from '../bezels'
 import { Size } from './Size'
 
-export type DrawableVideo = {
+export type DrawableMedium = {
     index: number,
     withBezel: boolean,
     bezelKey: string,
@@ -12,19 +12,20 @@ export type DrawableVideo = {
     shadowOffsetX: number,
     shadowOffsetY: number,
     cornerRadius: number,
-    naturalVideoDimensions?: Size,
+    naturalDimensions?: Size,
+    file: File | null | undefined,
 }
 
-export function getVideoSize(video: DrawableVideo, requestedMaxSize: number): Size {
-    if (video.naturalVideoDimensions && !video.withBezel) {
-        const scale = Math.max(video.naturalVideoDimensions.width / requestedMaxSize, video.naturalVideoDimensions.height / requestedMaxSize);
+export function getMediumSize(medium: DrawableMedium, requestedMaxSize: number): Size {
+    if (medium.naturalDimensions && !medium.withBezel) {
+        const scale = Math.max(medium.naturalDimensions.width / requestedMaxSize, medium.naturalDimensions.height / requestedMaxSize);
         return {
-            width: video.naturalVideoDimensions.width / scale,
-            height: video.naturalVideoDimensions.height / scale,
+            width: medium.naturalDimensions.width / scale,
+            height: medium.naturalDimensions.height / scale,
         };
     }
 
-    const bezel = getBezel(video.bezelKey);
+    const bezel = getBezel(medium.bezelKey);
     const scale = Math.max(bezel.width / requestedMaxSize, bezel.height / requestedMaxSize);
 
     return {

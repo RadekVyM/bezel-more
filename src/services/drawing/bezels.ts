@@ -1,8 +1,8 @@
-import { DrawableScene, getSceneSize, getVideoRectInScene } from '../../types/DrawableScene'
-import { Scene } from '../../types/Scene'
+import { DrawableScene, getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
+import { VideoScene } from '../../types/VideoScene'
 import { createBezelImages } from '../images'
 
-export async function generateBezelsImage(scene: Scene): Promise<File | null> {
+export async function generateBezelsImage(scene: VideoScene): Promise<File | null> {
     const canvas = document.createElement('canvas');
     const size = getSceneSize(scene);
     canvas.width = size.width;
@@ -30,16 +30,16 @@ export async function generateBezelsImage(scene: Scene): Promise<File | null> {
 }
 
 function drawBezelsImage(context: CanvasRenderingContext2D, scene: DrawableScene, bezelImages: Array<HTMLImageElement | null>) {
-    for (let i = 0; i < scene.videos.length; i++) {
+    for (let i = 0; i < scene.media.length; i++) {
         const image = bezelImages[i];
-        const video = scene.videos[i];
+        const video = scene.media[i];
 
         if (!image || !video.withBezel) {
             continue;
         }
 
-        const { videoWidth, videoHeight, videoX, videoY } = getVideoRectInScene(video, scene);
+        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(video, scene);
 
-        context.drawImage(image, videoX, videoY, videoWidth, videoHeight);
+        context.drawImage(image, mediumX, mediumY, mediumWidth, mediumHeight);
     }
 }

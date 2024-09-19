@@ -1,8 +1,9 @@
 import { useLocalStorage } from 'usehooks-ts'
-import { createSceneTemplate, SceneTemplate } from '../types/SceneTemplate'
+import { createImageSceneTemplate, createVideoSceneTemplate, ImageSceneTemplate, SceneTemplate, VideoSceneTemplate } from '../types/SceneTemplate'
 import { useCallback, useMemo } from 'react'
-import { Scene } from '../types/Scene'
+import { VideoScene } from '../types/VideoScene'
 import { Background, createImageBackground, ImageBackground } from '../types/Background'
+import { ImageScene } from '../types/ImageScene'
 
 const SCENE_TEMPLATES_KEY = 'SCENE_TEMPLATES_KEY';
 
@@ -12,7 +13,7 @@ type SceneTemplateImageBackground = {
 } & Background
 
 export default function useSceneTemplates() {
-    const [savedSceneTemplates, setSceneTemplates] = useLocalStorage<Array<SceneTemplate>>(SCENE_TEMPLATES_KEY, []);
+    const [savedSceneTemplates, setSceneTemplates] = useLocalStorage<Array<VideoSceneTemplate | ImageSceneTemplate>>(SCENE_TEMPLATES_KEY, []);
     const sceneTemplates = useMemo(() => savedSceneTemplates.map((st) => {
         if (st.background.type === 'image') {
             // I do not save whole HTMLImageElements, but only image paths
@@ -24,7 +25,7 @@ export default function useSceneTemplates() {
         return st;
     }), [savedSceneTemplates]);
 
-    const addSceneTemplate = useCallback((title: string, scene: Scene) => {
+    const addSceneTemplate = useCallback((title: string, scene: VideoScene | ImageScene) => {
         const template = createSceneTemplate(title, scene);
         if (template.background.type === 'image') {
             // I do not want to save whole HTMLImageElements, but only image paths
@@ -43,4 +44,14 @@ export default function useSceneTemplates() {
         addSceneTemplate,
         removeSceneTemplate
     };
+}
+
+function createSceneTemplate(title: string, scene: VideoScene | ImageScene) {
+    if (scene.sceneType === 'video') {
+        return createVideoSceneTemplate(title, scene);
+    }
+    else if (scene.sceneType === 'image') {
+        return createImageSceneTemplate(title, scene);
+    }
+    throw new Error('Invalid medium type');
 }

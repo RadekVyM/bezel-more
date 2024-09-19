@@ -2,13 +2,13 @@ import { fetchFile } from '@ffmpeg/util'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { getBezel } from '../../bezels'
 import * as fc from './filterComplex'
-import { supportedFormats } from '../../supportedFormats'
-import { Scene, getTotalSceneDuration } from '../../types/Scene'
+import { supportedVideoFormats } from '../../supportedFormats'
+import { VideoScene, getTotalSceneDuration } from '../../types/VideoScene'
 import { Video } from '../../types/Video'
 import { roundToEven } from '../../utils/numbers'
 import { generateBackground } from '../drawing/background'
 import { generateSceneMask } from '../drawing/sceneMask'
-import { getSceneSize, getVideoRectInScene } from '../../types/DrawableScene'
+import { getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { generateBezelsImage } from '../drawing/bezels'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
@@ -17,8 +17,8 @@ type VideoFileInputs = {
     videoInput: string,
 }
 
-export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (state: string) => void) {
-    const fileName = `result${supportedFormats[scene.formatKey].suffix}`;
+export async function convertVideoScene(ffmpeg: FFmpeg, scene: VideoScene, onProgressStateChange: (state: string) => void) {
+    const fileName = `result${supportedVideoFormats[scene.formatKey].suffix}`;
     const {
         inputs,
         backgroundInputName,
@@ -46,10 +46,10 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressState
         }),
         fc.fps({
             input: ['bezels-merged'],
-            output: scene.formatKey === supportedFormats.gif.key ? ['fpsed'] : undefined,
+            output: scene.formatKey === supportedVideoFormats.gif.key ? ['fpsed'] : undefined,
             fps: scene.fps
         }),
-        ...(scene.formatKey === supportedFormats.gif.key ? [
+        ...(scene.formatKey === supportedVideoFormats.gif.key ? [
             fc.split({
                 input: ['fpsed'],
                 output: ['s0', 's1']
@@ -71,9 +71,9 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressState
         '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
         '-filter_complex',
         complexFilter,
-        ...(scene.formatKey === supportedFormats.gif.key ?
+        ...(scene.formatKey === supportedVideoFormats.gif.key ?
             gifOutput(fileName) :
-            scene.formatKey === supportedFormats.mp4.key ?
+            scene.formatKey === supportedVideoFormats.mp4.key ?
                 mp4Output(fileName, [sceneWidth, sceneHeight]) :
                 webpOutput(fileName, [sceneWidth, sceneHeight]))
     ]);
@@ -86,9 +86,9 @@ export async function convertScene(ffmpeg: FFmpeg, scene: Scene, onProgressState
     return data;
 }
 
-function videosFfmpegArgs(scene: Scene, inputNamesMap: Map<Video, VideoFileInputs>, outputName: string) {
-    if (scene.videos.length === 1) {
-        const video = scene.videos[0];
+function videosFfmpegArgs(scene: VideoScene, inputNamesMap: Map<Video, VideoFileInputs>, outputName: string) {
+    if (scene.media.length === 1) {
+        const video = scene.media[0];
         const inputNames = inputNamesMap.get(video);
         if (!inputNames)
             throw new Error('Error occured during conversion');
@@ -100,7 +100,7 @@ function videosFfmpegArgs(scene: Scene, inputNamesMap: Map<Video, VideoFileInput
     const videoArgs: Array<string> = [];
     const overlayArgs: Array<string> = [];
 
-    for (const video of scene.videos) {
+    for (const video of scene.media) {
         const inputNames = inputNamesMap.get(video);
         if (!inputNames)
             throw new Error('Error occured during conversion');
@@ -131,9 +131,9 @@ function videosFfmpegArgs(scene: Scene, inputNamesMap: Map<Video, VideoFileInput
     return fc.compose(...videoArgs, ...overlayArgs);
 }
 
-function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs, outputName: string) {
+function videoFfmpegArgs(scene: VideoScene, video: Video, inputNames: VideoFileInputs, outputName: string) {
     const { width: sceneWidth, height: sceneHeight } = getSceneSize(scene);
-    const { videoWidth, videoHeight, videoX, videoY } = getVideoRectInScene(video, scene);
+    const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(video, scene);
 
     const {
         videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
@@ -154,22 +154,22 @@ function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs
             fc.scale({
                 input: [generateOutputName('trimmed-video', video)],
                 output: [generateOutputName('scaled-video', video)],
-                width: videoWidth * bezel.contentScale,
-                height: videoHeight * bezel.contentScale
+                width: mediumWidth * bezel.contentScale,
+                height: mediumHeight * bezel.contentScale
             }),
             fc.pad({
                 input: [generateOutputName('scaled-video', video)],
                 output: [generateOutputName('padded-video', video)],
-                width: videoWidth,
-                height: videoHeight
+                width: mediumWidth,
+                height: mediumHeight
             }),
             fc.pad({
                 input: [generateOutputName('padded-video', video)],
                 output: [outputName],
                 width: sceneWidth,
                 height: sceneHeight,
-                x: videoX,
-                y: videoY
+                x: mediumX,
+                y: mediumY
             })
         );
     }
@@ -190,21 +190,21 @@ function videoFfmpegArgs(scene: Scene, video: Video, inputNames: VideoFileInputs
         fc.scale({
             input: [generateOutputName('trimmed-video', video)],
             output: [generateOutputName('scaled-video', video)],
-            width: videoWidth,
-            height: videoHeight
+            width: mediumWidth,
+            height: mediumHeight
         }),
         fc.pad({
             input: [generateOutputName('scaled-video', video)],
             output: [outputName],
             width: sceneWidth,
             height: sceneHeight,
-            x: videoX,
-            y: videoY
+            x: mediumX,
+            y: mediumY
         })
     );
 }
 
-async function loadVideos(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (state: string) => void) {
+async function loadVideos(ffmpeg: FFmpeg, scene: VideoScene, onProgressStateChange: (state: string) => void) {
     const videoInputNamesMap = new Map<Video, VideoFileInputs>();
     const inputs: Array<string> = [];
     const fileNames: Array<string> = [];
@@ -212,7 +212,7 @@ async function loadVideos(ffmpeg: FFmpeg, scene: Scene, onProgressStateChange: (
 
     onProgressStateChange('Loading videos');
 
-    for (const video of scene.videos) {
+    for (const video of scene.media) {
         const videoName = await loadVideo(ffmpeg, scene, video, onProgressStateChange);
         const videoInput = `${index++}:v`;
         
@@ -265,7 +265,7 @@ async function writeImageFile(ffmpeg: FFmpeg, index: number, inputs: Array<strin
     return { imageInputName, index };
 }
 
-async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video, onProgressStateChange: (state: string) => void) {
+async function loadVideo(ffmpeg: FFmpeg, scene: VideoScene, video: Video, onProgressStateChange: (state: string) => void) {
     if (!video.file)
         throw new Error('No video file selected');
 
@@ -281,7 +281,7 @@ async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video, onProgressS
     }
 
     const prerenderedVideoName = `prerendered_${videoName}`;
-    const { videoWidth, videoHeight } = getVideoRectInScene(video, scene);
+    const { mediumWidth: videoWidth, mediumHeight: videoHeight } = getMediumRectInScene(video, scene);
     /*
     const { videoStart, videoEnd } = calculateTrim(scene, video);
     */
@@ -311,7 +311,7 @@ async function loadVideo(ffmpeg: FFmpeg, scene: Scene, video: Video, onProgressS
     return prerenderedVideoName;
 }
 
-function calculateTrimAndTpad(scene: Scene, video: Video) {
+function calculateTrimAndTpad(scene: VideoScene, video: Video) {
     const trim = calculateTrim(scene, video);
 
     return {
@@ -326,7 +326,7 @@ function calculateTrimAndTpad(scene: Scene, video: Video) {
     };
 }
 
-function calculateTrim(scene: Scene, video: Video) {
+function calculateTrim(scene: VideoScene, video: Video) {
     const videoStart = Math.max(video.startTime, scene.startTime - video.sceneOffset);
     const videoEnd = Math.min(video.endTime, scene.endTime - video.sceneOffset);
     const totalDuration = getTotalSceneDuration(scene);

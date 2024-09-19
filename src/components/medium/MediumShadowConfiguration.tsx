@@ -1,20 +1,20 @@
 import { hsvaToHexa } from '@uiw/react-color'
 import useContentDialog from '../../hooks/useContentDialog'
-import { Video } from '../../types/Video'
 import { cn } from '../../utils/tailwind'
 import Button from '../inputs/Button'
 import CheckInput from '../inputs/CheckInput'
 import CheckInputLabel from '../inputs/CheckInputLabel'
 import { ColorPickerDialog } from '../inputs/ColorPickerDialog'
 import NumberInput from '../inputs/NumberInput'
+import { Medium } from '../../types/Medium'
 
-type VideoShadowConfigurationProps = {
-    video: Video,
-    updateVideo: (video: Partial<Video>) => void,
+type MediumShadowConfigurationProps = {
+    medium: Medium,
+    updateMedium: (medium: Partial<Medium>) => void,
     className?: string
 }
 
-export default function VideoShadowConfiguration({ className, video, updateVideo }: VideoShadowConfigurationProps) {
+export default function MediumShadowConfiguration({ className, medium, updateMedium }: MediumShadowConfigurationProps) {
     const [colorDialogRef, isOpen, colorDialogAnimation, showColorDialog, hideColorDialog] = useContentDialog(true);
 
     return (
@@ -25,8 +25,8 @@ export default function VideoShadowConfiguration({ className, video, updateVideo
                     id='use-shadow-checkbox'
                     className='rounded'
                     type='checkbox'
-                    defaultChecked={video.withShadow}
-                    onChange={(e) => updateVideo({ withShadow: e.target.checked })} />
+                    defaultChecked={medium.withShadow}
+                    onChange={(e) => updateMedium({ withShadow: e.target.checked })} />
                 <CheckInputLabel htmlFor='use-shadow-checkbox' className='pl-3'>Use shadow</CheckInputLabel>
             </div>
             <div
@@ -37,26 +37,26 @@ export default function VideoShadowConfiguration({ className, video, updateVideo
                     unit='px'
                     inputClassName='pr-8'
                     step={0.1}
-                    disabled={!video.withShadow}
-                    value={video.shadowOffsetX}
-                    onChange={(e) => updateVideo({ shadowOffsetX: parseFloat(e.target.value) })} />
+                    disabled={!medium.withShadow}
+                    value={medium.shadowOffsetX}
+                    onChange={(e) => updateMedium({ shadowOffsetX: parseFloat(e.target.value) })} />
                 <NumberInput
                     label='Vertical offset'
                     id='shadow-vertical-offset'
                     unit='px'
                     inputClassName='pr-8'
                     step={0.1}
-                    disabled={!video.withShadow}
-                    value={video.shadowOffsetY}
-                    onChange={(e) => updateVideo({ shadowOffsetY: parseFloat(e.target.value) })} />
+                    disabled={!medium.withShadow}
+                    value={medium.shadowOffsetY}
+                    onChange={(e) => updateMedium({ shadowOffsetY: parseFloat(e.target.value) })} />
                 <NumberInput
                     label='Blur'
                     id='shadow-blur'
                     step={0.1}
                     min={0}
-                    disabled={!video.withShadow}
-                    value={video.shadowBlur}
-                    onChange={(e) => updateVideo({ shadowBlur: parseFloat(e.target.value) })} />
+                    disabled={!medium.withShadow}
+                    value={medium.shadowBlur}
+                    onChange={(e) => updateMedium({ shadowBlur: parseFloat(e.target.value) })} />
 
                 <div
                     className='flex flex-col'>
@@ -69,12 +69,12 @@ export default function VideoShadowConfiguration({ className, video, updateVideo
                     <Button
                         id='shadow-color-selection'
                         className='p-1.5 flex-1 place-content-stretch'
-                        disabled={!video.withShadow}
+                        disabled={!medium.withShadow}
                         onClick={() => showColorDialog()}>
                         <div
                             className='checkered rounded-md w-full h-full overflow-hidden'>
                             <div
-                                style={{ background: hsvaToHexa(video.shadowColor) }}
+                                style={{ background: hsvaToHexa(medium.shadowColor) }}
                                 className='w-full h-full'/>
                         </div>
                     </Button>
@@ -83,10 +83,10 @@ export default function VideoShadowConfiguration({ className, video, updateVideo
 
             <ColorPickerDialog
                 ref={colorDialogRef}
-                color={video.shadowColor}
+                color={medium.shadowColor}
                 animation={colorDialogAnimation}
                 hide={hideColorDialog}
-                onPick={(color) => updateVideo({ shadowColor: { ...color } })} />
+                onPick={(color) => updateMedium({ shadowColor: { ...color } })} />
         </>
     )
 }

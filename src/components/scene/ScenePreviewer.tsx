@@ -1,22 +1,23 @@
 import { useEffect, useRef } from 'react'
-import { MdOutlineUploadFile } from 'react-icons/md'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
 import { cn } from '../../utils/tailwind'
 import Button from '../inputs/Button'
-import { Scene, getTotalSceneDuration } from '../../types/Scene'
+import { VideoScene, getTotalSceneDuration } from '../../types/VideoScene'
 import useTimeline from '../../hooks/useTimeline'
 import SceneTimeline from '../scene/SceneTimeline'
 import { Video } from '../../types/Video'
 import Container from '../Container'
 import { useUnmount } from 'usehooks-ts'
 import { drawSceneBackground } from '../../services/drawing/background'
-import { drawVideos } from '../../services/drawing/video'
+import { drawMedia } from '../../services/drawing/media'
 import { getSceneSize } from '../../types/DrawableScene'
 import { Canvas } from '../Canvas'
 import useBezelImages from '../../hooks/useBezelImages'
-import { LuFileVideo } from 'react-icons/lu'
-import { LargeVideoFileSelection } from '../inputs/VideoFileSelection'
+import { LargeVideoFileSelection } from '../inputs/MediumFileSelection'
+import { Scene } from '../../types/Scene'
+import { Medium } from '../../types/Medium'
+import { ImageScene } from '../../types/ImageScene'
 
 type ScenePreviewerProps = {
     scene: Scene,
@@ -26,10 +27,15 @@ type ScenePreviewerProps = {
 }
 
 type PreviewPlayerProps = {
-    scene: Scene,
+    scene: VideoScene,
     className?: string,
     updateVideo: (index: number, video: Partial<Video>) => void,
-    updateScene: (scene: Partial<Scene>) => void,
+    updateScene: (scene: Partial<VideoScene>) => void,
+}
+
+type ImagePreviewProps = {
+    scene: ImageScene,
+    className?: string,
 }
 
 type PreviewCanvasProps = {
@@ -40,7 +46,7 @@ type PreviewCanvasProps = {
 
 type VideoControlsProps = {
     className?: string,
-    scene: Scene,
+    scene: VideoScene,
     currentTime: number,
     isPlaying: boolean,
     loop: boolean,
@@ -51,26 +57,43 @@ type VideoControlsProps = {
 }
 
 export default function ScenePreviewer({ scene, className, updateScene, updateVideo }: ScenePreviewerProps) {
-    return scene.videos.every((v) => v.file) ?
-        <PreviewPlayer
-            scene={scene}
-            className={className}
-            updateScene={updateScene}
-            updateVideo={updateVideo} /> :
+    return scene.media.every((v) => v.file) ?
+        (scene.sceneType === 'video' ?
+            <PreviewPlayer
+                scene={scene}
+                className={className}
+                updateScene={updateScene}
+                updateVideo={updateVideo} /> :
+                <ImagePreview
+                    scene={scene}
+                    className={className} />) :
         <Container
             className={cn('flex flex-wrap gap-5 p-6 flex-col @2xl:flex-row', className)}>
-            {scene.videos.map((video, index) => 
+            {(scene.media as (Array<Medium>)).map((medium, index) => 
                 <LargeVideoFileSelection
-                    key={video.index}
+                    key={medium.index}
                     className='flex-1'
-                    label={`Choose video file${scene.videos.length > 1 ? ` #${index + 1}` : ''}`}
-                    file={video.file}
+                    label={`Choose ${medium.mediumType} file${scene.media.length > 1 ? ` #${index + 1}` : ''}`}
+                    file={medium.file}
+                    mediumType={medium.mediumType}
                     onFileSelect={(file) => {
                         if (file) {
-                            updateVideo(video.index, { file });
+                            updateVideo(medium.index, { file });
                         }
                     }} />)}
         </Container>
+}
+
+function ImagePreview({ scene, className }: ImagePreviewProps) {
+    return (
+        <Container
+            className={cn('p-6', className)}>
+            <PreviewCanvas
+                className='relative overflow-hidden'
+                currentTime={0}
+                scene={scene} />
+        </Container>
+    )
 }
 
 function PreviewPlayer({ className, scene, updateScene, updateVideo }: PreviewPlayerProps) {
@@ -90,15 +113,15 @@ function PreviewPlayer({ className, scene, updateScene, updateVideo }: PreviewPl
         let changed = false;
 
         if (videoFiles.current) {
-            if (videoFiles.current.length !== scene.videos.length) {
+            if (videoFiles.current.length !== scene.media.length) {
                 changed = true;
             }
             else {
-                changed = videoFiles.current.some((v, i) => v !== scene.videos[i].file);
+                changed = videoFiles.current.some((v, i) => v !== scene.media[i].file);
             }
         }
 
-        videoFiles.current = scene.videos.map((v) => v.file);
+        videoFiles.current = scene.media.map((v) => v.file);
 
         if (changed) {
             pause();
@@ -187,8 +210,14 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
     const bezelImagesRef = useBezelImages(scene, render);
 
     // This is a bit hacky solution, but I guess... who cares...
-    scene.videos.forEach((v) => v.htmlVideo.ontimeupdate = () => render());
-    useUnmount(() => scene.videos.forEach((v) => v.htmlVideo.ontimeupdate = null));
+    if (scene.sceneType === 'video') {
+        scene.media.forEach((v) => v.htmlVideo.ontimeupdate = () => render());
+    }
+    useUnmount(() => {
+        if (scene.sceneType === 'video') {
+            scene.media.forEach((v) => v.htmlVideo.ontimeupdate = null);
+        }
+    });
 
     useEffect(() => {
         const now = new Date().getTime();
@@ -225,9 +254,17 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
         context.globalCompositeOperation = 'source-over';
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-        drawVideos(context, scene, bezelImagesRef.current, left, top, sceneWidth, sceneHeight, scale,
-            (context, video, x, y, width, height) => 
-                context.drawImage((video as Video).htmlVideo, x, y, width, height));
+        drawMedia(context, scene, bezelImagesRef.current, left, top, sceneWidth, sceneHeight, scale,
+            (context, drawableMedium, x, y, width, height) => {
+                const medium = drawableMedium as Medium;
+                
+                if (medium.mediumType === 'video') {
+                    context.drawImage(medium.htmlVideo, x, y, width, height);
+                }
+                else if (medium.mediumType === 'image') {
+                    context.drawImage(medium.htmlImage, x, y, width, height);
+                }
+            });
 
         context.globalCompositeOperation ='destination-over';
         drawSceneBackground(context, scene, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImagesRef.current.map((bi) => bi.maskImage));

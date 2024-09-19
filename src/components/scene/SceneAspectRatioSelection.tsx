@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
-import { Scene } from '../../types/Scene'
+import { VideoScene } from '../../types/VideoScene'
 import { shallowEqual } from '../../utils/objects'
 import { cn } from '../../utils/tailwind'
 import RadioCircle from '../RadioCircle'
 import Button from '../inputs/Button'
 import { AspectRatio } from '../../types/AspectRatio'
+import { Scene } from '../../types/Scene'
 
 type SceneAspectRatioSelectionProps = {
     scene: Scene,

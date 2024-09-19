@@ -1,14 +1,14 @@
-import { Video } from '../../types/Video'
 import { cn } from '../../utils/tailwind'
 import NumberInput from '../inputs/NumberInput'
+import { Medium } from '../../types/Medium'
 
-type VideoSizeConfigurationProps = {
-    video: Video,
-    updateVideo: (video: Partial<Video>) => void,
+type MediumSizeConfigurationProps = {
+    medium: Medium,
+    updateMedium: (medium: Partial<Medium>) => void,
     className?: string
 }
 
-export default function VideoSizeConfiguration({ video, className, updateVideo }: VideoSizeConfigurationProps) {
+export default function MediumSizeConfiguration({ medium, className, updateMedium }: MediumSizeConfigurationProps) {
     return (
         <div
             className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}>
@@ -18,8 +18,8 @@ export default function VideoSizeConfiguration({ video, className, updateVideo }
                 unit='px'
                 inputClassName='pr-8'
                 min={0}
-                value={video.cornerRadius}
-                onChange={(e) => updateVideo({ cornerRadius: parseFloat(e.target.value) })} />
+                value={medium.cornerRadius}
+                onChange={(e) => updateMedium({ cornerRadius: parseFloat(e.target.value) })} />
         </div>
     )
 }

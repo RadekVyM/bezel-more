@@ -1,5 +1,5 @@
-import { SceneTemplate } from './SceneTemplate'
+import { ImageSceneTemplate, VideoSceneTemplate } from './SceneTemplate'
 
 export type ProjectConfig = {
-    sceneTemplate: SceneTemplate
+    sceneTemplate: VideoSceneTemplate | ImageSceneTemplate
 }

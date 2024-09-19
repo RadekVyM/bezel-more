@@ -1,4 +1,4 @@
-export const supportedFormats = {
+export const supportedVideoFormats = {
     webp: {
         key: 'webp',
         title: 'webp',
@@ -19,4 +19,21 @@ export const supportedFormats = {
     }
 } as const;
 
-export type SupportedFormat = 'webp' | 'gif' | 'mp4'
+export const supportedImageFormats = {
+    webp: {
+        key: 'webp',
+        title: 'webp',
+        suffix: '.webp',
+        type: 'image/webp',
+    },
+    png: {
+        key: 'png',
+        title: 'png',
+        suffix: '.png',
+        type: 'image/png',
+    },
+} as const;
+
+export type SupportedVideoFormat = 'webp' | 'gif' | 'mp4'
+
+export type SupportedImageFormat = 'webp' | 'png'

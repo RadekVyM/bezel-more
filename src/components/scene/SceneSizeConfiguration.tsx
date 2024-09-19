@@ -1,7 +1,7 @@
-import { Scene } from '../../types/Scene'
 import { getMaxPadding } from '../../types/DrawableScene'
 import { cn } from '../../utils/tailwind'
 import NumberInput from '../inputs/NumberInput'
+import { Scene } from '../../types/Scene'
 
 type SceneSizeConfigurationProps = {
     scene: Scene,
@@ -41,7 +41,7 @@ export default function SceneSizeConfiguration({ className, scene, updateScene }
                 min={1}
                 value={scene.requestedMaxSize}
                 onChange={(e) => updateScene({ requestedMaxSize: parseFloat(e.target.value) })} />
-            {scene.videos.length > 1 &&
+            {scene.media.length > 1 &&
                 <NumberInput
                     label='Spacing'
                     id='spacing'

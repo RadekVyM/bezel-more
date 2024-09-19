@@ -1,9 +1,9 @@
 import { bezelMask, getBezel } from '../../bezels'
-import { Scene } from '../../types/Scene'
-import { getSceneSize, getVideoRectInScene } from '../../types/DrawableScene'
+import { VideoScene } from '../../types/VideoScene'
+import { getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { Size } from '../../types/Size'
 
-export async function generateSceneMask(scene: Scene): Promise<File | null> {
+export async function generateSceneMask(scene: VideoScene): Promise<File | null> {
     const canvas = document.createElement('canvas');
     const size = getSceneSize(scene);
     canvas.width = size.width;
@@ -27,7 +27,7 @@ export async function generateSceneMask(scene: Scene): Promise<File | null> {
     });
 }
 
-async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, size: Size) {
+async function drawSceneMask(context: CanvasRenderingContext2D, scene: VideoScene, size: Size) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = size.width;
     tempCanvas.height = size.height;
@@ -42,8 +42,8 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
     tempContext.fillStyle = 'black';
     tempContext.fillRect(0, 0, size.width, size.height);
 
-    for (const video of scene.videos) {
-        const { videoWidth, videoHeight, videoX, videoY } = getVideoRectInScene(video, scene);
+    for (const video of scene.media) {
+        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(video, scene);
 
         context.save();
 
@@ -54,24 +54,24 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: Scene, si
             const bezel = getBezel(video.bezelKey);
             const maskSrc = bezelMask(bezel.modelKey);
             const maskImage = new Image(bezel.width, bezel.height);
-            const maskWidth = videoWidth * maskScale;
-            const maskHeight = videoHeight * maskScale;
+            const maskWidth = mediumWidth * maskScale;
+            const maskHeight = mediumHeight * maskScale;
 
             maskImage.src = maskSrc;
             if (!maskImage.complete) {
                 await new Promise((resolve) => maskImage.onload = () => resolve(undefined));
             }
 
-            context.drawImage(maskImage, videoX + ((videoWidth - maskWidth) / 2), videoY + ((maskHeight - maskHeight) / 2), maskWidth, maskHeight);
+            context.drawImage(maskImage, mediumX + ((mediumWidth - maskWidth) / 2), mediumY + ((maskHeight - maskHeight) / 2), maskWidth, maskHeight);
         }
         else {
             context.fillStyle = 'white';
-            context.fillRect(videoX, videoY, videoWidth, videoHeight);
+            context.fillRect(mediumX, mediumY, mediumWidth, mediumHeight);
         }
 
         tempContext.fillStyle = 'white';
         tempContext.beginPath();
-        tempContext.roundRect(videoX, videoY, videoWidth, videoHeight, Math.min(video.cornerRadius, videoWidth / 2, videoHeight / 2));
+        tempContext.roundRect(mediumX, mediumY, mediumWidth, mediumHeight, Math.min(video.cornerRadius, mediumWidth / 2, mediumHeight / 2));
         tempContext.fill();
         
         context.restore();

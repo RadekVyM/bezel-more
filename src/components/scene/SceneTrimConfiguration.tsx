@@ -1,11 +1,11 @@
-import { Scene, getTotalSceneDuration } from '../../types/Scene'
+import { VideoScene, getTotalSceneDuration } from '../../types/VideoScene'
 import { cn } from '../../utils/tailwind'
 import NumberInput from '../inputs/NumberInput'
 
 type SceneTrimConfigurationProps = {
-    scene: Scene,
+    scene: VideoScene,
     className?: string,
-    updateScene: (scene: Partial<Scene>) => void,
+    updateScene: (scene: Partial<VideoScene>) => void,
 }
 
 export default function SceneTrimConfiguration({ className, scene, updateScene }: SceneTrimConfigurationProps) {

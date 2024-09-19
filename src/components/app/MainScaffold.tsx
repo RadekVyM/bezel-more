@@ -16,13 +16,13 @@ import { MdOutlineCreateNewFolder } from 'react-icons/md'
 type MainScaffoldProps = {
     edit: React.ReactNode,
     convert: React.ReactNode,
-    videoPreviewer: React.ReactNode,
+    scenePreviewer: React.ReactNode,
     resultPreviewer: React.ReactNode,
     resetValue?: any,
     onNewProjectClick: () => void,
 }
 
-export default function MainScaffold({ edit, convert, videoPreviewer, resultPreviewer, resetValue, onNewProjectClick }: MainScaffoldProps) {
+export default function MainScaffold({ edit, convert, scenePreviewer: videoPreviewer, resultPreviewer, resetValue, onNewProjectClick }: MainScaffoldProps) {
     const isLarge = useIsLarge();
     const [selectedStep, setSelectedStep] = useState<AppStep>('edit');
     const [convertDialogRef, isConvertDialogOpen, convertDialogAnimation, showConvertDialog, hideConvertDialog] =

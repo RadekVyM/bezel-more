@@ -1,17 +1,17 @@
 import { hexToHsva } from '@uiw/react-color'
 import { BEZELS } from '../bezels'
 import { VideoTemplate } from './VideoTemplate'
-import { DrawableVideo } from './DrawableVideo'
+import { DrawableMedium } from './DrawableMedium'
 
 export type Video = {
+    mediumType: 'video',
     /** Offset from the start of a scene. */
     sceneOffset: number,
     startTime: number,
     endTime: number,
-    file: File | null | undefined,
     totalDuration: number,
     readonly htmlVideo: HTMLVideoElement,
-} & DrawableVideo
+} & DrawableMedium
 
 export function createVideo(index: number, template?: VideoTemplate): Video {
     const htmlVideo = document.createElement('video');
@@ -23,6 +23,7 @@ export function createVideo(index: number, template?: VideoTemplate): Video {
     htmlVideo.style.display = 'none';
     
     return {
+        mediumType: 'video',
         index,
         file: undefined,
         sceneOffset: 0,

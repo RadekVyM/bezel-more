@@ -1,6 +1,6 @@
 import { useMemo, useRef, PointerEvent, useState } from 'react'
 import { Video } from '../../types/Video'
-import { Scene, getTotalSceneDuration } from '../../types/Scene'
+import { VideoScene, getTotalSceneDuration } from '../../types/VideoScene'
 import useDimensions from '../../hooks/useDimensions'
 import { cn } from '../../utils/tailwind'
 import { useEventListener } from 'usehooks-ts'
@@ -8,12 +8,12 @@ import { round } from '../../utils/numbers'
 import OutlinedText from '../OutlinedText'
 
 type SceneTimelineProps = {
-    scene: Scene,
+    scene: VideoScene,
     currentTime: number,
     className?: string,
     seek: (newTime: number) => void,
     updateVideo: (index: number, video: Partial<Video>) => void,
-    updateScene: (scene: Partial<Scene>) => void,
+    updateScene: (scene: Partial<VideoScene>) => void,
 }
 
 type VideoTimelineProps = {
@@ -35,7 +35,7 @@ type SceneRangeProps = {
     sceneStart: number,
     sceneEnd: number,
     totalDuration: number,
-    updateScene: (scene: Partial<Scene>) => void,
+    updateScene: (scene: Partial<VideoScene>) => void,
 }
 
 type TimeAxisAndSliderProps = {
@@ -96,7 +96,7 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
     const dimensions = useDimensions(outerDivRef);
     const totalDuration = getTotalSceneDuration(scene) || 10;
     const width = dimensions.width - (horizontalPadding * 2);
-    const height = ((videoTimelineHeight + videoTimelineSpacing) * scene.videos.length) + videoTimelineSpacing + timeAxisHeight + sceneRangeHeight + timeAxisSceneSpacing;
+    const height = ((videoTimelineHeight + videoTimelineSpacing) * scene.media.length) + videoTimelineSpacing + timeAxisHeight + sceneRangeHeight + timeAxisSceneSpacing;
 
     return (
         <div
@@ -125,7 +125,7 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
                     height={sceneRangeHeight}
                     updateScene={updateScene} />
 
-                {scene.videos.map((v, index) => 
+                {scene.media.map((v, index) => 
                     <VideoTimeline
                         key={v.index}
                         video={v}
@@ -135,7 +135,7 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
                         width={width}
                         height={videoTimelineHeight}
                         updateVideo={updateVideo}
-                        displayCaption={scene.videos.length > 1} />)}
+                        displayCaption={scene.media.length > 1} />)}
                 
                 <TimeAxisAndSlider
                     currentTime={currentTime}

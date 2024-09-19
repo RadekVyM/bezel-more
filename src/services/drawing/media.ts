@@ -1,14 +1,14 @@
 import { BezelImages } from '../../types/BezelImages'
-import { DrawableScene, getVideoRectInScene } from '../../types/DrawableScene'
-import { DrawableVideo } from '../../types/DrawableVideo'
-import { NoBezelImagesError, NoDimensionsError } from '../../types/Errors';
+import { DrawableScene, getMediumRectInScene } from '../../types/DrawableScene'
+import { DrawableMedium } from '../../types/DrawableMedium'
+import { NoBezelImagesError, NoDimensionsError } from '../../types/Errors'
 
-type DrawVideoCallback = (context: CanvasRenderingContext2D, video: DrawableVideo, left: number, top: number, width: number, height: number) => void
+type DrawMediumCallback = (context: CanvasRenderingContext2D, meidum: DrawableMedium, left: number, top: number, width: number, height: number) => void
 
 /** Canvas that is used for drawing intermediate steps. */ 
 const tempCanvas = document.createElement('canvas');
 
-export function drawVideos(
+export function drawMedia(
     context: CanvasRenderingContext2D,
     scene: DrawableScene,
     bezelImages: Array<BezelImages>,
@@ -17,7 +17,7 @@ export function drawVideos(
     sceneWidth: number,
     sceneHeight: number,
     sceneScale: number,
-    drawOneVideo: DrawVideoCallback
+    drawOneMedium: DrawMediumCallback
 ) {
     try {
         drawMask(context, scene, bezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale);
@@ -30,15 +30,15 @@ export function drawVideos(
         }
     }
 
-    for (const video of scene.videos) {
-        const videoBezelImages = bezelImages[video.index];
+    for (const medium of scene.media) {
+        const mediumBezelImages = bezelImages[medium.index];
 
-        if (!videoBezelImages) {
+        if (!mediumBezelImages) {
             continue;
         }
 
         try {
-            drawVideo(context, video, scene, videoBezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale, drawOneVideo);
+            drawMedium(context, medium, scene, mediumBezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale, drawOneMedium);
         }
         catch (error) {
             // NoDimensionsError and NoBezelImagesError are caused by trying to draw too early
@@ -60,8 +60,8 @@ function drawMask(
     sceneHeight: number,
     sceneScale: number
 ) {
-    const haveCornerRadius = scene.videos.some((video) => video.cornerRadius > 0);
-    const rects = scene.videos.map((video) => calculateVideoDimensions(video, scene, bezelImages[video.index], sceneScale, sceneX, sceneY, sceneWidth, sceneHeight));
+    const haveCornerRadius = scene.media.some((medium) => medium.cornerRadius > 0);
+    const rects = scene.media.map((medium) => calculateMediumDimensions(medium, scene, bezelImages[medium.index], sceneScale, sceneX, sceneY, sceneWidth, sceneHeight));
 
     if (haveCornerRadius) {
         tempCanvas.width = sceneWidth + sceneX;
@@ -70,27 +70,27 @@ function drawMask(
     
         tempContext.clearRect(0, 0, sceneWidth, sceneHeight);
     
-        for (const video of scene.videos) {
+        for (const medium of scene.media) {
             const {
                 totalX,
                 totalY,
                 totalWidth,
                 totalHeight
-            } = rects[video.index];
+            } = rects[medium.index];
         
             tempContext.fillStyle = 'black';
             tempContext.globalCompositeOperation = 'source-over';
     
             tempContext.beginPath();
-            tempContext.roundRect(totalX, totalY, totalWidth, totalHeight, Math.min(video.cornerRadius * sceneScale, totalWidth / 2, totalHeight / 2));
+            tempContext.roundRect(totalX, totalY, totalWidth, totalHeight, Math.min(medium.cornerRadius * sceneScale, totalWidth / 2, totalHeight / 2));
             tempContext.fill();
         }
     }
 
-    for (const video of scene.videos) {
-        const videoBezelImages = bezelImages[video.index];
+    for (const medium of scene.media) {
+        const mediumBezelImages = bezelImages[medium.index];
 
-        if (!videoBezelImages) {
+        if (!mediumBezelImages) {
             continue;
         }
 
@@ -99,12 +99,12 @@ function drawMask(
             totalY,
             totalWidth,
             totalHeight
-        } = rects[video.index];
+        } = rects[medium.index];
     
         context.globalCompositeOperation = 'source-over';
 
-        if (videoBezelImages.showBezel) {
-            context.drawImage(videoBezelImages.maskImage, totalX, totalY, totalWidth, totalHeight);
+        if (mediumBezelImages.showBezel) {
+            context.drawImage(mediumBezelImages.maskImage, totalX, totalY, totalWidth, totalHeight);
         }
         else {
             context.fillStyle = 'black';
@@ -112,15 +112,15 @@ function drawMask(
         }
     }
 
-    if (haveCornerRadius) {
+    if (haveCornerRadius && tempCanvas.width > 0 && tempCanvas.height > 0) {
         context.globalCompositeOperation = 'destination-in';
         context.drawImage(tempCanvas, 0, 0);
     }
 }
 
-function drawVideo(
+function drawMedium(
     context: CanvasRenderingContext2D,
-    video: DrawableVideo,
+    medium: DrawableMedium,
     scene: DrawableScene,
     bezelImages: BezelImages,
     sceneX: number,
@@ -128,7 +128,7 @@ function drawVideo(
     sceneWidth: number,
     sceneHeight: number,
     sceneScale: number,
-    draw: DrawVideoCallback
+    draw: DrawMediumCallback
 ) {
     const {
         totalX,
@@ -139,11 +139,11 @@ function drawVideo(
         videoY,
         videoWidth,
         videoHeight
-    } = calculateVideoDimensions(video, scene, bezelImages, sceneScale, sceneX, sceneY, sceneWidth, sceneHeight);
+    } = calculateMediumDimensions(medium, scene, bezelImages, sceneScale, sceneX, sceneY, sceneWidth, sceneHeight);
 
     context.globalCompositeOperation = 'source-atop';
 
-    draw(context, video, videoX, videoY, videoWidth, videoHeight);
+    draw(context, medium, videoX, videoY, videoWidth, videoHeight);
     
     context.globalCompositeOperation = 'source-over';
 
@@ -152,25 +152,25 @@ function drawVideo(
     }
 }
 
-function calculateVideoDimensions(video: DrawableVideo, scene: DrawableScene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {
-    if (!video.naturalVideoDimensions) {
-        throw new NoDimensionsError('Size of the video could not be determined');
+function calculateMediumDimensions(medium: DrawableMedium, scene: DrawableScene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {
+    if (!medium.naturalDimensions) {
+        throw new NoDimensionsError('Size of the medium could not be determined');
     }
     if (!bezelImages) {
         throw new NoBezelImagesError('No bezel images passed in');
     }
 
-    const { videoWidth: w, videoHeight: h, videoX: x, videoY: y } = getVideoRectInScene(video, scene);
+    const { mediumWidth: w, mediumHeight: h, mediumX: x, mediumY: y } = getMediumRectInScene(medium, scene);
     const totalWidth = w * sceneScale;
     const totalHeight = h * sceneScale;
     const totalX = sceneX + (x * sceneScale);
     const totalY = sceneY + (y * sceneScale);
 
-    const videoScale = Math.min(totalWidth / video.naturalVideoDimensions.width, totalHeight / video.naturalVideoDimensions.height) *
+    const videoScale = Math.min(totalWidth / medium.naturalDimensions.width, totalHeight / medium.naturalDimensions.height) *
         (bezelImages.showBezel ? bezelImages.bezel.contentScale : 1);
 
-    const videoWidth = video.naturalVideoDimensions.width * videoScale;
-    const videoHeight = video.naturalVideoDimensions.height * videoScale;
+    const videoWidth = medium.naturalDimensions.width * videoScale;
+    const videoHeight = medium.naturalDimensions.height * videoScale;
     const videoX = (bezelImages.showBezel ? (totalWidth - videoWidth) / 2 : 0) + totalX;
     const videoY = (bezelImages.showBezel ? (totalHeight - videoHeight) / 2 : 0) + totalY;
     return { totalX, totalY, totalWidth, totalHeight, videoX, videoY, videoWidth, videoHeight };
