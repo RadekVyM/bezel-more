@@ -19,7 +19,7 @@ export default function BackgroundCanvas({ background, className, canvasSize }: 
             context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
             drawBackground(context, background, 0, 0, { width: size, height: size });
         }
-    }, [background]);
+    }, [background, size]);
 
     return (
         <canvas

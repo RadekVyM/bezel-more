@@ -1,5 +1,5 @@
 import { useLocalStorage } from 'usehooks-ts'
-import { createImageSceneTemplate, createVideoSceneTemplate, ImageSceneTemplate, SceneTemplate, VideoSceneTemplate } from '../types/SceneTemplate'
+import { createImageSceneTemplate, createVideoSceneTemplate, ImageSceneTemplate, VideoSceneTemplate } from '../types/SceneTemplate'
 import { useCallback, useMemo } from 'react'
 import { VideoScene } from '../types/VideoScene'
 import { Background, createImageBackground, ImageBackground } from '../types/Background'

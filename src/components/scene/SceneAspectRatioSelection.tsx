@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { VideoScene } from '../../types/VideoScene'
 import { shallowEqual } from '../../utils/objects'
 import { cn } from '../../utils/tailwind'
 import RadioCircle from '../RadioCircle'

@@ -51,17 +51,17 @@
       --secondary-dim: #d1d5db;
       --on-secondary-dim: #000;
   
-      --surface: #000;
+      --surface: #161921;
       --on-surface: #f3f4f5;
       --on-surface-muted: #9ca3af;
   
-      --surface-dim: #1f2937;
+      --surface-dim: #1c1e24;
       --on-surface-dim: #f3f4f5;
   
-      --surface-container: #111827;
+      --surface-container: #000;
       --on-surface-container: #f3f4f5;
   
-      --surface-dim-container: #1f2937;
+      --surface-dim-container: #0e1015;
       --on-surface-dim-container: #f3f4f5;
   
       --outline: #374151;

@@ -1,22 +1,11 @@
-import { cn } from '../../../utils/tailwind'
-import Button from '../Button'
-import { MdClose } from 'react-icons/md'
 import { Hue, Saturation, hexToHsva } from '@uiw/react-color'
 import { Background, SolidBackground, createSolidBackground, solidBackgroundsEqual } from '../../../types/Background'
 import useSolidBackgrounds from '../../../hooks/useSolidBackgrounds'
-import BackgroundCanvas from '../../BackgroundCanvas'
-import { FaSave } from 'react-icons/fa'
 import BackgroundsList from './BackgroundsList'
 import BackgroundPreview from './BackgroundPreview'
 import HexColorInput from '../HexColorInput'
 
 type SolidColorPickerProps = {
-    currentBackground: SolidBackground,
-    onPick: (background: Background) => void,
-}
-
-type SolidColorsListProps = {
-    className?: string,
     currentBackground: SolidBackground,
     onPick: (background: Background) => void,
 }

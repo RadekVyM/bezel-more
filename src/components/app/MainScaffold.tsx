@@ -61,7 +61,10 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
                         'row-start-1 row-end-2 col-start-1 col-end-3' :
                         'row-start-1 row-end-2 col-start-1 col-end-2'
                 )}>
-                <PageHeading />
+                <div
+                    className='flex-1'>
+                    <PageHeading />
+                </div>
 
                 <Button
                     className='gap-2'
@@ -156,7 +159,7 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
 
 function PageHeading() {
     return (
-        <h1 title='bezel-more' className='font-bold text-xl flex-1'>
+        <h1 title='bezel-more' className='font-bold text-xl w-fit'>
             bezel<span aria-hidden className='line-through text-on-surface-muted select-none'>-less</span><span className='handwritten text-2xl'>-more</span>
         </h1>
     )

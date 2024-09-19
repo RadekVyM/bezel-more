@@ -17,7 +17,6 @@ import Button from './components/inputs/Button'
 import ComponentSwitch from './components/ComponentSwitch'
 import SubsectionHeading from './components/SubsectionHeading'
 import useScene from './hooks/useScene'
-import { Video } from './types/Video'
 import SceneSizeConfiguration from './components/scene/SceneSizeConfiguration'
 import SceneTrimConfiguration from './components/scene/SceneTrimConfiguration'
 import { TbVideo } from 'react-icons/tb'
@@ -69,16 +68,13 @@ type ConvertButtonProps = {
     className?: string
 }
 
-type MainContentProps = {
-}
-
 export default function App() {
     return (
         <MainContent />
     )
 }
 
-function MainContent({ }: MainContentProps) {
+function MainContent() {
     const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ sceneTemplate: DEFAULT_SCENE_TEMPLATES[0] });
     const { scene, updateScene, updateVideo } = useScene(projectConfig);
     const { convert, progress, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene);

@@ -66,7 +66,7 @@ export default function HexColorInput({ className, color, hexa, customHexaPatter
 
                     setInput(value);
                 }}
-                onBlur={(e) => lastValidCustomAspectRatio.current && onColorChange(lastValidCustomAspectRatio.current) } />
+                onBlur={() => lastValidCustomAspectRatio.current && onColorChange(lastValidCustomAspectRatio.current) } />
 
             <Button
                 title='Copy'
