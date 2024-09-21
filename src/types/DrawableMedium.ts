@@ -1,11 +1,13 @@
 import { HsvaColor } from '@uiw/react-color'
-import { getBezel } from '../bezels'
+import { getBezel, getBezelSize } from '../bezels'
 import { Size } from './Size'
+import { MediumOrientation } from './MediumOrientation'
 
 export type DrawableMedium = {
     index: number,
     withBezel: boolean,
     bezelKey: string,
+    orientation: MediumOrientation,
     withShadow?: boolean,
     shadowColor: HsvaColor,
     shadowBlur: number,
@@ -25,11 +27,11 @@ export function getMediumSize(medium: DrawableMedium, requestedMaxSize: number):
         };
     }
 
-    const bezel = getBezel(medium.bezelKey);
-    const scale = Math.max(bezel.width / requestedMaxSize, bezel.height / requestedMaxSize);
+    const bezelSize = getBezelSize(medium.bezelKey, medium.orientation || MediumOrientation.topUp);
+    const scale = Math.max(bezelSize[0] / requestedMaxSize, bezelSize[1] / requestedMaxSize);
 
     return {
-        width: bezel.width / scale,
-        height: bezel.height / scale,
+        width: bezelSize[0] / scale,
+        height: bezelSize[1] / scale,
     };
 }

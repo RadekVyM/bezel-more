@@ -4,6 +4,7 @@ import { VideoScene } from '../../types/VideoScene'
 import { Size } from '../../types/Size'
 import { DrawableScene, getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { createMaskImages } from '../images'
+import { drawRotatedImage } from '../../utils/canvas'
 
 export async function generateBackground(scene: VideoScene): Promise<File | null> {
     const canvas = document.createElement('canvas');
@@ -156,43 +157,43 @@ function drawShadows(context: CanvasRenderingContext2D, scene: DrawableScene, le
     const sceneSize = getSceneSize(scene);
     const scale = Math.min(size.width / sceneSize.width, size.height / sceneSize.height);
 
-    for (const video of scene.media) {
-        if (!video.withShadow) {
+    for (const medium of scene.media) {
+        if (!medium.withShadow) {
             continue;
         }
 
         context.save();
 
-        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(video, scene);
+        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(medium, scene);
 
-        const x = ((mediumX + video.shadowOffsetX) * scale) + left;
-        const y = ((mediumY + video.shadowOffsetY) * scale) + top;
+        const x = ((mediumX + medium.shadowOffsetX) * scale) + left;
+        const y = ((mediumY + medium.shadowOffsetY) * scale) + top;
         const w = mediumWidth * scale;
         const h = mediumHeight * scale;
         const contentOffsetX = -w - left;
         const contentOffsetY = -h - top;
 
-        context.shadowColor = hsvaToHexa(video.shadowColor);
-        context.shadowBlur = video.shadowBlur;
-        context.fillStyle = hsvaToHexa(video.shadowColor);
+        context.shadowColor = hsvaToHexa(medium.shadowColor);
+        context.shadowBlur = medium.shadowBlur;
+        context.fillStyle = hsvaToHexa(medium.shadowColor);
         context.shadowOffsetX = -contentOffsetX + x;
         context.shadowOffsetY = -contentOffsetY + y;
         // The formats I use do not support semitransparency,
         // so it does not make sense to draw the shadows on transparent parts of the background
         context.globalCompositeOperation = 'source-atop';
 
-        if (video.withBezel) {
-            const maskImage = maskImages[video.index];
+        if (medium.withBezel) {
+            const maskImage = maskImages[medium.index];
 
             if (!maskImage) {
                 throw new Error('Where is the mask image?');
             }
 
-            context.drawImage(maskImage, contentOffsetX, contentOffsetY, w, h);
+            drawRotatedImage(context, maskImage, contentOffsetX, contentOffsetY, w, h, medium.orientation);
         }
         else {
             context.beginPath();
-            context.roundRect(contentOffsetX, contentOffsetY, w, h, Math.min(video.cornerRadius, w / 2, h / 2));
+            context.roundRect(contentOffsetX, contentOffsetY, w, h, Math.min(medium.cornerRadius, w / 2, h / 2));
             context.fill();
         }
 

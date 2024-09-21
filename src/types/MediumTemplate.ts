@@ -1,6 +1,7 @@
 import { hexToHsva } from '@uiw/react-color'
 import { BEZELS } from '../bezels'
 import { DrawableMedium } from './DrawableMedium'
+import { MediumOrientation } from './MediumOrientation';
 
 export type MediumTemplate = {
 } & DrawableMedium
@@ -10,6 +11,7 @@ export function createMediumTemplate(medium: DrawableMedium): MediumTemplate {
         index: medium.index,
         withBezel: medium.withBezel,
         bezelKey: medium.bezelKey,
+        orientation: medium.orientation,
         withShadow: medium.withShadow,
         shadowColor: medium.shadowColor,
         shadowBlur: medium.shadowBlur,
@@ -25,6 +27,7 @@ export function createDefaultMediumTemplate(index: number, bezelKey?: string): M
         index: index,
         withBezel: true,
         bezelKey: bezelKey || BEZELS.iphone_15_black.key,
+        orientation: MediumOrientation.topUp,
         withShadow: false,
         shadowColor: hexToHsva('#000000ff'),
         shadowBlur: 0,

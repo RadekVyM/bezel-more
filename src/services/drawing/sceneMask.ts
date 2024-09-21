@@ -1,7 +1,8 @@
-import { bezelMask, getBezel } from '../../bezels'
+import { bezelMask, getBezel, getBezelSize } from '../../bezels'
 import { VideoScene } from '../../types/VideoScene'
 import { getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { Size } from '../../types/Size'
+import { drawRotatedImage } from '../../utils/canvas';
 
 export async function generateSceneMask(scene: VideoScene): Promise<File | null> {
     const canvas = document.createElement('canvas');
@@ -42,18 +43,19 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: VideoScen
     tempContext.fillStyle = 'black';
     tempContext.fillRect(0, 0, size.width, size.height);
 
-    for (const video of scene.media) {
-        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(video, scene);
+    for (const medium of scene.media) {
+        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(medium, scene);
 
         context.save();
 
-        if (video.withBezel) {
+        if (medium.withBezel) {
             // Corners of a video are sometimes visible outside the bezel - clipping is not perfect
             // Scaling the mask down tries to mitigate that a bit
             const maskScale = 0.999;
-            const bezel = getBezel(video.bezelKey);
+            const bezel = getBezel(medium.bezelKey);
+            const bezelSize = getBezelSize(medium.bezelKey, medium.orientation);
             const maskSrc = bezelMask(bezel.modelKey);
-            const maskImage = new Image(bezel.width, bezel.height);
+            const maskImage = new Image(bezelSize[0], bezelSize[1]);
             const maskWidth = mediumWidth * maskScale;
             const maskHeight = mediumHeight * maskScale;
 
@@ -62,7 +64,7 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: VideoScen
                 await new Promise((resolve) => maskImage.onload = () => resolve(undefined));
             }
 
-            context.drawImage(maskImage, mediumX + ((mediumWidth - maskWidth) / 2), mediumY + ((maskHeight - maskHeight) / 2), maskWidth, maskHeight);
+            drawRotatedImage(context, maskImage, mediumX + ((mediumWidth - maskWidth) / 2), mediumY + ((maskHeight - maskHeight) / 2), maskWidth, maskHeight, medium.orientation);
         }
         else {
             context.fillStyle = 'white';
@@ -71,7 +73,7 @@ async function drawSceneMask(context: CanvasRenderingContext2D, scene: VideoScen
 
         tempContext.fillStyle = 'white';
         tempContext.beginPath();
-        tempContext.roundRect(mediumX, mediumY, mediumWidth, mediumHeight, Math.min(video.cornerRadius, mediumWidth / 2, mediumHeight / 2));
+        tempContext.roundRect(mediumX, mediumY, mediumWidth, mediumHeight, Math.min(medium.cornerRadius, mediumWidth / 2, mediumHeight / 2));
         tempContext.fill();
         
         context.restore();

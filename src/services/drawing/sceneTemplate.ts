@@ -1,4 +1,4 @@
-import { getBezel } from '../../bezels'
+import { getBezel, getBezelSize } from '../../bezels'
 import { BezelImages } from '../../types/BezelImages'
 import { getSceneSize } from '../../types/DrawableScene'
 import { DrawableMedium } from '../../types/DrawableMedium'
@@ -41,12 +41,12 @@ function drawVideo(context: CanvasRenderingContext2D, medium: DrawableMedium, le
 function cloneSceneTemplateWithNaturalDimensions(sceneTemplate: SceneTemplate) {
     return {
         ...sceneTemplate,
-        media: sceneTemplate.media.map((video): MediumTemplate => {
-            const bezel = getBezel(video.bezelKey);
+        media: sceneTemplate.media.map((medium): MediumTemplate => {
+            const bezelSize = getBezelSize(medium.bezelKey, medium.orientation);
             
             return {
-                ...video,
-                naturalDimensions: { width: bezel.width, height: bezel.height }
+                ...medium,
+                naturalDimensions: { width: bezelSize[0], height: bezelSize[1] }
             };
         })
     };

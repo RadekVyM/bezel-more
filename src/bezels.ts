@@ -1,4 +1,5 @@
 import { Bezel } from './types/Bezel'
+import { MediumOrientation } from './types/MediumOrientation';
 
 /**
  * Sources:
@@ -342,21 +343,32 @@ export const BEZELS = {
 } as const;
 
 export function getBezel(bezelKey: string) {
-    return Object.values(BEZELS).filter((b) => b.key === bezelKey)[0]
+    return Object.values(BEZELS).filter((b) => b.key === bezelKey)[0];
 }
 
 export function bezelImage(bezelKey: string) {
-    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}${BEZEL_IMAGE_EXTENSION}`
+    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}${BEZEL_IMAGE_EXTENSION}`;
 }
 
 export function bezelSmallImage(bezelKey: string) {
-    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_small${BEZEL_IMAGE_EXTENSION}`
+    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_small${BEZEL_IMAGE_EXTENSION}`;
 }
 
 export function bezelMask(bezelKey: string) {
-    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_mask${BEZEL_IMAGE_EXTENSION}`
+    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_mask${BEZEL_IMAGE_EXTENSION}`;
 }
 
 export function bezelTransparentMask(bezelKey: string) {
-    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_maskt${BEZEL_IMAGE_EXTENSION}`
+    return `${BEZEL_IMAGES_DIRECOTORY_PATH}/${bezelKey}_maskt${BEZEL_IMAGE_EXTENSION}`;
+}
+
+export function getBezelSize(bezelKey: string, orientation: MediumOrientation): [number, number] {
+    const bezel = getBezel(bezelKey);
+
+    if (orientation === 'topUp' || orientation === 'bottomUp') {
+        return [bezel.width, bezel.height];
+    }
+    else {
+        return [bezel.height, bezel.width];
+    }
 }

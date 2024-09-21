@@ -2,6 +2,7 @@ import { BezelImages } from '../../types/BezelImages'
 import { DrawableScene, getMediumRectInScene } from '../../types/DrawableScene'
 import { DrawableMedium } from '../../types/DrawableMedium'
 import { NoBezelImagesError, NoDimensionsError } from '../../types/Errors'
+import { drawRotatedImage } from '../../utils/canvas'
 
 type DrawMediumCallback = (context: CanvasRenderingContext2D, meidum: DrawableMedium, left: number, top: number, width: number, height: number) => void
 
@@ -104,7 +105,7 @@ function drawMask(
         context.globalCompositeOperation = 'source-over';
 
         if (mediumBezelImages.showBezel) {
-            context.drawImage(mediumBezelImages.maskImage, totalX, totalY, totalWidth, totalHeight);
+            drawRotatedImage(context, mediumBezelImages.maskImage, totalX, totalY, totalWidth, totalHeight, medium.orientation);
         }
         else {
             context.fillStyle = 'black';
@@ -148,7 +149,7 @@ function drawMedium(
     context.globalCompositeOperation = 'source-over';
 
     if (bezelImages.showBezel) {
-        context.drawImage(bezelImages.image, totalX, totalY, totalWidth, totalHeight);
+        drawRotatedImage(context, bezelImages.image, totalX, totalY, totalWidth, totalHeight, medium.orientation);
     }
 }
 

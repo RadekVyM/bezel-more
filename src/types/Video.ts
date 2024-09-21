@@ -2,6 +2,7 @@ import { hexToHsva } from '@uiw/react-color'
 import { BEZELS } from '../bezels'
 import { VideoTemplate } from './VideoTemplate'
 import { DrawableMedium } from './DrawableMedium'
+import { MediumOrientation } from './MediumOrientation'
 
 export type Video = {
     mediumType: 'video',
@@ -32,6 +33,7 @@ export function createVideo(index: number, template?: VideoTemplate): Video {
         totalDuration: 0,
         withBezel: template ? template.withBezel : true,
         bezelKey: template?.bezelKey || BEZELS.iphone_15_black.key,
+        orientation: template?.orientation || MediumOrientation.topUp,
         htmlVideo,
         withShadow: template ? template.withShadow : true,
         shadowBlur: template?.shadowBlur || 0,

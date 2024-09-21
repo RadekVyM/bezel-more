@@ -2,6 +2,7 @@ import { hexToHsva } from '@uiw/react-color'
 import { BEZELS } from '../bezels'
 import { DrawableMedium } from './DrawableMedium'
 import { ImageTemplate } from './ImageTemplate'
+import { MediumOrientation } from './MediumOrientation'
 
 export type Image = {
     mediumType: 'image',
@@ -18,6 +19,7 @@ export function createImage(index: number, template?: ImageTemplate): Image {
         file: undefined,
         withBezel: template ? template.withBezel : true,
         bezelKey: template?.bezelKey || BEZELS.iphone_15_black.key,
+        orientation: template?.orientation || MediumOrientation.topUp,
         htmlImage,
         withShadow: template ? template.withShadow : true,
         shadowBlur: template?.shadowBlur || 0,

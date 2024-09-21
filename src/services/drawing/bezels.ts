@@ -1,5 +1,6 @@
 import { DrawableScene, getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { VideoScene } from '../../types/VideoScene'
+import { drawRotatedImage } from '../../utils/canvas';
 import { createBezelImages } from '../images'
 
 export async function generateBezelsImage(scene: VideoScene): Promise<File | null> {
@@ -32,14 +33,14 @@ export async function generateBezelsImage(scene: VideoScene): Promise<File | nul
 function drawBezelsImage(context: CanvasRenderingContext2D, scene: DrawableScene, bezelImages: Array<HTMLImageElement | null>) {
     for (let i = 0; i < scene.media.length; i++) {
         const image = bezelImages[i];
-        const video = scene.media[i];
+        const medium = scene.media[i];
 
-        if (!image || !video.withBezel) {
+        if (!image || !medium.withBezel) {
             continue;
         }
 
-        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(video, scene);
+        const { mediumWidth, mediumHeight, mediumX, mediumY } = getMediumRectInScene(medium, scene);
 
-        context.drawImage(image, mediumX, mediumY, mediumWidth, mediumHeight);
+        drawRotatedImage(context, image, mediumX, mediumY, mediumWidth, mediumHeight, medium.orientation);
     }
 }
