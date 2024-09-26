@@ -25,22 +25,20 @@ type MainScaffoldProps = {
 export default function MainScaffold({ edit, convert, scenePreviewer: videoPreviewer, resultPreviewer, resetValue, onNewProjectClick }: MainScaffoldProps) {
     const isLarge = useIsLarge();
     const [selectedStep, setSelectedStep] = useState<AppStep>('edit');
-    const [convertDialogRef, isConvertDialogOpen, convertDialogAnimation, showConvertDialog, hideConvertDialog] =
-        useContentDialog(!isLarge);
-    const [editDialogRef, isEditDialogOpen, editDialogAnimation, showEditDialog, hideEditDialog] =
-        useContentDialog(true);
+    const convertDialogState = useContentDialog(!isLarge);
+    const editDialogState = useContentDialog(true);
 
     useEffect(() => {
-        if (isConvertDialogOpen) {
-            convertDialogRef.current?.scrollTo({ top: 0 })
+        if (convertDialogState.isOpen) {
+            convertDialogState.dialogRef.current?.scrollTo({ top: 0 })
         }
-    }, [isConvertDialogOpen]);
+    }, [convertDialogState.isOpen]);
 
     useEffect(() => {
-        if (isEditDialogOpen) {
-            editDialogRef.current?.scrollTo({ top: 0 })
+        if (editDialogState.isOpen) {
+            editDialogState.dialogRef.current?.scrollTo({ top: 0 })
         }
-    }, [isEditDialogOpen]);
+    }, [editDialogState.isOpen]);
     
     useEffect(() => {
         setSelectedStep('edit');
@@ -80,10 +78,10 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
                         onClick={() => {
                             switch (selectedStep) {
                                 case 'edit':
-                                    showEditDialog();
+                                    editDialogState.show();
                                     break;
                                 case 'convert':
-                                    showConvertDialog();
+                                    convertDialogState.show();
                                     break;
                             }
                         }}>
@@ -135,18 +133,16 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
                 !isLarge &&
                 <>
                     <ContentDialog
-                        ref={convertDialogRef}
-                        hide={hideConvertDialog}
-                        animation={convertDialogAnimation}
+                        ref={convertDialogState.dialogRef}
+                        state={convertDialogState}
                         slideInFromBottom
                         heading={'Convert'}>
                         {convert}
                     </ContentDialog>
 
                     <ContentDialog
-                        ref={editDialogRef}
-                        hide={hideEditDialog}
-                        animation={editDialogAnimation}
+                        ref={editDialogState.dialogRef}
+                        state={editDialogState}
                         slideInFromBottom
                         heading={'Edit'}>
                         {edit}

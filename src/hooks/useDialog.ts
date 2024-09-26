@@ -1,28 +1,41 @@
-import { RefObject, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { DialogState } from '../types/DialogState'
 
 export default function useDialog(
     openAnimation: string,
     hideAnimation: string
-):
-    [RefObject<HTMLDialogElement>, boolean, string, () => void, () => void] {
-    const [dialogAnimationClass, setDialogAnimationClass] = useState('');
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+): DialogState {
+    const [animationClass, setAnimationClass] = useState('');
+    const [isOpen, setIsOpen] = useState(false);
     const dialogRef = useRef<HTMLDialogElement>(null);
 
-    const showDialog = () => {
-        setDialogAnimationClass(openAnimation);
-        dialogRef.current?.showModal();
-        setIsDialogOpen(true);
-    }
+    const show = useCallback(() => {
+        setAnimationClass(openAnimation);
+        setIsOpen(true);
+    }, []);
 
-    const hideDialog = () => {
-        setDialogAnimationClass(hideAnimation);
+    const hide = useCallback(() => {
+        setAnimationClass(hideAnimation);
         const timeout = setTimeout(() => {
-            dialogRef.current?.close();
-            setIsDialogOpen(false);
+            setIsOpen(false);
             clearTimeout(timeout);
         }, 150);
-    }
+    }, []);
 
-    return [dialogRef, isDialogOpen, dialogAnimationClass, showDialog, hideDialog];
+    useEffect(() => {
+        if (isOpen) {
+            dialogRef.current?.showModal();
+        }
+        else {
+            dialogRef.current?.close();
+        }
+    }, [isOpen]);
+
+    return {
+        dialogRef,
+        animationClass,
+        isOpen,
+        show,
+        hide
+    };
 }

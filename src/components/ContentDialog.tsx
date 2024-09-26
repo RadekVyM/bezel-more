@@ -9,15 +9,13 @@ type ContentDialogProps = {
     heading: React.ReactNode,
     className?: string,
     slideInFromBottom?: boolean,
-    hide: () => void,
 } & DialogProps
 
-export const ContentDialog = forwardRef<HTMLDialogElement, ContentDialogProps>(({ heading, animation, className, children, slideInFromBottom, hide }, ref) => {
+export const ContentDialog = forwardRef<HTMLDialogElement, ContentDialogProps>(({ heading, state, className, children, slideInFromBottom }, ref) => {
     return (
         <Dialog
             ref={ref}
-            hide={hide}
-            animation={animation}
+            state={state}
             className={cn(className, 'w-full h-full px-6 pb-6 thin-scrollbar overflow-y-scroll', slideInFromBottom ? 'max-w-full max-h-[90vh] mt-auto mb-0' : 'max-w-[30rem] max-h-full ml-auto mr-0')}>
             <article
                 className='isolate bg-inherit flex flex-col min-h-full'>
@@ -26,7 +24,7 @@ export const ContentDialog = forwardRef<HTMLDialogElement, ContentDialogProps>((
                     <SectionHeading>{heading}</SectionHeading>
                     <Button
                         className='p-1'
-                        onClick={() => hide()}>
+                        onClick={state.hide}>
                         <MdClose className='w-5 h-5' />
                     </Button>
                 </header>

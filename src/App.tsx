@@ -78,7 +78,7 @@ function MainContent() {
     const [projectConfig, setProjectConfig] = useState<ProjectConfig>({ sceneTemplate: DEFAULT_SCENE_TEMPLATES[0] });
     const { scene, updateScene, updateVideo } = useScene(projectConfig);
     const { convert, progress, result, resultFileName, resultSize, resultFormatKey } = useConvert(scene);
-    const [newProjectDialogRef, isNewProjectDialogOpen, newProjectDialogAnimation, showNewProjectDialog, hideNewProjectDialog] = useContentDialog(true);
+    const newProjectDialogState = useContentDialog(true);
 
     return (
         <>
@@ -114,15 +114,13 @@ function MainContent() {
                         formatKey={resultFormatKey}
                         fileName={resultFileName} />
                 }
-                onNewProjectClick={showNewProjectDialog}
+                onNewProjectClick={newProjectDialogState.show}
                 resetValue={projectConfig} />
             
             <NewProjectDialog
-                ref={newProjectDialogRef}
-                isOpen={isNewProjectDialogOpen}
+                ref={newProjectDialogState.dialogRef}
+                state={newProjectDialogState}
                 currentScene={scene}
-                animation={newProjectDialogAnimation}
-                hide={hideNewProjectDialog}
                 onProjectConfigSelected={setProjectConfig} />
 
             <Popovers />

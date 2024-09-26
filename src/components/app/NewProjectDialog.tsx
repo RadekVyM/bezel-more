@@ -17,8 +17,6 @@ import { Scene } from '../../types/Scene'
 
 type NewProjectDialogProps = {
     currentScene: Scene,
-    isOpen: boolean,
-    hide: () => void,
     onProjectConfigSelected: (config: ProjectConfig) => void,
 } & DialogProps
 
@@ -38,24 +36,23 @@ type TemplatesContainerProps = {
     children: React.ReactNode
 }
 
-export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogProps>(({ currentScene, animation, className, isOpen, hide, onProjectConfigSelected }, ref) => {
+export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogProps>(({ currentScene, className, state, onProjectConfigSelected }, ref) => {
     const { sceneTemplates, addSceneTemplate, removeSceneTemplate } = useSceneTemplates();
     const [newTemplateTitle, setNewTemplateTitle] = useState('');
 
     useEffect(() => {
-        isOpen && setNewTemplateTitle(''); 
-    }, [isOpen]);
+        state.isOpen && setNewTemplateTitle(''); 
+    }, [state.isOpen]);
 
     function onProjectClick(sceneTemplate: VideoSceneTemplate | ImageSceneTemplate) {
         onProjectConfigSelected({ sceneTemplate: { ...sceneTemplate } });
-        hide();
+        state.hide();
     }
     
     return (
         <Dialog
             ref={ref}
-            hide={hide}
-            animation={animation}
+            state={state}
             className={cn(className, 'w-full md:max-w-3xl px-6 pb-6 rounded-lg thin-scrollbar overflow-y-scroll')}>
             <article
                 className='isolate bg-inherit flex flex-col'>
@@ -64,7 +61,7 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
                     <SectionHeading>New project</SectionHeading>
                     <Button
                         className='p-1'
-                        onClick={() => hide()}>
+                        onClick={state.hide}>
                         <MdClose className='w-5 h-5' />
                     </Button>
                 </header>

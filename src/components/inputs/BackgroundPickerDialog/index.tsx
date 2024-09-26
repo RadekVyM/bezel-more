@@ -16,7 +16,6 @@ import ImagePicker from './ImagePicker'
 type BackgroundPickerDialogProps = {
     currentBackground: Background,
     onPick: (background: Background) => void,
-    hide: () => void,
 } & DialogProps
 
 const DEFAULT_BACKGROUNDS: Array<[BackgroundType, Background]> = [
@@ -26,7 +25,7 @@ const DEFAULT_BACKGROUNDS: Array<[BackgroundType, Background]> = [
     ['image', createImageBackground('', true)],
 ];
 
-const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDialogProps>(({ currentBackground, animation, className, hide, onPick }, ref) => {
+const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDialogProps>(({ currentBackground, state, className, onPick }, ref) => {
     const defaultBackgroundsRef = useRef<Map<BackgroundType, Background>>(new Map(DEFAULT_BACKGROUNDS));
 
     useEffect(() => {
@@ -36,8 +35,7 @@ const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDia
     return (
         <Dialog
             ref={ref}
-            hide={hide}
-            animation={animation}
+            state={state}
             className={cn(className, 'px-6 pb-6 rounded-lg sm:max-w-lg w-full')}>
             <article
                 className='isolate flex flex-col'>
@@ -46,7 +44,7 @@ const BackgroundPickerDialog = forwardRef<HTMLDialogElement, BackgroundPickerDia
                     <SectionHeading>Background</SectionHeading>
                     <Button
                         className='p-1'
-                        onClick={() => hide()}>
+                        onClick={state.hide}>
                         <MdClose className='w-5 h-5' />
                     </Button>
                 </header>

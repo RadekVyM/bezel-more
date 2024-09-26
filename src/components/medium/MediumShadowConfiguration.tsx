@@ -15,7 +15,7 @@ type MediumShadowConfigurationProps = {
 }
 
 export default function MediumShadowConfiguration({ className, medium, updateMedium }: MediumShadowConfigurationProps) {
-    const [colorDialogRef, isOpen, colorDialogAnimation, showColorDialog, hideColorDialog] = useContentDialog(true);
+    const colorDialogState = useContentDialog(true);
 
     return (
         <>
@@ -70,7 +70,7 @@ export default function MediumShadowConfiguration({ className, medium, updateMed
                         id='shadow-color-selection'
                         className='p-1.5 flex-1 place-content-stretch'
                         disabled={!medium.withShadow}
-                        onClick={() => showColorDialog()}>
+                        onClick={colorDialogState.show}>
                         <div
                             className='checkered rounded-md w-full h-full overflow-hidden'>
                             <div
@@ -82,10 +82,9 @@ export default function MediumShadowConfiguration({ className, medium, updateMed
             </div>
 
             <ColorPickerDialog
-                ref={colorDialogRef}
+                ref={colorDialogState.dialogRef}
                 color={medium.shadowColor}
-                animation={colorDialogAnimation}
-                hide={hideColorDialog}
+                state={colorDialogState}
                 onPick={(color) => updateMedium({ shadowColor: { ...color } })} />
         </>
     )

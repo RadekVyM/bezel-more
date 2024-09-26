@@ -10,15 +10,13 @@ import HexColorInput from './HexColorInput'
 type ColorPickerDialogProps = {
     color: HsvaColor,
     onPick: (color: HsvaColor) => void,
-    hide: () => void,
 } & DialogProps
 
-export const ColorPickerDialog = forwardRef<HTMLDialogElement, ColorPickerDialogProps>(({ color, animation, className, hide, onPick }, ref) => {
+export const ColorPickerDialog = forwardRef<HTMLDialogElement, ColorPickerDialogProps>(({ color, state, className, onPick }, ref) => {
     return (
         <Dialog
             ref={ref}
-            hide={hide}
-            animation={animation}
+            state={state}
             className={cn(className, 'px-6 pb-6 rounded-lg')}>
             <article
                 className='isolate flex flex-col'>
@@ -27,7 +25,7 @@ export const ColorPickerDialog = forwardRef<HTMLDialogElement, ColorPickerDialog
                     <SectionHeading>Color</SectionHeading>
                     <Button
                         className='p-1'
-                        onClick={() => hide()}>
+                        onClick={state.hide}>
                         <MdClose className='w-5 h-5' />
                     </Button>
                 </header>
