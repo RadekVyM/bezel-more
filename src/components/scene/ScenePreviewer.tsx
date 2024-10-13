@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { FaPause, FaPlay } from 'react-icons/fa'
 import { TiArrowLoop, TiArrowRight } from 'react-icons/ti'
 import { cn } from '../../utils/tailwind'
@@ -8,7 +8,6 @@ import useTimeline from '../../hooks/useTimeline'
 import SceneTimeline from '../scene/SceneTimeline'
 import { Video } from '../../types/Video'
 import Container from '../Container'
-import { useUnmount } from 'usehooks-ts'
 import { drawSceneBackground } from '../../services/drawing/background'
 import { drawMedia } from '../../services/drawing/media'
 import { getSceneSize } from '../../types/DrawableScene'
@@ -207,32 +206,9 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
     const fps = 30;
     const previousRenderRef = useRef<number>(0);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const bezelImagesRef = useBezelImages(scene, render);
+    const bezelImagesRef = useBezelImages(scene, () => render());
 
-    // This is a bit hacky solution, but I guess... who cares...
-    if (scene.sceneType === 'video') {
-        scene.media.forEach((v) => v.htmlVideo.ontimeupdate = () => render());
-    }
-    useUnmount(() => {
-        if (scene.sceneType === 'video') {
-            scene.media.forEach((v) => v.htmlVideo.ontimeupdate = null);
-        }
-    });
-
-    useEffect(() => {
-        const now = new Date().getTime();
-
-        if (now - previousRenderRef.current > 1000 / fps) {
-            render();
-            previousRenderRef.current = now;
-        }
-    }, [currentTime]);
-
-    useEffect(() => {
-        render();
-    }, [scene]);
-
-    function render() {
+    const render = useCallback(() => {
         if (!canvasRef.current) {
             return;
         }
@@ -268,7 +244,55 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
 
         context.globalCompositeOperation ='destination-over';
         drawSceneBackground(context, scene, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImagesRef.current.map((bi) => bi.maskImage));
-    }
+    }, [scene]);
+
+    useEffect(() => {
+        const onLoadListener = () => render();
+
+        // This is a bit hacky solution, but I guess... who cares...
+        if (scene.sceneType === 'video') {
+            scene.media.forEach((v) => {
+                v.htmlVideo.ontimeupdate = () => render();
+                v.htmlVideo.addEventListener('loadeddata', onLoadListener);
+            });
+        }
+        else {
+            scene.media.forEach((i) => i.htmlImage.addEventListener('load', onLoadListener));
+        }
+
+        return () => {
+            if (scene.sceneType === 'video') {
+                scene.media.forEach((v) => {
+                    v.htmlVideo.ontimeupdate = null;
+                    v.htmlVideo.removeEventListener('loadeddata', onLoadListener);
+                });
+            }
+            else {
+                scene.media.forEach((i) => i.htmlImage.removeEventListener('load', onLoadListener));
+            }
+        };
+    }, [scene.media, scene.sceneType, render]);
+
+    useEffect(() => {
+        const now = new Date().getTime();
+
+        if (now - previousRenderRef.current > 1000 / fps) {
+            render();
+            previousRenderRef.current = now;
+        }
+    }, [currentTime, render]);
+
+    useEffect(() => {
+        render();
+    }, [scene]);
+
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            render();
+        }, 500);
+
+        return () => clearTimeout(timeout);
+    }, [render]);
 
     return (
         <Canvas

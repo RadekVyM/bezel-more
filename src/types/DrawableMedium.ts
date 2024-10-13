@@ -1,5 +1,5 @@
 import { HsvaColor } from '@uiw/react-color'
-import { getBezel, getBezelSize } from '../bezels'
+import { getBezelSize } from '../bezels'
 import { Size } from './Size'
 import { MediumOrientation } from './MediumOrientation'
 

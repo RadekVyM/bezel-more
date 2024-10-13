@@ -1,4 +1,4 @@
-import { getBezel, getBezelSize } from '../../bezels'
+import { getBezelSize } from '../../bezels'
 import { BezelImages } from '../../types/BezelImages'
 import { getSceneSize } from '../../types/DrawableScene'
 import { DrawableMedium } from '../../types/DrawableMedium'

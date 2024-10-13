@@ -65,14 +65,20 @@ export function prepareBezelImages(bezelImagesList: Array<BezelImages>, scene: D
                 }
                 bezelImages.image = new Image(bezelSize[0], bezelSize[1]);
                 bezelImages.image.src = currentImageSrc;
-                bezelImages.image.onload = () => onLoad();
+                bezelImages.image.onload = () => {
+                    onLoad();
+                    bezelImages.image.onload = null;
+                };
 
                 if (bezelImages.maskImage?.onload) {
                     bezelImages.maskImage.onload = null;
                 }
                 bezelImages.maskImage = new Image(bezelSize[0], bezelSize[1]);
                 bezelImages.maskImage.src = currentMaskSrc;
-                bezelImages.maskImage.onload = () => onLoad();
+                bezelImages.maskImage.onload = () => {
+                    onLoad();
+                    bezelImages.maskImage.onload = null;
+                };
             }
             else {
                 onLoad();
@@ -83,11 +89,17 @@ export function prepareBezelImages(bezelImagesList: Array<BezelImages>, scene: D
 
         const image = new Image(bezelSize[0], bezelSize[1]);
         image.src = currentImageSrc;
-        image.onload = () => onLoad();
+        image.onload = () => {
+            onLoad();
+            image.onload = null;
+        };
 
         const mask = new Image(bezelSize[0], bezelSize[1]);
         mask.src = currentMaskSrc;
-        mask.onload = () => onLoad();
+        mask.onload = () => {
+            onLoad();
+            mask.onload = null;
+        };
 
         bezelImagesList[medium.index] = {
             bezel,
