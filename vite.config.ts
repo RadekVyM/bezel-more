@@ -4,10 +4,11 @@ import viteCompression from 'vite-plugin-compression2'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/bezel-more/',
   plugins: [
     react(),
     viteCompression({
-      include: /\.(js|mjs|json|css|html|wasm)$/i,
+      include: /\.(js|wasm)$/i,
     })
   ],
   optimizeDeps: {
