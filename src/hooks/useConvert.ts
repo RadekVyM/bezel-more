@@ -34,7 +34,7 @@ export default function useConvert(
 
                 updateProgress({ state: 'Loading ffmpeg' });
                 // When cache is used, it is alright to reload FFmpeg before each render
-                await loadFFmpeg(ffmpeg, true);
+                await loadFFmpeg(ffmpeg, false);
 
                 const data = (await convertVideoScene(ffmpeg, scene, (state) => updateProgress({ state }))) as any;
                 const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
