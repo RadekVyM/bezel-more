@@ -32,9 +32,9 @@ export default function FileSelection({ className, children, accept, fileType, o
             <Button
                 className={cn('gap-2 px-3 py-1.5', isDragOver && 'bg-surface-dim-container', className)}
                 onDragOver={(e) => e.preventDefault()}
-                onDragEnter={(e) => setIsDragOver(true)}
-                onDragLeave={(e) => setIsDragOver(false)}
-                onPointerLeave={(e) => setIsDragOver(false)}
+                onDragEnter={() => setIsDragOver(true)}
+                onDragLeave={() => setIsDragOver(false)}
+                onPointerLeave={() => setIsDragOver(false)}
                 onDrop={onDrop}
                 onClick={() => inputRef.current?.click()}>
                 {children}

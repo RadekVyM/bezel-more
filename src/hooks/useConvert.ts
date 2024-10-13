@@ -7,6 +7,8 @@ import useConversionProgress from './useConversionProgress'
 import { toBlobURL } from '@ffmpeg/util'
 import { Scene } from '../types/Scene'
 import { generateScene } from '../services/drawing/scene'
+import ffmpegCoreJsUrl from '@ffmpeg/core?url'
+import ffmpegCoreWasmUrl from '@ffmpeg/core/wasm?url'
 
 export default function useConvert(
     scene: Scene,
@@ -32,7 +34,7 @@ export default function useConvert(
 
                 updateProgress({ state: 'Loading ffmpeg' });
                 // When cache is used, it is alright to reload FFmpeg before each render
-                await loadFFmpeg(ffmpeg);
+                await loadFFmpeg(ffmpeg, true);
 
                 const data = (await convertVideoScene(ffmpeg, scene, (state) => updateProgress({ state }))) as any;
                 const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
@@ -89,13 +91,15 @@ export default function useConvert(
     };
 }
 
-async function loadFFmpeg(ffmpeg: FFmpeg) {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd'
-    
+async function loadFFmpeg(ffmpeg: FFmpeg, localSource?: boolean) {
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
+    const coreURL = localSource ? `${ffmpegCoreJsUrl}.gz` : `${baseURL}/ffmpeg-core.js`;
+    const wasmURL = localSource ? `${ffmpegCoreWasmUrl}.gz` : `${baseURL}/ffmpeg-core.wasm`;
+
     // toBlobURL is used to bypass CORS issue, urls with the same
     // domain can be used directly.
     await ffmpeg.load({
-        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+        coreURL: await toBlobURL(coreURL, 'text/javascript'),
+        wasmURL: await toBlobURL(wasmURL, 'application/wasm'),
     });
 }

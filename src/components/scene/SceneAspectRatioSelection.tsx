@@ -104,7 +104,7 @@ function CustomAspectRatioCard({ requiredAspectRatio, onChange }: CustomAspectRa
                     
                     setCustomAspectRatio(value);
                 }}
-                onBlur={(e) => {
+                onBlur={() => {
                     setCustomAspectRatio(aspectRatioToString(lastValidCustomAspectRatio.current));
                 }} />
         </AspectRatioCard>

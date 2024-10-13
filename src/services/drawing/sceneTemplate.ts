@@ -26,7 +26,7 @@ export async function drawSceneTemplate(context: CanvasRenderingContext2D, scene
     drawSceneBackground(context, clonedSceneTemplate, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImages.map((bi) => bi.maskImage));
 }
 
-function drawVideo(context: CanvasRenderingContext2D, medium: DrawableMedium, left: number, top: number, width: number, height: number) {
+function drawVideo(context: CanvasRenderingContext2D, _medium: DrawableMedium, left: number, top: number, width: number, height: number) {
     const computedStyle = getComputedStyle(context.canvas);
     const primaryColor = computedStyle.getPropertyValue('--primary');
     const secondaryColor = computedStyle.getPropertyValue('--secondary');

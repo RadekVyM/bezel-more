@@ -46,7 +46,7 @@ export default function BackgroundsList({ className, backgrounds, predefinedBack
                                 className='opacity-0 peer-focus-within:opacity-100 peer-hover:opacity-100 hover:opacity-100 focus:opacity-100
                                     transition-opacity
                                     z-20 w-4 h-4 absolute right-[-15%] top-[-15%] grid place-content-center bg-danger rounded-md'
-                                onClick={(e) => removeBackground(bg.bg)}>
+                                onClick={() => removeBackground(bg.bg)}>
                                 <MdClose className='w-3 h-3 text-on-danger' />
                             </button>}
                     </div>

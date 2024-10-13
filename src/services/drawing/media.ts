@@ -39,7 +39,7 @@ export function drawMedia(
         }
 
         try {
-            drawMedium(context, medium, scene, mediumBezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale, drawOneMedium);
+            drawMedium(context, medium, scene, mediumBezelImages, sceneX, sceneY, sceneScale, drawOneMedium);
         }
         catch (error) {
             // NoDimensionsError and NoBezelImagesError are caused by trying to draw too early
@@ -62,7 +62,7 @@ function drawMask(
     sceneScale: number
 ) {
     const haveCornerRadius = scene.media.some((medium) => medium.cornerRadius > 0);
-    const rects = scene.media.map((medium) => calculateMediumDimensions(medium, scene, bezelImages[medium.index], sceneScale, sceneX, sceneY, sceneWidth, sceneHeight));
+    const rects = scene.media.map((medium) => calculateMediumDimensions(medium, scene, bezelImages[medium.index], sceneScale, sceneX, sceneY));
 
     if (haveCornerRadius) {
         tempCanvas.width = sceneWidth + sceneX;
@@ -126,8 +126,6 @@ function drawMedium(
     bezelImages: BezelImages,
     sceneX: number,
     sceneY: number,
-    sceneWidth: number,
-    sceneHeight: number,
     sceneScale: number,
     draw: DrawMediumCallback
 ) {
@@ -140,7 +138,7 @@ function drawMedium(
         videoY,
         videoWidth,
         videoHeight
-    } = calculateMediumDimensions(medium, scene, bezelImages, sceneScale, sceneX, sceneY, sceneWidth, sceneHeight);
+    } = calculateMediumDimensions(medium, scene, bezelImages, sceneScale, sceneX, sceneY);
 
     context.globalCompositeOperation = 'source-atop';
 
@@ -153,7 +151,7 @@ function drawMedium(
     }
 }
 
-function calculateMediumDimensions(medium: DrawableMedium, scene: DrawableScene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number, sceneWidth: number, sceneHeight: number) {
+function calculateMediumDimensions(medium: DrawableMedium, scene: DrawableScene, bezelImages: BezelImages, sceneScale: number, sceneX: number, sceneY: number) {
     if (!medium.naturalDimensions) {
         throw new NoDimensionsError('Size of the medium could not be determined');
     }

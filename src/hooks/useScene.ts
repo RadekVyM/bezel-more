@@ -56,7 +56,7 @@ export default function useScene(projectConfig: ProjectConfig) {
     if (scene.sceneType === 'video') {
         scene.media.forEach((v) => {
             v.htmlVideo.onloadedmetadata = null;
-            v.htmlVideo.onloadedmetadata = (e) => {
+            v.htmlVideo.onloadedmetadata = () => {
                 const updatedVideos = updateVideoOnIndex(
                     scene,
                     v.index,
@@ -86,7 +86,7 @@ export default function useScene(projectConfig: ProjectConfig) {
     else if (scene.sceneType === 'image') {
         scene.media.forEach((i) => {
             i.htmlImage.onload = null;
-            i.htmlImage.onload = (e) => {
+            i.htmlImage.onload = () => {
                 const updatedVideos = updateImageOnIndex(
                     scene,
                     i.index,

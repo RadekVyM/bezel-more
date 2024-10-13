@@ -243,7 +243,7 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, display
         }
     });
 
-    useEventListener('pointerup', (e) => {
+    useEventListener('pointerup', () => {
         isMovingRef.current = false;
         isMovingStartRef.current = false;
         isMovingEndRef.current = false;
@@ -348,7 +348,7 @@ function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDurat
         }
     });
 
-    useEventListener('pointerup', (e) => {
+    useEventListener('pointerup', () => {
         isMovingStartRef.current = false;
         isMovingEndRef.current = false;
     });
@@ -438,7 +438,7 @@ function Slider({ width, height, fullHeight, left, top, currentTime, totalDurati
         onSeek(e.clientX);
     });
 
-    useEventListener('pointerup', (e) => {
+    useEventListener('pointerup', () => {
         isDownRef.current = false;
     });
 
