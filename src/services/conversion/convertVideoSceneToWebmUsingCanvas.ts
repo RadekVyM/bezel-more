@@ -31,12 +31,16 @@ async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, o
     const framerate = scene.fps;
     const totalLength = scene.endTime - scene.startTime;
     const framesCount = Math.ceil(totalLength * framerate);
-    const config = {
-        codec: 'vp09.00.10.08',
+    const config: VideoEncoderConfig = {
+        codec: 'vp09.00.10.08', // https://developer.mozilla.org/en-US/docs/Web/Media/Formats/codecs_parameter#vp9
         width: width,
         height: height,
+        displayWidth: width,
+        displayHeight: height,
         bitrate: 1e6,
         framerate: framerate,
+        // TODO: Alpha is not supported even though the API is already prepared for that: https://github.com/w3c/webcodecs/issues/672
+        // alpha: 'keep' // https://github.com/w3c/webcodecs/issues/207
     };
 
     if (!await VideoEncoder.isConfigSupported(config)) {
@@ -48,13 +52,14 @@ async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, o
         video: {
             codec: 'V_VP9',
             width: width,
-            height: height
+            height: height,
+            //alpha: true
         }
     });
     
     const encoder = new VideoEncoder({
         output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-        error: (e: any) => console.log(e.message),
+        error: (e: any) => console.log(e),
     });
     encoder.configure(config);
 
@@ -66,16 +71,8 @@ async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, o
 
     for (let i = 0; i < framesCount; i++) {
         const context = offscreenCanvas.getContext('2d')!;
+        context.clearRect(0, 0, width, height);
 
-        context.fillStyle = 'yellow';
-        context.fillRect(0, 0, width, height);
-
-        context.fillStyle = 'black';
-        context.font = `${height / 3}px system-ui`;
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        context.fillText(`${i}`, width / 2, height / 2);
-        
         const timestampSeconds = i * (1 / framerate);
         const timestampMicroseconds = timestampSeconds * 1000000;
 
@@ -93,7 +90,10 @@ async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, o
         await seekVideos(scene, timestampSeconds);
         drawScene(context, scene, bezelImages, { width, height });
 
-        const frameFromCanvas = new VideoFrame(offscreenCanvas, { timestamp: timestampMicroseconds });
+        const frameFromCanvas = new VideoFrame(offscreenCanvas, {
+            timestamp: timestampMicroseconds,
+            // alpha: 'keep'
+        });
 
         const keyFrame = i % 30 === 0;
         encoder.encode(frameFromCanvas, { keyFrame });
@@ -106,6 +106,8 @@ async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, o
     muxer.finalize();
 
     const { buffer } = muxer.target;
+
+    encoder.close();
 
     return new File([
         buffer
@@ -127,7 +129,7 @@ async function seekVideos(scene: VideoScene, timestamp: number) {
     })));
 }
 
-function drawScene(context: OffscreenCanvasRenderingContext2D, scene: VideoScene, bezelImages: Array<BezelImages>, size: Size) {
+function drawScene(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, scene: VideoScene, bezelImages: Array<BezelImages>, size: Size) {
     const sceneSize = getSceneSize(scene);
     const scale = Math.min(size.width / sceneSize.width, size.height / sceneSize.height);
 
