@@ -67,19 +67,30 @@ function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
                 disabled={scene.formatKey !== supportedVideoFormats.gif.key}
                 onKeyPress={(e) => !/[0-9]/.test(e.key) && e.preventDefault()}
                 onChange={(e) => updateScene({ maxColors: parseFloat(e.target.value) })} />
+
             <div
-                className='w-fit'>
+                className='w-fit sm:col-span-2'>
                 <CheckInput
-                    id='aspect-fill-checkbox'
-                    className='rounded col-span-2'
+                    id='prerendering-checkbox'
+                    className='rounded'
                     type='checkbox'
                     checked={scene.isPrerenderingEnabled}
                     onChange={(e) => updateScene({ isPrerenderingEnabled: e.currentTarget.checked })} />
-                <CheckInputLabel htmlFor='aspect-fill-checkbox' className='pl-3'>Use prerendering</CheckInputLabel>
+                <CheckInputLabel htmlFor='prerendering-checkbox' className='pl-3'>Use prerendering</CheckInputLabel>
                 <FaQuestionCircle
                     className='inline-block ml-2 w-[0.85rem] h-[0.85rem] text-on-surface-container'
                     onPointerMove={prerenderingPopoverState.onPointerMove}
                     onPointerLeave={prerenderingPopoverState.onPointerLeave} />
+            </div>
+            <div
+                className='w-fit sm:col-span-2'>
+                <CheckInput
+                    id='use-canvas-checkbox'
+                    className='rounded'
+                    type='checkbox'
+                    checked={!!scene.useCanvas}
+                    onChange={(e) => updateScene({ useCanvas: e.currentTarget.checked })} />
+                <CheckInputLabel htmlFor='use-canvas-checkbox' className='pl-3'>Use canvas</CheckInputLabel>
             </div>
 
             <Popover

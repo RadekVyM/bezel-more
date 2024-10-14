@@ -1,14 +1,14 @@
 import { useRef, useState } from 'react'
-import { convertVideoScene } from '../services/conversion/convertVideoScene'
+import { convertVideoSceneFFmpeg } from '../services/conversion/convertVideoSceneFFmpeg'
 import { SupportedImageFormat, supportedImageFormats, SupportedVideoFormat, supportedVideoFormats } from '../supportedFormats'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { getFirstVideo } from '../types/VideoScene'
 import useConversionProgress from './useConversionProgress'
 import { toBlobURL } from '@ffmpeg/util'
 import { Scene } from '../types/Scene'
 import { generateScene } from '../services/drawing/scene'
 import ffmpegCoreJsUrl from '@ffmpeg/core?url'
 import ffmpegCoreWasmUrl from '@ffmpeg/core/wasm?url'
+import { convertVideoSceneToWebmUsingCanvas } from '../services/conversion/convertVideoSceneToWebmUsingCanvas'
 
 export default function useConvert(
     scene: Scene,
@@ -30,21 +30,32 @@ export default function useConvert(
             const format = supportedVideoFormats[scene.formatKey];
 
             try {
-                const ffmpeg = ffmpegRef.current;
+                if (scene.useCanvas) {
+                    const file = await convertVideoSceneToWebmUsingCanvas(scene, updateProgress);
+                    const resultUrl = URL.createObjectURL(file);
 
-                updateProgress({ state: 'Loading ffmpeg' });
-                // When cache is used, it is alright to reload FFmpeg before each render
-                await loadFFmpeg(ffmpeg, false);
+                    setResult(resultUrl);
+                    setResultSize(file.size);
+                    setResultFileName(`result.webm`);
+                    setResultFormatKey(supportedVideoFormats.webm.key);
+                }
+                else {
+                    const ffmpeg = ffmpegRef.current;
 
-                const data = (await convertVideoScene(ffmpeg, scene, (state) => updateProgress({ state }))) as any;
-                const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
+                    updateProgress({ state: 'Loading ffmpeg' });
+                    // When cache is used, it is alright to reload FFmpeg before each render
+                    await loadFFmpeg(ffmpeg, false);
 
-                setResult(resultUrl);
-                setResultSize(data.byteLength);
-                setResultFileName((getFirstVideo(scene).file?.name || 'undefined') + format.suffix);
-                setResultFormatKey(format.key);
+                    const data = (await convertVideoSceneFFmpeg(ffmpeg, scene, (state) => updateProgress({ state }))) as any;
+                    const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
 
-                ffmpeg.terminate();
+                    setResult(resultUrl);
+                    setResultSize(data.byteLength);
+                    setResultFileName(`result${format.suffix}`);
+                    setResultFormatKey(format.key);
+
+                    ffmpeg.terminate();
+                }
             }
             catch (error) {
                 // TODO: Display an error message

@@ -3,13 +3,14 @@ import { FFmpeg } from '@ffmpeg/ffmpeg'
 import { getBezel } from '../../bezels'
 import * as fc from './filterComplex'
 import { supportedVideoFormats } from '../../supportedFormats'
-import { VideoScene, getTotalSceneDuration } from '../../types/VideoScene'
+import { VideoScene } from '../../types/VideoScene'
 import { Video } from '../../types/Video'
 import { roundToEven } from '../../utils/numbers'
 import { generateBackground } from '../drawing/background'
 import { generateSceneMask } from '../drawing/sceneMask'
 import { getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { generateBezelsImage } from '../drawing/bezels'
+import calculateTrimAndPad from './calculateTrimAndPad'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
@@ -17,7 +18,7 @@ type VideoFileInputs = {
     videoInput: string,
 }
 
-export async function convertVideoScene(ffmpeg: FFmpeg, scene: VideoScene, onProgressStateChange: (state: string) => void) {
+export async function convertVideoSceneFFmpeg(ffmpeg: FFmpeg, scene: VideoScene, onProgressStateChange: (state: string) => void) {
     const fileName = `result${supportedVideoFormats[scene.formatKey].suffix}`;
     const {
         inputs,
@@ -75,7 +76,9 @@ export async function convertVideoScene(ffmpeg: FFmpeg, scene: VideoScene, onPro
             gifOutput(fileName) :
             scene.formatKey === supportedVideoFormats.mp4.key ?
                 mp4Output(fileName, [sceneWidth, sceneHeight]) :
-                webpOutput(fileName, [sceneWidth, sceneHeight]))
+                scene.formatKey === supportedVideoFormats.webm.key ?
+                    webmOutput(fileName, [sceneWidth, sceneHeight]) :
+                    webpOutput(fileName, [sceneWidth, sceneHeight]))
     ]);
 
     const data = await ffmpeg.readFile(fileName);
@@ -137,7 +140,7 @@ function videoFfmpegArgs(scene: VideoScene, video: Video, inputNames: VideoFileI
 
     const {
         videoStart, videoEnd, videoStartPadDuration, videoEndPadDuration
-    } = calculateTrimAndTpad(scene, video);
+    } = calculateTrimAndPad(scene, video);
 
     if (video.withBezel) {
         const bezel = getBezel(video.bezelKey);
@@ -311,34 +314,6 @@ async function loadVideo(ffmpeg: FFmpeg, scene: VideoScene, video: Video, onProg
     return prerenderedVideoName;
 }
 
-function calculateTrimAndTpad(scene: VideoScene, video: Video) {
-    const trim = calculateTrim(scene, video);
-
-    return {
-        videoStart: trim.videoStart,
-        videoEnd: trim.videoEnd,
-        /*
-        videoStart: scene.isPrerenderingEnabled ? null : trim.videoStart,
-        videoEnd: scene.isPrerenderingEnabled ? null : trim.videoEnd,
-        */
-        videoStartPadDuration: Math.max(0, trim.calculatedVideoStart + video.sceneOffset - scene.startTime),
-        videoEndPadDuration: Math.max(0, scene.endTime - (trim.calculatedVideoEnd + video.sceneOffset)),
-    };
-}
-
-function calculateTrim(scene: VideoScene, video: Video) {
-    const videoStart = Math.max(video.startTime, scene.startTime - video.sceneOffset);
-    const videoEnd = Math.min(video.endTime, scene.endTime - video.sceneOffset);
-    const totalDuration = getTotalSceneDuration(scene);
-
-    return {
-        calculatedVideoStart: videoStart,
-        calculatedVideoEnd: videoEnd,
-        videoStart: videoStart <= 0 ? null : videoStart,
-        videoEnd: videoEnd >= totalDuration ? null : videoEnd
-    };
-}
-
 function webpOutput(fileName: string, size?: [number, number]) {
     return [
         '-vcodec', 'libwebp',
@@ -361,6 +336,16 @@ function mp4Output(fileName: string, size?: [number, number]) {
     return [
         '-an', '-sn', '-c:v', 'libx264',
         ...(size ? ['-s', `${roundToEven(size[0])}:${roundToEven(size[1])}`] : []), // size has to be divisible by 2
+        fileName
+    ];
+}
+
+function webmOutput(fileName: string, size?: [number, number]) {
+    return [
+        '-c:v', 'libvpx',
+        '-crf', '23',
+        '-auto-alt-ref', '0',
+        ...(size ? ['-s', `${roundToEven(size[0])}:${roundToEven(size[1])}`] : []),
         fileName
     ];
 }

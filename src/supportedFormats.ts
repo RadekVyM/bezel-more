@@ -16,7 +16,13 @@ export const supportedVideoFormats = {
         title: 'mp4',
         suffix: '.mp4',
         type: 'video/mp4',
-    }
+    },
+    webm: {
+        key: 'webm',
+        title: 'webm',
+        suffix: '.webm',
+        type: 'video/webm',
+    },
 } as const;
 
 export const supportedImageFormats = {
@@ -34,6 +40,6 @@ export const supportedImageFormats = {
     },
 } as const;
 
-export type SupportedVideoFormat = 'webp' | 'gif' | 'mp4'
+export type SupportedVideoFormat = 'webp' | 'gif' | 'mp4' | 'webm'
 
 export type SupportedImageFormat = 'webp' | 'png'

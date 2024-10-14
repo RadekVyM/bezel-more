@@ -8,8 +8,11 @@ export type Video = {
     mediumType: 'video',
     /** Offset from the start of a scene. */
     sceneOffset: number,
+    /** Start trim position in seconds. */
     startTime: number,
+    /** End trim position in seconds. */
     endTime: number,
+    /** Total duration of the video in seconds. */
     totalDuration: number,
     readonly htmlVideo: HTMLVideoElement,
 } & DrawableMedium

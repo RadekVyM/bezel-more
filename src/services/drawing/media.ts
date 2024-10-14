@@ -4,13 +4,13 @@ import { DrawableMedium } from '../../types/DrawableMedium'
 import { NoBezelImagesError, NoDimensionsError } from '../../types/Errors'
 import { drawRotatedImage } from '../../utils/canvas'
 
-type DrawMediumCallback = (context: CanvasRenderingContext2D, meidum: DrawableMedium, left: number, top: number, width: number, height: number) => void
+type DrawMediumCallback<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)> = (context: T, medium: DrawableMedium, left: number, top: number, width: number, height: number) => void
 
 /** Canvas that is used for drawing intermediate steps. */ 
 const tempCanvas = document.createElement('canvas');
 
-export function drawMedia(
-    context: CanvasRenderingContext2D,
+export function drawMedia<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(
+    context: T,
     scene: DrawableScene,
     bezelImages: Array<BezelImages>,
     sceneX: number,
@@ -18,7 +18,7 @@ export function drawMedia(
     sceneWidth: number,
     sceneHeight: number,
     sceneScale: number,
-    drawOneMedium: DrawMediumCallback
+    drawOneMedium: DrawMediumCallback<T>
 ) {
     try {
         drawMask(context, scene, bezelImages, sceneX, sceneY, sceneWidth, sceneHeight, sceneScale);
@@ -51,8 +51,8 @@ export function drawMedia(
     };
 }
 
-function drawMask(
-    context: CanvasRenderingContext2D,
+function drawMask<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(
+    context: T,
     scene: DrawableScene,
     bezelImages: Array<BezelImages>,
     sceneX: number,
@@ -119,15 +119,15 @@ function drawMask(
     }
 }
 
-function drawMedium(
-    context: CanvasRenderingContext2D,
+function drawMedium<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(
+    context: T,
     medium: DrawableMedium,
     scene: DrawableScene,
     bezelImages: BezelImages,
     sceneX: number,
     sceneY: number,
     sceneScale: number,
-    draw: DrawMediumCallback
+    draw: DrawMediumCallback<T>
 ) {
     const {
         totalX,

@@ -32,7 +32,15 @@ export async function generateBackground(scene: VideoScene): Promise<File | null
     });
 }
 
-export function drawSceneBackground(context: CanvasRenderingContext2D, scene: DrawableScene, left: number, top: number, size: Size, withShadows?: boolean, maskImages?: Array<HTMLImageElement | null>) {
+export function drawSceneBackground<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(
+    context: T,
+    scene: DrawableScene,
+    left: number,
+    top: number,
+    size: Size,
+    withShadows?: boolean,
+    maskImages?: Array<HTMLImageElement | null>
+) {
     if (!Number.isFinite(size.width) || !Number.isFinite(size.height) || size.width === 0 || size.height === 0) {
         return;
     }
@@ -40,7 +48,8 @@ export function drawSceneBackground(context: CanvasRenderingContext2D, scene: Dr
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = size.width + left;
     tempCanvas.height = size.height + top;
-    const tempContext = tempCanvas.getContext('2d');
+    const tempCanvasOffscreen = tempCanvas.transferControlToOffscreen();
+    const tempContext = tempCanvasOffscreen.getContext('2d');
 
     if (!tempContext) {
         throw new Error('Canvas context could not be loaded');
@@ -52,10 +61,10 @@ export function drawSceneBackground(context: CanvasRenderingContext2D, scene: Dr
         drawShadows(tempContext, scene, left, top, size, maskImages);
     }
 
-    context.drawImage(tempCanvas, 0, 0);
+    context.drawImage(tempCanvasOffscreen, 0, 0);
 }
 
-export function drawBackground(context: CanvasRenderingContext2D, background: Background, left: number, top: number, size: Size) {
+export function drawBackground<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(context: T, background: Background, left: number, top: number, size: Size) {
     switch (background.type) {
         case 'solid':
             drawSolidBackground(context, background as SolidBackground, left, top, size);
@@ -72,12 +81,12 @@ export function drawBackground(context: CanvasRenderingContext2D, background: Ba
     }
 }
 
-function drawSolidBackground(context: CanvasRenderingContext2D, background: SolidBackground, left: number, top: number, size: Size) {
+function drawSolidBackground<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(context: T, background: SolidBackground, left: number, top: number, size: Size) {
     context.fillStyle = hsvaToHexa(background.color);
     context.fillRect(left, top, size.width, size.height);
 }
 
-function drawLinearBackground(context: CanvasRenderingContext2D, background: LinearGradientBackground, left: number, top: number, size: Size) {
+function drawLinearBackground<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(context: T, background: LinearGradientBackground, left: number, top: number, size: Size) {
     const angle = Number.isFinite(background.angle) ? background.angle : 0;
     const w = size.width / 2;
     const h = size.height / 2;
@@ -101,7 +110,7 @@ function drawLinearBackground(context: CanvasRenderingContext2D, background: Lin
     context.fillRect(left, top, size.width, size.height);
 }
 
-function drawRadialBackground(context: CanvasRenderingContext2D, background: RadialGradientBackground, left: number, top: number, size: Size) {
+function drawRadialBackground<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(context: T, background: RadialGradientBackground, left: number, top: number, size: Size) {
     const innerRadius = Number.isFinite(background.innerRadius) ? background.innerRadius: 0;
     const w = size.width / 2;
     const h = size.height / 2;
@@ -117,7 +126,7 @@ function drawRadialBackground(context: CanvasRenderingContext2D, background: Rad
     context.fillRect(left, top, size.width, size.height);
 }
 
-function drawImageBackground(context: CanvasRenderingContext2D, background: ImageBackground, left: number, top: number, size: Size) {
+function drawImageBackground<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(context: T, background: ImageBackground, left: number, top: number, size: Size) {
     if (!background.image.complete) {
         background.image.addEventListener('load', onLoaded);
     }
@@ -131,7 +140,7 @@ function drawImageBackground(context: CanvasRenderingContext2D, background: Imag
     }
 }
 
-function drawImageBackgroundInner(context: CanvasRenderingContext2D, background: ImageBackground, left: number, top: number, size: Size) {
+function drawImageBackgroundInner<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(context: T, background: ImageBackground, left: number, top: number, size: Size) {
     if (background.aspectFill) {
         const scale = Math.max(size.width / background.image.naturalWidth, size.height / background.image.naturalHeight);
         const w = background.image.naturalWidth * scale;
@@ -153,7 +162,7 @@ function drawImageBackgroundInner(context: CanvasRenderingContext2D, background:
     context.restore();
 }
 
-function drawShadows(context: CanvasRenderingContext2D, scene: DrawableScene, left: number, top: number, size: Size, maskImages: Array<HTMLImageElement | null>) {
+function drawShadows<T extends (CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D)>(context: T, scene: DrawableScene, left: number, top: number, size: Size, maskImages: Array<HTMLImageElement | null>) {
     const sceneSize = getSceneSize(scene);
     const scale = Math.min(size.width / sceneSize.width, size.height / sceneSize.height);
 

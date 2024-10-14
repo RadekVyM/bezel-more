@@ -1,6 +1,6 @@
 import { MediumOrientation } from '../types/MediumOrientation'
 
-export function drawRotatedImage(context: CanvasRenderingContext2D, image: CanvasImageSource, dx: number, dy: number, dw: number, dh: number, orientation: MediumOrientation) {
+export function drawRotatedImage(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, image: CanvasImageSource, dx: number, dy: number, dw: number, dh: number, orientation: MediumOrientation) {
     orientation = orientation || MediumOrientation.topUp;
     const vertical = isVertical(orientation);
     const width = vertical ? dw : dh;
