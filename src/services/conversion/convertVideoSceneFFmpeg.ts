@@ -11,6 +11,7 @@ import { generateSceneMask } from '../drawing/sceneMask'
 import { getSceneSize, getMediumRectInScene } from '../../types/DrawableScene'
 import { generateBezelsImage } from '../drawing/bezels'
 import calculateTrimAndPad from './calculateTrimAndPad'
+import ffmpegOutput from './ffmpegOutput'
 
 // https://gist.github.com/witmin/1edf926c2886d5c8d9b264d70baf7379
 
@@ -72,13 +73,7 @@ export async function convertVideoSceneFFmpeg(ffmpeg: FFmpeg, scene: VideoScene,
         '-avoid_negative_ts', 'make_zero', // https://superuser.com/questions/1167958/video-cut-with-missing-frames-in-ffmpeg
         '-filter_complex',
         complexFilter,
-        ...(scene.formatKey === supportedVideoFormats.gif.key ?
-            gifOutput(fileName) :
-            scene.formatKey === supportedVideoFormats.mp4.key ?
-                mp4Output(fileName, [sceneWidth, sceneHeight]) :
-                scene.formatKey === supportedVideoFormats.webm.key ?
-                    webmOutput(fileName, [sceneWidth, sceneHeight]) :
-                    webpOutput(fileName, [sceneWidth, sceneHeight]))
+        ...(ffmpegOutput(scene.formatKey, fileName, sceneWidth, sceneHeight))
     ]);
 
     const data = await ffmpeg.readFile(fileName);
@@ -312,42 +307,6 @@ async function loadVideo(ffmpeg: FFmpeg, scene: VideoScene, video: Video, onProg
 
     ffmpeg.deleteFile(videoName);
     return prerenderedVideoName;
-}
-
-function webpOutput(fileName: string, size?: [number, number]) {
-    return [
-        '-vcodec', 'libwebp',
-        '-lossless', '1',
-        '-loop', '0',
-        '-preset', 'picture',
-        '-an', '-fps_mode', 'auto', // https://ffmpeg.org/ffmpeg.html#:~:text=%2Dfps_mode%5B%3Astream_specifier%5D%20parameter%20(output%2Cper%2Dstream)
-        ...(size ? ['-s', `${size[0]}:${size[1]}`] : []),
-        fileName
-    ];
-}
-
-function gifOutput(fileName: string) {
-    return [
-        '-f', 'gif', fileName
-    ];
-}
-
-function mp4Output(fileName: string, size?: [number, number]) {
-    return [
-        '-an', '-sn', '-c:v', 'libx264',
-        ...(size ? ['-s', `${roundToEven(size[0])}:${roundToEven(size[1])}`] : []), // size has to be divisible by 2
-        fileName
-    ];
-}
-
-function webmOutput(fileName: string, size?: [number, number]) {
-    return [
-        '-c:v', 'libvpx',
-        '-crf', '23',
-        '-auto-alt-ref', '0',
-        ...(size ? ['-s', `${roundToEven(size[0])}:${roundToEven(size[1])}`] : []),
-        fileName
-    ];
 }
 
 function generateOutputName(output: string, video: Video) {

@@ -1,4 +1,4 @@
-import { supportedVideoFormats } from '../../supportedFormats'
+import { v4 as uuidv4 } from 'uuid'
 import { VideoScene } from '../../types/VideoScene'
 import { getMediumRectInScene, getSceneSize } from '../../types/DrawableScene'
 import { createBezelImagesList } from '../images'
@@ -19,7 +19,7 @@ export async function convertVideoSceneToWebmUsingCanvas(scene: VideoScene, onPr
 }
 
 async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, onProgressChange: React.Dispatch<Partial<ConversionProgress>>) {
-    const fileName = `result${supportedVideoFormats[scene.formatKey].suffix}`;
+    const fileName = `${uuidv4()}.webm`;
 
     if (!('VideoEncoder' in window)) {
         throw new Error('VideoEncoder is not supported');
@@ -109,9 +109,13 @@ async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, o
 
     encoder.close();
 
-    return new File([
-        buffer
-    ], fileName, { type: 'video/webm' });
+    return {
+        videoFile: new File([
+            buffer
+        ], fileName, { type: 'video/webm' }),
+        videoWidth: width,
+        videoHeight: height
+    };
 }
 
 async function seekVideos(scene: VideoScene, timestamp: number) {

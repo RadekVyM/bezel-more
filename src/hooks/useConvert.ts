@@ -9,6 +9,7 @@ import { generateScene } from '../services/drawing/scene'
 import ffmpegCoreJsUrl from '@ffmpeg/core?url'
 import ffmpegCoreWasmUrl from '@ffmpeg/core/wasm?url'
 import { convertVideoSceneToWebmUsingCanvas } from '../services/conversion/convertVideoSceneToWebmUsingCanvas'
+import convertVideo from '../services/conversion/convertVideo'
 
 export default function useConvert(
     scene: Scene,
@@ -28,16 +29,35 @@ export default function useConvert(
 
         if (scene.sceneType === 'video') {
             const format = supportedVideoFormats[scene.formatKey];
+            const outputFileName = `result${format.suffix}`;
 
             try {
                 if (scene.useCanvas) {
-                    const file = await convertVideoSceneToWebmUsingCanvas(scene, updateProgress);
-                    const resultUrl = URL.createObjectURL(file);
+                    const { videoFile, videoHeight, videoWidth } = await convertVideoSceneToWebmUsingCanvas(scene, updateProgress);
+
+                    const ffmpeg = ffmpegRef.current;
+
+                    updateProgress({ state: 'Loading ffmpeg' });
+                    // When cache is used, it is alright to reload FFmpeg before each render
+                    await loadFFmpeg(ffmpeg, false);
+
+                    updateProgress({ state: 'Generating final result' });
+                    const data = (await convertVideo(
+                        ffmpeg,
+                        videoFile,
+                        videoWidth,
+                        videoHeight,
+                        outputFileName,
+                        scene.formatKey,
+                        scene.maxColors)) as any;
+                    const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
 
                     setResult(resultUrl);
-                    setResultSize(file.size);
-                    setResultFileName(`result.webm`);
-                    setResultFormatKey(supportedVideoFormats.webm.key);
+                    setResultSize(data.byteLength);
+                    setResultFileName(outputFileName);
+                    setResultFormatKey(format.key);
+
+                    ffmpeg.terminate();
                 }
                 else {
                     const ffmpeg = ffmpegRef.current;
@@ -51,7 +71,7 @@ export default function useConvert(
 
                     setResult(resultUrl);
                     setResultSize(data.byteLength);
-                    setResultFileName(`result${format.suffix}`);
+                    setResultFileName(outputFileName);
                     setResultFormatKey(format.key);
 
                     ffmpeg.terminate();

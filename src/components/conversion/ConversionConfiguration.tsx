@@ -15,7 +15,7 @@ type ConversionConfigurationProps = {
     className?: string
 }
 
-type NumberInputsProps = {
+type VideoInputsProps = {
     scene: VideoScene,
     updateScene: (scene: Partial<VideoScene>) => void,
     className?: string
@@ -39,14 +39,14 @@ export default function ConversionConfiguration({
                 scene={scene}
                 updateScene={updateScene} />
             {scene.sceneType === 'video' &&
-                <NumberInputs
+                <VideoInputs
                     scene={scene}
                     updateScene={updateScene} />}
         </div>
     )
 }
 
-function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
+function VideoInputs({ className, updateScene, scene }: VideoInputsProps) {
     const prerenderingPopoverState = usePopoverAnchorHover();
 
     return (
@@ -71,36 +71,40 @@ function NumberInputs({ className, updateScene, scene }: NumberInputsProps) {
             <div
                 className='w-fit sm:col-span-2'>
                 <CheckInput
-                    id='prerendering-checkbox'
-                    className='rounded'
-                    type='checkbox'
-                    checked={scene.isPrerenderingEnabled}
-                    onChange={(e) => updateScene({ isPrerenderingEnabled: e.currentTarget.checked })} />
-                <CheckInputLabel htmlFor='prerendering-checkbox' className='pl-3'>Use prerendering</CheckInputLabel>
-                <FaQuestionCircle
-                    className='inline-block ml-2 w-[0.85rem] h-[0.85rem] text-on-surface-container'
-                    onPointerMove={prerenderingPopoverState.onPointerMove}
-                    onPointerLeave={prerenderingPopoverState.onPointerLeave} />
-            </div>
-            <div
-                className='w-fit sm:col-span-2'>
-                <CheckInput
                     id='use-canvas-checkbox'
                     className='rounded'
                     type='checkbox'
                     checked={!!scene.useCanvas}
                     onChange={(e) => updateScene({ useCanvas: e.currentTarget.checked })} />
-                <CheckInputLabel htmlFor='use-canvas-checkbox' className='pl-3'>Use canvas</CheckInputLabel>
+                <CheckInputLabel htmlFor='use-canvas-checkbox' className='pl-3'>Use canvas <span className='text-xs text-on-surface-container-muted'>(experimental)</span></CheckInputLabel>
             </div>
+            
+            {!scene.useCanvas &&
+                <>
+                    <div
+                        className='w-fit sm:col-span-2'>
+                        <CheckInput
+                            id='prerendering-checkbox'
+                            className='rounded'
+                            type='checkbox'
+                            checked={scene.isPrerenderingEnabled}
+                            onChange={(e) => updateScene({ isPrerenderingEnabled: e.currentTarget.checked })} />
+                        <CheckInputLabel htmlFor='prerendering-checkbox' className='pl-3'>Use prerendering</CheckInputLabel>
+                        <FaQuestionCircle
+                            className='inline-block ml-2 w-[0.85rem] h-[0.85rem] text-on-surface-container'
+                            onPointerMove={prerenderingPopoverState.onPointerMove}
+                            onPointerLeave={prerenderingPopoverState.onPointerLeave} />
+                    </div>
 
-            <Popover
-                ref={prerenderingPopoverState.popoverRef}
-                isDisplayed={prerenderingPopoverState.isHovered}
-                position={prerenderingPopoverState.position}
-                className='py-1.5 px-2 max-w-64 text-xs'>
-                If checked, all input videos will be rendered first and then combined into the final result.
-                This ensures that there are no missing frames and leads to the expected result. However, it takes much longer to render the video.
-            </Popover>
+                    <Popover
+                        ref={prerenderingPopoverState.popoverRef}
+                        isDisplayed={prerenderingPopoverState.isHovered}
+                        position={prerenderingPopoverState.position}
+                        className='py-1.5 px-2 max-w-64 text-xs'>
+                        If checked, all input videos will be rendered first and then combined into the final result.
+                        This ensures that there are no missing frames and leads to the expected result. However, it takes much longer to render the video.
+                    </Popover>
+                </>}
         </div>
     )
 }
