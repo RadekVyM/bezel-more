@@ -219,9 +219,12 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
             return;
         }
 
+        const ratio = Math.ceil(window?.devicePixelRatio || 1);
         const sceneSize = getSceneSize(scene);
-        const shouldScale = !(sceneSize.width <= canvasRef.current.width && sceneSize.height <= canvasRef.current.height);
-        const scale = shouldScale ? Math.min(canvasRef.current.width / sceneSize.width, canvasRef.current.height / sceneSize.height) : 1;
+        const shouldScale = !(sceneSize.width * ratio <= canvasRef.current.width && sceneSize.height * ratio <= canvasRef.current.height);
+        const scale = shouldScale ?
+            Math.min(canvasRef.current.width / sceneSize.width, canvasRef.current.height / sceneSize.height) :
+            ratio;
         const sceneWidth = sceneSize.width * scale;
         const sceneHeight = sceneSize.height * scale;
         const left = (canvasRef.current.width - sceneWidth) / 2;

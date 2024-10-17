@@ -72,6 +72,8 @@ async function renderVideo(scene: VideoScene, bezelImages: Array<BezelImages>, o
     for (let i = 0; i < framesCount; i++) {
         const context = offscreenCanvas.getContext('2d')!;
         context.clearRect(0, 0, width, height);
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = 'high';
 
         const timestampSeconds = i * (1 / framerate);
         const timestampMicroseconds = timestampSeconds * 1000000;
