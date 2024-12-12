@@ -132,7 +132,7 @@ function PreviewPlayer({ className, scene, updateScene, updateVideo }: PreviewPl
         <div
             className={cn('grid grid-rows-[1fr_auto] gap-3', className)}>
             <Container
-                className='grid grid-rows-[1fr_auto] gap-6 p-5 relative overflow-hidden'>
+                className='grid grid-rows-[1fr_auto] gap-6 p-5 pb-4 relative overflow-hidden'>
                 <PreviewCanvas
                     className='relative overflow-hidden'
                     currentTime={currentTime}

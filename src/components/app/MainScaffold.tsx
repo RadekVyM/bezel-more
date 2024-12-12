@@ -54,7 +54,7 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
             )}>
             <header
                 className={cn(
-                    'flex items-center pt-5 pb-2 gap-2',
+                    'flex items-center pt-3 pb-0 gap-2',
                     isLarge ?
                         'row-start-1 row-end-2 col-start-1 col-end-3' :
                         'row-start-1 row-end-2 col-start-1 col-end-2'

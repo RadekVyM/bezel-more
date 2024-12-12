@@ -85,13 +85,13 @@ const HIGHLIGHTED_TICKS_INTERVALS = [
 ];
 
 export default function SceneTimeline({ scene, currentTime, className, seek, updateScene, updateVideo }: SceneTimelineProps) {
-    const videoTimelineHeight = 36;
+    const videoTimelineHeight = 30;
     const videoTimelineSpacing = 5;
     const sceneRangeHeight = 15;
-    const timeAxisHeight = 30;
+    const timeAxisHeight = 25;
     const timeAxisSceneSpacing = 10;
     const horizontalPadding = 16;
-    const bottomPadding = 10;
+    const bottomPadding = 8;
     const outerDivRef = useRef<HTMLDivElement>(null);
     const dimensions = useDimensions(outerDivRef);
     const totalDuration = getTotalSceneDuration(scene) || 10;
@@ -465,7 +465,7 @@ function Slider({ width, height, fullHeight, left, top, currentTime, totalDurati
 
 function TimeAxis({ width, height, left, top, minTicksDistance, totalDuration }: TimeAxisProps) {
     const ticks = useMemo(() => getTicks(width, totalDuration, minTicksDistance), [width, totalDuration, minTicksDistance]);
-    const ticksHeight = height / 2;
+    const ticksHeight = height / 3;
 
     return (
         <>
@@ -518,7 +518,7 @@ function getTicks(width: number, totalDuration: number, minTicksDistance: number
         const relativeHeight = time % highlightedInterval === 0 ?
             1 :
             time % subhighlightedInterval === 0 ?
-                0.75 :
+                0.65 :
                 0.4;
 
         return {
