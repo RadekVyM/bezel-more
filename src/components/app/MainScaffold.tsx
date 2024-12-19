@@ -25,7 +25,7 @@ type MainScaffoldProps = {
 export default function MainScaffold({ edit, convert, scenePreviewer: videoPreviewer, resultPreviewer, resetValue, onNewProjectClick }: MainScaffoldProps) {
     const isLarge = useIsLarge();
     const [selectedStep, setSelectedStep] = useState<AppStep>('edit');
-    const convertDialogState = useContentDialog(!isLarge);
+    const convertDialogState = useContentDialog(true);
     const editDialogState = useContentDialog(true);
 
     useEffect(() => {

@@ -72,7 +72,7 @@ export default function MediumShadowConfiguration({ className, medium, updateMed
                         disabled={!medium.withShadow}
                         onClick={colorDialogState.show}>
                         <div
-                            className='checkered rounded-md w-full h-full overflow-hidden'>
+                            className='checkered rounded-md w-full h-full overflow-hidden min-h-7'>
                             <div
                                 style={{ background: hsvaToHexa(medium.shadowColor) }}
                                 className='w-full h-full'/>
