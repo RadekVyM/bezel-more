@@ -25,6 +25,8 @@ export default function useConversionProgress(ffmpeg: FFmpeg) {
             updateProgress({ progress: args.progress, time: args.time });
         };
         const onLog = (args: Log) => {
+            // console.log(args.message)
+
             const splitMessage = args.message
                 .split(/(\s+|=\s*)/)
                 .filter((s) => s.trim().length > 0 && !s.includes('='))

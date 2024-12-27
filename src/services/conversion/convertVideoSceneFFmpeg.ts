@@ -279,7 +279,7 @@ async function loadVideo(ffmpeg: FFmpeg, scene: VideoScene, video: Video, onProg
     }
 
     const prerenderedVideoName = `prerendered_${videoName}`;
-    const { mediumWidth: videoWidth, mediumHeight: videoHeight } = getMediumRectInScene(video, scene);
+    const { mediumWidth: videoWidth } = getMediumRectInScene(video, scene);
     /*
     const { videoStart, videoEnd } = calculateTrim(scene, video);
     */
@@ -288,10 +288,9 @@ async function loadVideo(ffmpeg: FFmpeg, scene: VideoScene, video: Video, onProg
     await ffmpeg.exec([
         '-i', videoName,
         '-filter_complex',
-        fc.scale({
+        fc.scaleToWidth({
             input: ['0:v'],
             width: roundToEven(videoWidth),
-            height: roundToEven(videoHeight)
         }),
         /*
         // When I trim the video, there may be some missing frames
@@ -305,7 +304,7 @@ async function loadVideo(ffmpeg: FFmpeg, scene: VideoScene, video: Video, onProg
         prerenderedVideoName
     ]);
 
-    ffmpeg.deleteFile(videoName);
+    await ffmpeg.deleteFile(videoName);
     return prerenderedVideoName;
 }
 

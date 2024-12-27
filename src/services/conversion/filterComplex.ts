@@ -12,7 +12,12 @@ type TrimAndTpadFilterParams = {
 
 type ScaleFilterParams = {
     width: number,
-    height: number
+    height: number,
+    ignoreOriginalAspectRatio?: boolean,
+} & FilterParams
+
+type ScaleToWidthFilterParams = {
+    width: number,
 } & FilterParams
 
 type PadFilterParams = {
@@ -48,9 +53,20 @@ export function trimAndTpad(params: TrimAndTpadFilterParams) {
 }
 
 export function scale(params: ScaleFilterParams) {
+    const forceAspectRatio = params.ignoreOriginalAspectRatio ?
+        '' :
+        `:force_original_aspect_ratio=decrease:flags=lanczos,pad=${params.width}:${params.height}:(((ow-iw)/2)):(((oh-ih)/2))`;
+
     return composeFilter(
         params,
-        `scale=w=${params.width}:h=${params.height}:force_original_aspect_ratio=decrease:flags=lanczos`
+        `scale=w=${params.width}:h=${params.height}${forceAspectRatio}`
+    );
+}
+
+export function scaleToWidth(params: ScaleToWidthFilterParams) {
+    return composeFilter(
+        params,
+        `scale=${params.width}:trunc(ow/a/2)*2`
     );
 }
 
