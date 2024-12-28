@@ -122,8 +122,11 @@ export default function useConvert(
     };
 }
 
-async function loadFFmpeg(ffmpeg: FFmpeg, localSource?: boolean) {
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm'
+async function loadFFmpeg(ffmpeg: FFmpeg, localSource?: boolean, useMultiThreading: boolean = false) {
+    // There are problems with the multithreading: https://github.com/ffmpegwasm/ffmpeg.wasm/issues/597
+    const packageName = useMultiThreading ? 'core-mt' : 'core';
+    const packageVersion = useMultiThreading ? '0.12.6' : '0.12.6';
+    const baseURL = `https://unpkg.com/@ffmpeg/${packageName}@${packageVersion}/dist/esm`;
     const coreURL = localSource ? `${ffmpegCoreJsUrl}.gz` : `${baseURL}/ffmpeg-core.js`;
     const wasmURL = localSource ? `${ffmpegCoreWasmUrl}.gz` : `${baseURL}/ffmpeg-core.wasm`;
 
@@ -132,5 +135,6 @@ async function loadFFmpeg(ffmpeg: FFmpeg, localSource?: boolean) {
     await ffmpeg.load({
         coreURL: await toBlobURL(coreURL, 'text/javascript'),
         wasmURL: await toBlobURL(wasmURL, 'application/wasm'),
+        workerURL: useMultiThreading ? await toBlobURL(`${baseURL}/ffmpeg-core.worker.js`, 'text/javascript') : undefined,
     });
 }
