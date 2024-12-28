@@ -1,14 +1,12 @@
 import Input, { InputVariant } from './Input'
 
-type NumberInputProps = {
+export default function NumberInput({ unit, ...rest }: {
     label?: string,
     unit?: string,
     inputClassName?: string,
     className?: string,
     variant?: InputVariant
-} & React.InputHTMLAttributes<HTMLInputElement>
-
-export default function NumberInput({ unit, ...rest }: NumberInputProps) {
+} & React.InputHTMLAttributes<HTMLInputElement>) {
     return (
         <Input
             {...rest}

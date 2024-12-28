@@ -6,29 +6,27 @@ import ImageFileSelection from '../ImageFileSelection'
 import BackgroundPreview from './BackgroundPreview'
 import BackgroundsList from './BackgroundsList'
 
-type ImagePickerProps = {
+export default function ImagePicker(props: {
     currentBackground: ImageBackground,
     onPick: (background: Background) => void,
-}
-
-export default function ImagePicker({ currentBackground, onPick }: ImagePickerProps) {
+}) {
     return (
         <div
             className='flex flex-col gap-3'>
             <ImageFileSelection
                 file={null}
-                onFileSelect={(file) => file && onPick(createImageBackground(URL.createObjectURL(file), currentBackground.aspectFill))}/>
+                onFileSelect={(file) => file && props.onPick(createImageBackground(URL.createObjectURL(file), props.currentBackground.aspectFill))} />
             <BackgroundPreview
                 canvasSize={1000}
-                background={currentBackground} />
+                background={props.currentBackground} />
 
             <div>
                 <CheckInput
                     id='aspect-fill-checkbox'
                     className='rounded'
                     type='checkbox'
-                    checked={currentBackground.aspectFill}
-                    onChange={(e) => onPick(createImageBackground(currentBackground.image, e.currentTarget.checked))} />
+                    checked={props.currentBackground.aspectFill}
+                    onChange={(e) => props.onPick(createImageBackground(props.currentBackground.image, e.currentTarget.checked))} />
                 <CheckInputLabel htmlFor='aspect-fill-checkbox' className='pl-3'>Keep aspect ratio</CheckInputLabel>
             </div>
 
@@ -36,8 +34,8 @@ export default function ImagePicker({ currentBackground, onPick }: ImagePickerPr
                 backgrounds={[]}
                 predefinedBackgrounds={getPredefinedBackgrounds()}
                 backgroundsEqual={imageBackgroundsEqual}
-                currentBackground={currentBackground}
-                onPick={onPick}/>
+                currentBackground={props.currentBackground}
+                onPick={props.onPick} />
             
             <span
                 className='self-end text-xs text-on-surface-container-muted'>

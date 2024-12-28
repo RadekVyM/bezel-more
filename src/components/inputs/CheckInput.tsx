@@ -1,10 +1,8 @@
 import { cn } from '../../utils/tailwind'
 
-type CheckInputProps = {
+export default function CheckInput({ className, ...props }: {
     className?: string
-} & React.InputHTMLAttributes<HTMLInputElement>
-
-export default function CheckInput({ className, ...props }: CheckInputProps) {
+} & React.InputHTMLAttributes<HTMLInputElement>) {
     return (
         <input
             {...props}

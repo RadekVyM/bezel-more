@@ -18,84 +18,60 @@ import { Scene } from '../../types/Scene'
 import { Medium } from '../../types/Medium'
 import { ImageScene } from '../../types/ImageScene'
 
-type ScenePreviewerProps = {
+export default function ScenePreviewer(props: {
     scene: Scene,
     className?: string,
     updateVideo: (index: number, video: Partial<Video>) => void,
     updateScene: (scene: Partial<Scene>) => void,
-}
-
-type PreviewPlayerProps = {
-    scene: VideoScene,
-    className?: string,
-    updateVideo: (index: number, video: Partial<Video>) => void,
-    updateScene: (scene: Partial<VideoScene>) => void,
-}
-
-type ImagePreviewProps = {
-    scene: ImageScene,
-    className?: string,
-}
-
-type PreviewCanvasProps = {
-    scene: Scene,
-    currentTime: number,
-    className?: string,
-}
-
-type VideoControlsProps = {
-    className?: string,
-    scene: VideoScene,
-    currentTime: number,
-    isPlaying: boolean,
-    loop: boolean,
-    play: () => void,
-    pause: () => void,
-    reset: () => void,
-    switchLoop: () => void
-}
-
-export default function ScenePreviewer({ scene, className, updateScene, updateVideo }: ScenePreviewerProps) {
-    return scene.media.every((v) => v.file) ?
-        (scene.sceneType === 'video' ?
+}) {
+    return props.scene.media.every((v) => v.file) ?
+        (props.scene.sceneType === 'video' ?
             <PreviewPlayer
-                scene={scene}
-                className={className}
-                updateScene={updateScene}
-                updateVideo={updateVideo} /> :
+                scene={props.scene}
+                className={props.className}
+                updateScene={props.updateScene}
+                updateVideo={props.updateVideo} /> :
                 <ImagePreview
-                    scene={scene}
-                    className={className} />) :
+                    scene={props.scene}
+                    className={props.className} />) :
         <Container
-            className={cn('flex flex-wrap gap-5 p-6 flex-col @2xl:flex-row', className)}>
-            {(scene.media as (Array<Medium>)).map((medium, index) => 
+            className={cn('flex flex-wrap gap-5 p-6 flex-col @2xl:flex-row', props.className)}>
+            {(props.scene.media as (Array<Medium>)).map((medium, index) => 
                 <LargeVideoFileSelection
                     key={medium.index}
                     className='flex-1'
-                    label={`Choose ${medium.mediumType} file${scene.media.length > 1 ? ` #${index + 1}` : ''}`}
+                    label={`Choose ${medium.mediumType} file${props.scene.media.length > 1 ? ` #${index + 1}` : ''}`}
                     file={medium.file}
                     mediumType={medium.mediumType}
                     onFileSelect={(file) => {
                         if (file) {
-                            updateVideo(medium.index, { file });
+                            props.updateVideo(medium.index, { file });
                         }
                     }} />)}
         </Container>
 }
 
-function ImagePreview({ scene, className }: ImagePreviewProps) {
+function ImagePreview(props: {
+    scene: ImageScene,
+    className?: string,
+}) {
     return (
         <Container
-            className={cn('p-6', className)}>
+            className={cn('p-6', props.className)}>
             <PreviewCanvas
                 className='relative overflow-hidden'
                 currentTime={0}
-                scene={scene} />
+                scene={props.scene} />
         </Container>
     )
 }
 
-function PreviewPlayer({ className, scene, updateScene, updateVideo }: PreviewPlayerProps) {
+function PreviewPlayer(props: {
+    scene: VideoScene,
+    className?: string,
+    updateVideo: (index: number, video: Partial<Video>) => void,
+    updateScene: (scene: Partial<VideoScene>) => void,
+}) {
     const videoFiles = useRef<Array<File | undefined | null> | null>(null);
     const {
         currentTime,
@@ -106,39 +82,39 @@ function PreviewPlayer({ className, scene, updateScene, updateVideo }: PreviewPl
         reset,
         seek,
         setLoop
-    } = useTimeline(scene);
+    } = useTimeline(props.scene);
 
     useEffect(() => {
         let changed = false;
 
         if (videoFiles.current) {
-            if (videoFiles.current.length !== scene.media.length) {
+            if (videoFiles.current.length !== props.scene.media.length) {
                 changed = true;
             }
             else {
-                changed = videoFiles.current.some((v, i) => v !== scene.media[i].file);
+                changed = videoFiles.current.some((v, i) => v !== props.scene.media[i].file);
             }
         }
 
-        videoFiles.current = scene.media.map((v) => v.file);
+        videoFiles.current = props.scene.media.map((v) => v.file);
 
         if (changed) {
             pause();
             reset();
         }
-    }, [scene, reset, pause]);
+    }, [props.scene, reset, pause]);
 
     return (
         <div
-            className={cn('grid grid-rows-[1fr_auto] gap-3', className)}>
+            className={cn('grid grid-rows-[1fr_auto] gap-3', props.className)}>
             <Container
                 className='grid grid-rows-[1fr_auto] gap-6 p-5 pb-4 relative overflow-hidden'>
                 <PreviewCanvas
                     className='relative overflow-hidden'
                     currentTime={currentTime}
-                    scene={scene} />
+                    scene={props.scene} />
                 <VideoControls
-                    scene={scene}
+                    scene={props.scene}
                     isPlaying={isPlaying}
                     currentTime={currentTime}
                     play={play}
@@ -150,42 +126,52 @@ function PreviewPlayer({ className, scene, updateScene, updateVideo }: PreviewPl
             <Container>
                 <SceneTimeline
                     className='px-1'
-                    scene={scene}
+                    scene={props.scene}
                     currentTime={currentTime}
                     seek={seek}
-                    updateScene={updateScene}
-                    updateVideo={updateVideo}  />
+                    updateScene={props.updateScene}
+                    updateVideo={props.updateVideo}  />
             </Container>
         </div>
     )
 }
 
-function VideoControls({ className, scene, currentTime, isPlaying, loop, play, pause, reset, switchLoop }: VideoControlsProps) {
-    const totalDuration = getTotalSceneDuration(scene);
+function VideoControls(props: {
+    className?: string,
+    scene: VideoScene,
+    currentTime: number,
+    isPlaying: boolean,
+    loop: boolean,
+    play: () => void,
+    pause: () => void,
+    reset: () => void,
+    switchLoop: () => void
+}) {
+    const totalDuration = getTotalSceneDuration(props.scene);
 
     function onPlayClick() {
-        if (isPlaying) {
-            pause();
+        if (props.isPlaying) {
+            props.pause();
         }
         else {
-            if (currentTime >= scene.endTime) {
-                reset();
+            if (props.currentTime >= props.scene.endTime) {
+                props.reset();
             }
-            play();
+            props.play();
         }
     }
 
     return (
         <div
-            className={cn(className, 'grid gap-3 grid-cols-2')}>
+            className={cn(props.className, 'grid gap-3 grid-cols-2')}>
             <div
                 className='flex gap-3 self-center justify-self-end'>
                 <Button
                     className='px-0 py-1 w-10'
-                    onClick={switchLoop}
+                    onClick={props.switchLoop}
                     title='Loop'>
                     {
-                        loop ?
+                        props.loop ?
                             <TiArrowLoop className='w-6 h-6 mx-auto' /> :
                             <TiArrowRight className='w-6 h-6 mx-auto' />
                     }
@@ -194,19 +180,23 @@ function VideoControls({ className, scene, currentTime, isPlaying, loop, play, p
                     className='px-0 py-1 w-10'
                     onClick={onPlayClick}
                     title='Play/Pause'>
-                    {isPlaying ? <FaPause className='mx-auto' /> : <FaPlay className='mx-auto' />}
+                    {props.isPlaying ? <FaPause className='mx-auto' /> : <FaPlay className='mx-auto' />}
                 </Button>
             </div>
-            <span className='self-center'>{currentTime.toFixed(2)} / {totalDuration.toFixed(2)}</span>
+            <span className='self-center'>{props.currentTime.toFixed(2)} / {totalDuration.toFixed(2)}</span>
         </div>
     )
 }
 
-function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
+function PreviewCanvas(props: {
+    scene: Scene,
+    currentTime: number,
+    className?: string,
+}) {
     const fps = 30;
     const previousRenderRef = useRef<number>(0);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
-    const bezelImagesRef = useBezelImages(scene, () => render());
+    const bezelImagesRef = useBezelImages(props.scene, () => render());
 
     const render = useCallback(() => {
         if (!canvasRef.current) {
@@ -220,7 +210,7 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
         }
 
         const ratio = Math.ceil(window?.devicePixelRatio || 1);
-        const sceneSize = getSceneSize(scene);
+        const sceneSize = getSceneSize(props.scene);
         const shouldScale = !(sceneSize.width * ratio <= canvasRef.current.width && sceneSize.height * ratio <= canvasRef.current.height);
         const scale = shouldScale ?
             Math.min(canvasRef.current.width / sceneSize.width, canvasRef.current.height / sceneSize.height) :
@@ -233,7 +223,7 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
         context.globalCompositeOperation = 'source-over';
         context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-        drawMedia(context, scene, bezelImagesRef.current, left, top, sceneWidth, sceneHeight, scale,
+        drawMedia(context, props.scene, bezelImagesRef.current, left, top, sceneWidth, sceneHeight, scale,
             (context, drawableMedium, x, y, width, height) => {
                 const medium = drawableMedium as Medium;
                 
@@ -246,35 +236,35 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
             });
 
         context.globalCompositeOperation ='destination-over';
-        drawSceneBackground(context, scene, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImagesRef.current.map((bi) => bi.maskImage));
-    }, [scene]);
+        drawSceneBackground(context, props.scene, left, top, { width: sceneWidth, height: sceneHeight }, true, bezelImagesRef.current.map((bi) => bi.maskImage));
+    }, [props.scene]);
 
     useEffect(() => {
         const onLoadListener = () => render();
 
         // This is a bit hacky solution, but I guess... who cares...
-        if (scene.sceneType === 'video') {
-            scene.media.forEach((v) => {
+        if (props.scene.sceneType === 'video') {
+            props.scene.media.forEach((v) => {
                 v.htmlVideo.ontimeupdate = () => render();
                 v.htmlVideo.addEventListener('loadeddata', onLoadListener);
             });
         }
         else {
-            scene.media.forEach((i) => i.htmlImage.addEventListener('load', onLoadListener));
+            props.scene.media.forEach((i) => i.htmlImage.addEventListener('load', onLoadListener));
         }
 
         return () => {
-            if (scene.sceneType === 'video') {
-                scene.media.forEach((v) => {
+            if (props.scene.sceneType === 'video') {
+                props.scene.media.forEach((v) => {
                     v.htmlVideo.ontimeupdate = null;
                     v.htmlVideo.removeEventListener('loadeddata', onLoadListener);
                 });
             }
             else {
-                scene.media.forEach((i) => i.htmlImage.removeEventListener('load', onLoadListener));
+                props.scene.media.forEach((i) => i.htmlImage.removeEventListener('load', onLoadListener));
             }
         };
-    }, [scene.media, scene.sceneType, render]);
+    }, [props.scene.media, props.scene.sceneType, render]);
 
     useEffect(() => {
         const now = new Date().getTime();
@@ -283,11 +273,11 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
             render();
             previousRenderRef.current = now;
         }
-    }, [currentTime, render]);
+    }, [props.currentTime, render]);
 
     useEffect(() => {
         render();
-    }, [scene]);
+    }, [props.scene]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -300,7 +290,7 @@ function PreviewCanvas({ scene, currentTime, className }: PreviewCanvasProps) {
     return (
         <Canvas
             ref={canvasRef}
-            className={className}
+            className={props.className}
             onDimensionsChanges={render} />
     )
 }

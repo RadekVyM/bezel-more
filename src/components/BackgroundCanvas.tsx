@@ -2,14 +2,12 @@ import { useEffect, useRef } from 'react'
 import { Background } from '../types/Background'
 import { drawBackground } from '../services/drawing/background'
 
-type BackgroundCanvasProps = {
+export default function BackgroundCanvas(props: {
     background: Background,
     canvasSize?: number,
     className?: string
-}
-
-export default function BackgroundCanvas({ background, className, canvasSize }: BackgroundCanvasProps) {
-    const size = canvasSize || 100;
+}) {
+    const size = props.canvasSize || 100;
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -17,14 +15,14 @@ export default function BackgroundCanvas({ background, className, canvasSize }: 
 
         if (canvasRef.current && context) {
             context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            drawBackground(context, background, 0, 0, { width: size, height: size });
+            drawBackground(context, props.background, 0, 0, { width: size, height: size });
         }
-    }, [background, size]);
+    }, [props.background, size]);
 
     return (
         <canvas
             ref={canvasRef}
-            className={className}
+            className={props.className}
             height={size}
             width={size}/>
     )

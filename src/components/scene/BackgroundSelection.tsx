@@ -1,22 +1,19 @@
-import { cn } from '../../utils/tailwind'
 import Button from '../inputs/Button'
 import useContentDialog from '../../hooks/useContentDialog'
 import BackgroundCanvas from '../BackgroundCanvas'
 import BackgroundPickerDialog from '../inputs/BackgroundPickerDialog'
 import { Scene } from '../../types/Scene'
 
-type BackgroundSelectionProps = {
+export default function BackgroundSelection(props: {
     scene: Scene,
     updateScene: (scene: Partial<Scene>) => void,
     className?: string
-}
-
-export default function BackgroundSelection({ scene, className, updateScene }: BackgroundSelectionProps) {
+}) {
     const backgroundDialogState = useContentDialog(true);
 
     return (
         <div
-            className={cn(className)}
+            className={props.className}
             role='radiogroup'
             aria-labelledby='background-selection-legend'>
             <label htmlFor='background-selection' className='block text-sm font-medium mb-2 select-none w-fit'>Background</label>
@@ -27,14 +24,14 @@ export default function BackgroundSelection({ scene, className, updateScene }: B
                 onClick={backgroundDialogState.show}>
                 <BackgroundCanvas
                     className='w-8 h-8 checkered rounded-md border border-outline overflow-hidden'
-                    background={scene.background}/>
+                    background={props.scene.background}/>
             </Button>
 
             <BackgroundPickerDialog
                 ref={backgroundDialogState.dialogRef}
-                currentBackground={scene.background}
+                currentBackground={props.scene.background}
                 state={backgroundDialogState}
-                onPick={(background) => updateScene({ background: { ...background } })} />
+                onPick={(background) => props.updateScene({ background: { ...background } })} />
         </div>
     )
 }

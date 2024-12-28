@@ -35,39 +35,6 @@ import { Scene } from './types/Scene'
 import { Medium } from './types/Medium'
 import { FaRegImage } from 'react-icons/fa'
 
-type EditProps = {
-    scene: Scene,
-    resetValue?: any,
-    updateScene: (scene: Partial<Scene>) => void,
-    updateMedium: (index: number, medium: Partial<Medium>) => void,
-}
-
-type EditSceneProps = {
-    scene: Scene,
-    updateScene: (scene: Partial<Scene>) => void,
-}
-
-type EditMediumProps = {
-    medium: Medium,
-    onFileSelected: (file: File | null | undefined) => void,
-    updateMedium: (medium: Partial<Medium>) => void,
-}
-
-type ConvertProps = {
-    scene: Scene,
-    converting: boolean,
-    canConvert?: boolean,
-    convert: () => Promise<void>,
-    updateScene: (scene: Partial<Scene>) => void,
-}
-
-type ConvertButtonProps = {
-    convert: () => void,
-    disabled: boolean,
-    converting: boolean,
-    className?: string
-}
-
 export default function App() {
     return (
         <MainContent />
@@ -128,7 +95,12 @@ function MainContent() {
     )
 }
 
-function Edit({ scene, resetValue, updateScene, updateMedium }: EditProps) {
+function Edit(props: {
+    scene: Scene,
+    resetValue?: any,
+    updateScene: (scene: Partial<Scene>) => void,
+    updateMedium: (index: number, medium: Partial<Medium>) => void,
+}) {
     const [selection, setSelection] = useState<string>('scene');
     const isLarge = useIsLarge();
 
@@ -138,16 +110,16 @@ function Edit({ scene, resetValue, updateScene, updateMedium }: EditProps) {
             {[
                 <EditScene
                     key='scene'
-                    scene={scene}
-                    updateScene={updateScene} />,
-                ...(scene.media as Array<Medium>).map((medium, index) => 
+                    scene={props.scene}
+                    updateScene={props.updateScene} />,
+                ...(props.scene.media as Array<Medium>).map((medium, index) => 
                     <EditMedium
                         key={`medium-${index}`}
-                        updateMedium={(update) => updateMedium(medium.index, update)}
+                        updateMedium={(update) => props.updateMedium(medium.index, update)}
                         medium={medium}
                         onFileSelected={(file) => {
                             if (file) {
-                                updateMedium(medium.index, { file });
+                                props.updateMedium(medium.index, { file });
                             }
                         }} />)
             ]}
@@ -156,7 +128,7 @@ function Edit({ scene, resetValue, updateScene, updateMedium }: EditProps) {
 
     useEffect(() => {
         setSelection('scene');
-    }, [resetValue]);
+    }, [props.resetValue]);
 
     return (
         <div
@@ -164,10 +136,10 @@ function Edit({ scene, resetValue, updateScene, updateMedium }: EditProps) {
             <Tabs
                 tabs={[
                     { key: 'scene', title: 'Scene', icon: <BiMoviePlay className='w-5 h-5' />, onClick: () => setSelection('scene') },
-                    ...(scene.media as Array<Medium>).map((medium, index) =>
+                    ...(props.scene.media as Array<Medium>).map((medium, index) =>
                         ({
                             key: `medium-${index}`,
-                            title: scene.media.length > 1 ? `${getMediumTabTitle(medium)} #${index + 1}` : getMediumTabTitle(medium),
+                            title: props.scene.media.length > 1 ? `${getMediumTabTitle(medium)} #${index + 1}` : getMediumTabTitle(medium),
                             icon: medium.mediumType === 'video' ? <TbVideo className='w-5 h-5' /> : <FaRegImage className='w-5 h-5' />,
                             onClick: () => setSelection(`medium-${index}`)
                         }))
@@ -184,7 +156,10 @@ function Edit({ scene, resetValue, updateScene, updateMedium }: EditProps) {
     )
 }
 
-function EditScene({ scene, updateScene }: EditSceneProps) {
+function EditScene(props: {
+    scene: Scene,
+    updateScene: (scene: Partial<Scene>) => void,
+}) {
     const isLarge = useIsLarge();
 
     return (
@@ -193,85 +168,95 @@ function EditScene({ scene, updateScene }: EditSceneProps) {
             <div>
                 {isLarge && <SectionHeading>Edit scene</SectionHeading>}
                 <BackgroundSelection
-                    scene={scene}
-                    updateScene={updateScene}/>
+                    scene={props.scene}
+                    updateScene={props.updateScene}/>
             </div>
-            {scene.sceneType === 'video' &&
+            {props.scene.sceneType === 'video' &&
                 <div>
                     {<SubsectionHeading>Trim scene</SubsectionHeading>}
                     <SceneTrimConfiguration
-                        scene={scene}
-                        updateScene={updateScene}/>
+                        scene={props.scene}
+                        updateScene={props.updateScene}/>
                 </div>}
             <div>
                 {<SubsectionHeading>Scene layout</SubsectionHeading>}
 
                 <SceneSizeConfiguration
                     className='mb-4'
-                    scene={scene}
-                    updateScene={updateScene}/>
+                    scene={props.scene}
+                    updateScene={props.updateScene}/>
 
                 <SceneAspectRatioSelection
-                    scene={scene}
-                    updateScene={updateScene}/>
+                    scene={props.scene}
+                    updateScene={props.updateScene}/>
             </div>
         </article>
     )
 }
 
-function EditMedium({ medium, updateMedium, onFileSelected }: EditMediumProps) {
+function EditMedium(props: {
+    medium: Medium,
+    onFileSelected: (file: File | null | undefined) => void,
+    updateMedium: (medium: Partial<Medium>) => void,
+}) {
     const isLarge = useIsLarge();
 
     return (
         <article
             className='flex flex-col gap-6'>
             <div>
-                {isLarge && <SectionHeading>{`Edit ${medium.mediumType}`}</SectionHeading>}
+                {isLarge && <SectionHeading>{`Edit ${props.medium.mediumType}`}</SectionHeading>}
                 <MediumFileSelection
-                    mediumType={medium.mediumType}
-                    file={medium.file}
-                    onFileSelect={onFileSelected} />
+                    mediumType={props.medium.mediumType}
+                    file={props.medium.file}
+                    onFileSelect={props.onFileSelected} />
             </div>
             <div>
                 <MediumSizeConfiguration
-                    medium={medium}
-                    updateMedium={updateMedium}/>
+                    medium={props.medium}
+                    updateMedium={props.updateMedium}/>
             </div>
-            {medium.mediumType === 'video' &&
+            {props.medium.mediumType === 'video' &&
                 <div>
                     <SubsectionHeading>Trim video</SubsectionHeading>
                     <VideoTrimConfiguration
-                        video={medium}
-                        updateVideo={updateMedium}/>
+                        video={props.medium}
+                        updateVideo={props.updateMedium}/>
                 </div>}
             <div>
                 <SubsectionHeading>Shadow</SubsectionHeading>
                 <MediumShadowConfiguration
-                    medium={medium}
-                    updateMedium={updateMedium}/>
+                    medium={props.medium}
+                    updateMedium={props.updateMedium}/>
             </div>
             <div>
                 <SubsectionHeading>Bezels</SubsectionHeading>
                 <BezelSelection
-                    medium={medium}
-                    updateMedium={updateMedium} />
+                    medium={props.medium}
+                    updateMedium={props.updateMedium} />
             </div>
         </article>
     )
 }
 
-function Convert({ scene, canConvert, converting, convert, updateScene }: ConvertProps) {
+function Convert(props: {
+    scene: Scene,
+    converting: boolean,
+    canConvert?: boolean,
+    convert: () => Promise<void>,
+    updateScene: (scene: Partial<Scene>) => void,
+}) {
     return (
         <div
             className='flex-1 flex flex-col'>
             <ConversionConfiguration
-                scene={scene}
-                updateScene={updateScene} />
+                scene={props.scene}
+                updateScene={props.updateScene} />
 
             <ConvertButton
-                convert={convert}
-                disabled={converting || !canConvert}
-                converting={converting}
+                convert={props.convert}
+                disabled={props.converting || !props.canConvert}
+                converting={props.converting}
                 className='mt-7 py-3' />
             
             <div
@@ -285,14 +270,19 @@ function Convert({ scene, canConvert, converting, convert, updateScene }: Conver
     )
 }
 
-function ConvertButton({ convert, disabled, converting, className }: ConvertButtonProps) {
+function ConvertButton(props: {
+    convert: () => void,
+    disabled: boolean,
+    converting: boolean,
+    className?: string
+}) {
     return (
         <Button
-            className={cn('flex items-center', className)}
-            onClick={convert}
-            disabled={disabled}>
+            className={cn('flex items-center', props.className)}
+            onClick={props.convert}
+            disabled={props.disabled}>
             {
-                !converting ?
+                !props.converting ?
                     <RiLoopLeftLine className='inline-block w-4 h-4' /> :
                     <Loading />
             }

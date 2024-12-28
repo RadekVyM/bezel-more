@@ -20,22 +20,6 @@ type NewProjectDialogProps = {
     onProjectConfigSelected: (config: ProjectConfig) => void,
 } & DialogProps
 
-type TemplateButtonProps = {
-    sceneTemplate: VideoSceneTemplate | ImageSceneTemplate,
-    className?: string,
-    onClick: (sceneTemplate: VideoSceneTemplate | ImageSceneTemplate) => void
-}
-
-type TemplatePreviewProps = {
-    sceneTemplate: SceneTemplate,
-    className?: string
-}
-
-type TemplatesContainerProps = {
-    className?: string,
-    children: React.ReactNode
-}
-
 export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogProps>(({ currentScene, className, state, onProjectConfigSelected }, ref) => {
     const { sceneTemplates, addSceneTemplate, removeSceneTemplate } = useSceneTemplates();
     const [newTemplateTitle, setNewTemplateTitle] = useState('');
@@ -121,24 +105,31 @@ export const NewProjectDialog = forwardRef<HTMLDialogElement, NewProjectDialogPr
     )
 });
 
-function TemplateButton({ className, sceneTemplate, onClick }: TemplateButtonProps) {
+function TemplateButton(props: {
+    sceneTemplate: VideoSceneTemplate | ImageSceneTemplate,
+    className?: string,
+    onClick: (sceneTemplate: VideoSceneTemplate | ImageSceneTemplate) => void
+}) {
     return (
         <Button
-            className={cn('grid grid-rows-[8rem_auto] p-5 gap-4 h-fit justify-stretch', className)}
-            onClick={() => onClick(sceneTemplate)}>
+            className={cn('grid grid-rows-[8rem_auto] p-5 gap-4 h-fit justify-stretch', props.className)}
+            onClick={() => props.onClick(props.sceneTemplate)}>
             <TemplatePreview
                 className='w-full'
-                sceneTemplate={sceneTemplate} />
-            {sceneTemplate.title}
+                sceneTemplate={props.sceneTemplate} />
+            {props.sceneTemplate.title}
         </Button>
     )
 }
 
-function TemplatePreview({ sceneTemplate, className }: TemplatePreviewProps) {
+function TemplatePreview(props: {
+    sceneTemplate: SceneTemplate,
+    className?: string
+}) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const bezelImagesRef = useBezelImages(sceneTemplate, render, true);
+    const bezelImagesRef = useBezelImages(props.sceneTemplate, render, true);
 
-    useEffect(() => render(), [sceneTemplate]);
+    useEffect(() => render(), [props.sceneTemplate]);
 
     function render() {
         const canvas = canvasRef.current;
@@ -149,22 +140,25 @@ function TemplatePreview({ sceneTemplate, className }: TemplatePreviewProps) {
         }
 
         context.imageSmoothingEnabled = true;
-        drawSceneTemplate(context, sceneTemplate, bezelImagesRef.current, { width: canvas.width, height: canvas.height });
+        drawSceneTemplate(context, props.sceneTemplate, bezelImagesRef.current, { width: canvas.width, height: canvas.height });
     }
     
     return (
         <Canvas
             ref={canvasRef}
-            className={className}
+            className={props.className}
             onDimensionsChanges={render} />
     )
 }
 
-function TemplatesContainer({ className, children }: TemplatesContainerProps) {
+function TemplatesContainer(props: {
+    className?: string,
+    children: React.ReactNode
+}) {
     return (
         <div
-            className={cn('grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] grid-rows-[auto] gap-3', className)}>
-            {children}
+            className={cn('grid grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] grid-rows-[auto] gap-3', props.className)}>
+            {props.children}
         </div>
     )
 }

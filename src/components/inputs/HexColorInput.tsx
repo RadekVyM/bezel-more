@@ -5,31 +5,32 @@ import { useCopyToClipboard } from 'usehooks-ts'
 import Button from './Button'
 import { MdCheck, MdContentPaste, MdOutlineContentCopy } from 'react-icons/md'
 
-type HexColorInputProps = {
+const HEXA_PATTERN = /^\s*#[a-fA-F0-9]{8}\s*$/;
+const HEX_PATTERN = /^\s*#[a-fA-F0-9]{6}\s*$/;
+
+export default function HexColorInput(props: {
     className?: string,
     hexa?: boolean,
     customHexaPattern?: RegExp,
     color: HsvaColor,
     onColorChange: (newColor: HsvaColor) => void 
-}
-
-const HEXA_PATTERN = /^\s*#[a-fA-F0-9]{8}\s*$/;
-const HEX_PATTERN = /^\s*#[a-fA-F0-9]{6}\s*$/;
-
-export default function HexColorInput({ className, color, hexa, customHexaPattern, onColorChange }: HexColorInputProps) {
+}) {
     const lastValidCustomAspectRatio = useRef<HsvaColor>();
-    const colorPattern = hexa ? HEXA_PATTERN : HEX_PATTERN;
+    const colorPattern = props.hexa ? HEXA_PATTERN : HEX_PATTERN;
     const [input, setInput] = useState("#00000000");
     const [copied, setCopied] = useState(false);
     const [_, copy] = useCopyToClipboard();
 
     useEffect(() => {
-        lastValidCustomAspectRatio.current = color;
-        setInput(hexa || customHexaPattern?.test(hsvaToHexa(color)) ? hsvaToHexa(color) : hsvaToHex(color));
-    }, [color, hexa]);
+        lastValidCustomAspectRatio.current = props.color;
+        const inputValue = props.hexa || props.customHexaPattern?.test(hsvaToHexa(props.color)) ?
+            hsvaToHexa(props.color) :
+            hsvaToHex(props.color);
+        setInput(inputValue);
+    }, [props.color, props.hexa]);
 
     async function copyToClipboard() {
-        await copy(hexa ? hsvaToHexa(color) : hsvaToHex(color));
+        await copy(props.hexa ? hsvaToHexa(props.color) : hsvaToHex(props.color));
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
     }
@@ -37,36 +38,36 @@ export default function HexColorInput({ className, color, hexa, customHexaPatter
     async function pasteFromClipboard() {
         const copiedText = await navigator.clipboard.readText();
 
-        const newColor = customHexaPattern?.test(copiedText) || colorPattern.test(copiedText) ?
+        const newColor = props.customHexaPattern?.test(copiedText) || colorPattern.test(copiedText) ?
             hexToHsva(copiedText.trim()) :
             HEX_PATTERN.test(copiedText) ?
                 { ...hexToHsva(copiedText.trim()), a: 1 } :
                 undefined;
 
         if (newColor) {
-            onColorChange(newColor);
+            props.onColorChange(newColor);
         }
     }
 
     return (
         <div
-            className={cn('flex gap-2', className)}>
+            className={cn('flex gap-2', props.className)}>
             <input
                 className='flex-1 w-full border border-outline rounded-md bg-surface-container text-on-surface-container disabled:text-on-surface-muted text-sm px-2 py-1.5'
-                placeholder={hexa ? 'HEXA' : 'HEX'}
+                placeholder={props.hexa ? 'HEXA' : 'HEX'}
                 value={input}
                 onChange={(e) => {
                     const value = e.target.value;
 
-                    if (customHexaPattern?.test(value) || colorPattern.test(value)) {
+                    if (props.customHexaPattern?.test(value) || colorPattern.test(value)) {
                         const newColor = hexToHsva(value.trim());
                         lastValidCustomAspectRatio.current = newColor;
-                        onColorChange(newColor);
+                        props.onColorChange(newColor);
                     }
 
                     setInput(value);
                 }}
-                onBlur={() => lastValidCustomAspectRatio.current && onColorChange(lastValidCustomAspectRatio.current) } />
+                onBlur={() => lastValidCustomAspectRatio.current && props.onColorChange(lastValidCustomAspectRatio.current) } />
 
             <Button
                 title='Copy'

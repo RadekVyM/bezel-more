@@ -13,30 +13,30 @@ type LargeVideoFileSelectionProps = {
     label: string
 } & MediumFileSelectionProps
 
-export function MediumFileSelection({ className, file, mediumType, onFileSelect }: MediumFileSelectionProps) {
+export function MediumFileSelection(props: MediumFileSelectionProps) {
     return (
         <FileSelection
-            className={className}
-            onFileSelect={onFileSelect}
-            accept={getAcceptString(mediumType)}
-            fileType={getFileTypeString(mediumType)}>
+            className={props.className}
+            onFileSelect={props.onFileSelect}
+            accept={getAcceptString(props.mediumType)}
+            fileType={getFileTypeString(props.mediumType)}>
             <LuFileVideo
                 className='w-4 h-4'/>
-            {file?.name || 'Choose file'}
+            {props.file?.name || 'Choose file'}
         </FileSelection>
     )
 }
 
-export function LargeVideoFileSelection({ className, file, label, mediumType, onFileSelect }: LargeVideoFileSelectionProps) {
+export function LargeVideoFileSelection(props: LargeVideoFileSelectionProps) {
     return (
         <FileSelection
-            className={cn('grid-flow-row justify-items-center gap-y-4 p-12 border-dashed text-on-surface-container-muted hover:text-on-surface-container-muted', className)}
-            onFileSelect={onFileSelect}
-            accept={getAcceptString(mediumType)}
-            fileType={getFileTypeString(mediumType)}>
+            className={cn('grid-flow-row justify-items-center gap-y-4 p-12 border-dashed text-on-surface-container-muted hover:text-on-surface-container-muted', props.className)}
+            onFileSelect={props.onFileSelect}
+            accept={getAcceptString(props.mediumType)}
+            fileType={getFileTypeString(props.mediumType)}>
             <LuFileVideo
                 className='w-10 h-10'/>
-            <span className='font-semibold'>{file?.name || label}</span>
+            <span className='font-semibold'>{props.file?.name || props.label}</span>
         </FileSelection>
     )
 }

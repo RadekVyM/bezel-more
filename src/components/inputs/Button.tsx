@@ -1,13 +1,11 @@
 import { cn } from '../../utils/tailwind'
 
-type ButtonProps = {
+export default function Button({ children, className, href, download, ...rest }: {
     children: React.ReactNode,
     className?: string,
     href?: string,
     download?: string,
-} & React.ButtonHTMLAttributes<HTMLButtonElement>
-
-export default function Button({ children, className, href, download, ...rest }: ButtonProps) {
+} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
     const styling = `
         rounded-md text-sm font-semibold px-4 py-2 box-border
         grid place-content-center items-center grid-flow-col

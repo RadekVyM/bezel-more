@@ -2,16 +2,14 @@ import { Video } from '../../types/Video'
 import { cn } from '../../utils/tailwind'
 import NumberInput from '../inputs/NumberInput'
 
-type VideoTrimConfigurationProps = {
+export default function VideoTrimConfiguration(props: {
     video: Video,
     updateVideo: (video: Partial<Video>) => void,
     className?: string
-}
-
-export default function VideoTrimConfiguration({ className, video, updateVideo }: VideoTrimConfigurationProps) {
+}) {
     return (
         <div
-            className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}>
+            className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', props.className)}>
             <NumberInput
                 label='Start'
                 id='start'
@@ -19,19 +17,19 @@ export default function VideoTrimConfiguration({ className, video, updateVideo }
                 inputClassName='pr-[4.5rem]'
                 step={0.1}
                 min={0}
-                max={video.totalDuration}
-                value={video.startTime}
-                onChange={(e) => updateVideo({ startTime: parseFloat(e.target.value) })} />
+                max={props.video.totalDuration}
+                value={props.video.startTime}
+                onChange={(e) => props.updateVideo({ startTime: parseFloat(e.target.value) })} />
             <NumberInput
                 label='End'
                 id='end'
                 unit='seconds'
                 inputClassName='pr-[4.5rem]'
                 step={0.1}
-                min={Math.max(video.startTime, 0)}
-                max={video.totalDuration}
-                value={video.endTime}
-                onChange={(e) => updateVideo({ endTime: parseFloat(e.target.value) })} />
+                min={Math.max(props.video.startTime, 0)}
+                max={props.video.totalDuration}
+                value={props.video.endTime}
+                onChange={(e) => props.updateVideo({ endTime: parseFloat(e.target.value) })} />
             <NumberInput
                 label='Scene offset'
                 id='scene-offset'
@@ -39,8 +37,8 @@ export default function VideoTrimConfiguration({ className, video, updateVideo }
                 inputClassName='pr-[4.5rem]'
                 step={0.1}
                 min={0}
-                value={video.sceneOffset}
-                onChange={(e) => updateVideo({ sceneOffset: parseFloat(e.target.value) })} />
+                value={props.video.sceneOffset}
+                onChange={(e) => props.updateVideo({ sceneOffset: parseFloat(e.target.value) })} />
         </div>
     )
 }

@@ -8,13 +8,11 @@ import { ColorPickerDialog } from '../inputs/ColorPickerDialog'
 import NumberInput from '../inputs/NumberInput'
 import { Medium } from '../../types/Medium'
 
-type MediumShadowConfigurationProps = {
+export default function MediumShadowConfiguration(props: {
     medium: Medium,
     updateMedium: (medium: Partial<Medium>) => void,
     className?: string
-}
-
-export default function MediumShadowConfiguration({ className, medium, updateMedium }: MediumShadowConfigurationProps) {
+}) {
     const colorDialogState = useContentDialog(true);
 
     return (
@@ -25,38 +23,38 @@ export default function MediumShadowConfiguration({ className, medium, updateMed
                     id='use-shadow-checkbox'
                     className='rounded'
                     type='checkbox'
-                    defaultChecked={medium.withShadow}
-                    onChange={(e) => updateMedium({ withShadow: e.target.checked })} />
+                    defaultChecked={props.medium.withShadow}
+                    onChange={(e) => props.updateMedium({ withShadow: e.target.checked })} />
                 <CheckInputLabel htmlFor='use-shadow-checkbox' className='pl-3'>Use shadow</CheckInputLabel>
             </div>
             <div
-                className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', className)}>
+                className={cn('grid grid-cols-1 sm:grid-cols-2 gap-4', props.className)}>
                 <NumberInput
                     label='Horizontal offset'
                     id='shadow-horizontal-offset'
                     unit='px'
                     inputClassName='pr-8'
                     step={0.1}
-                    disabled={!medium.withShadow}
-                    value={medium.shadowOffsetX}
-                    onChange={(e) => updateMedium({ shadowOffsetX: parseFloat(e.target.value) })} />
+                    disabled={!props.medium.withShadow}
+                    value={props.medium.shadowOffsetX}
+                    onChange={(e) => props.updateMedium({ shadowOffsetX: parseFloat(e.target.value) })} />
                 <NumberInput
                     label='Vertical offset'
                     id='shadow-vertical-offset'
                     unit='px'
                     inputClassName='pr-8'
                     step={0.1}
-                    disabled={!medium.withShadow}
-                    value={medium.shadowOffsetY}
-                    onChange={(e) => updateMedium({ shadowOffsetY: parseFloat(e.target.value) })} />
+                    disabled={!props.medium.withShadow}
+                    value={props.medium.shadowOffsetY}
+                    onChange={(e) => props.updateMedium({ shadowOffsetY: parseFloat(e.target.value) })} />
                 <NumberInput
                     label='Blur'
                     id='shadow-blur'
                     step={0.1}
                     min={0}
-                    disabled={!medium.withShadow}
-                    value={medium.shadowBlur}
-                    onChange={(e) => updateMedium({ shadowBlur: parseFloat(e.target.value) })} />
+                    disabled={!props.medium.withShadow}
+                    value={props.medium.shadowBlur}
+                    onChange={(e) => props.updateMedium({ shadowBlur: parseFloat(e.target.value) })} />
 
                 <div
                     className='flex flex-col'>
@@ -69,12 +67,12 @@ export default function MediumShadowConfiguration({ className, medium, updateMed
                     <Button
                         id='shadow-color-selection'
                         className='p-1.5 flex-1 place-content-stretch'
-                        disabled={!medium.withShadow}
+                        disabled={!props.medium.withShadow}
                         onClick={colorDialogState.show}>
                         <div
                             className='checkered rounded-md w-full h-full overflow-hidden min-h-7'>
                             <div
-                                style={{ background: hsvaToHexa(medium.shadowColor) }}
+                                style={{ background: hsvaToHexa(props.medium.shadowColor) }}
                                 className='w-full h-full'/>
                         </div>
                     </Button>
@@ -83,9 +81,9 @@ export default function MediumShadowConfiguration({ className, medium, updateMed
 
             <ColorPickerDialog
                 ref={colorDialogState.dialogRef}
-                color={medium.shadowColor}
+                color={props.medium.shadowColor}
                 state={colorDialogState}
-                onPick={(color) => updateMedium({ shadowColor: { ...color } })} />
+                onPick={(color) => props.updateMedium({ shadowColor: { ...color } })} />
         </>
     )
 }

@@ -83,29 +83,34 @@ function BezelCardSelection(props: {
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)} />
                 
-                <button
+                {searchTerm.trim().length > 0 && <button
                     className='px-2 text-on-surface-container hover:text-on-surface-container-muted'
                     onClick={() => setSearchTerm('')}>
                     <LuCircleX />
-                </button>
+                </button>}
             </div>
 
-            <CardSelection
-                className='grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]'
-                id='bezel-selection'
-                legend='Bezel Type'
-                items={bezels}
-                itemKey={(b) => b.key}
-                itemTitle={(b) => b.title}
-                itemContent={(b) => (
-                    <BezelThumbnail
-                        className='max-h-60 w-full h-full'
-                        bezelKey={b.key}
-                        modelKey={b.modelKey}
-                        bezelTitle={b.title} />
-                )}
-                onCardClick={(b) => props.updateMedium({ bezelKey: b.key })}
-                selectedKey={props.medium.bezelKey} />
+            {bezels.length > 0 ?
+                <CardSelection
+                    className='grid-cols-[repeat(auto-fit,minmax(12rem,1fr))]'
+                    id='bezel-selection'
+                    legend='Bezel Type'
+                    items={bezels}
+                    itemKey={(b) => b.key}
+                    itemTitle={(b) => b.title}
+                    itemContent={(b) => (
+                        <BezelThumbnail
+                            className='max-h-60 w-full h-full'
+                            bezelKey={b.key}
+                            modelKey={b.modelKey}
+                            bezelTitle={b.title} />
+                    )}
+                    onCardClick={(b) => props.updateMedium({ bezelKey: b.key })}
+                    selectedKey={props.medium.bezelKey} /> :
+                    <div
+                        className='grid place-content-center text-on-surface-muted text-sm py-10'>
+                        No bezels found
+                    </div>}
         </>
     )
 }

@@ -1,16 +1,14 @@
 import { cn } from '../../utils/tailwind'
 
-type InputProps = {
+export type InputVariant = 'default' | 'sm'
+
+export default function Input({ className, id, label, trailingContent, inputClassName, value, variant, onChange, ...rest }: {
     label?: string,
     trailingContent?: React.ReactNode,
     inputClassName?: string,
     className?: string,
     variant?: InputVariant
-} & React.InputHTMLAttributes<HTMLInputElement>
-
-export type InputVariant = 'default' | 'sm'
-
-export default function Input({ className, id, label, trailingContent, inputClassName, value, variant, onChange, ...rest }: InputProps) {
+} & React.InputHTMLAttributes<HTMLInputElement>) {
     variant = (variant || 'default') as InputVariant;
     
     return (

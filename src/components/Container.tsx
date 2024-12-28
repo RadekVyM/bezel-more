@@ -1,15 +1,13 @@
 import { cn } from '../utils/tailwind'
 
-type ContainerProps = {
+export default function Container(props: {
     children: React.ReactNode,
     className?: string
-}
-
-export default function Container({ children, className }: ContainerProps) {
+}) {
     return (
         <div
-            className={cn('border border-outline bg-surface-container rounded-md', className)}>
-            {children}
+            className={cn('border border-outline bg-surface-container rounded-md', props.className)}>
+            {props.children}
         </div>
     )
 }

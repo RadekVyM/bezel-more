@@ -7,37 +7,6 @@ import { useEventListener } from 'usehooks-ts'
 import { round } from '../../utils/numbers'
 import OutlinedText from '../OutlinedText'
 
-type SceneTimelineProps = {
-    scene: VideoScene,
-    currentTime: number,
-    className?: string,
-    seek: (newTime: number) => void,
-    updateVideo: (index: number, video: Partial<Video>) => void,
-    updateScene: (scene: Partial<VideoScene>) => void,
-}
-
-type VideoTimelineProps = {
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-    video: Video,
-    totalDuration: number,
-    displayCaption?: boolean,
-    updateVideo: (index: number, video: Partial<Video>) => void,
-}
-
-type SceneRangeProps = {
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-    sceneStart: number,
-    sceneEnd: number,
-    totalDuration: number,
-    updateScene: (scene: Partial<VideoScene>) => void,
-}
-
 type TimeAxisAndSliderProps = {
     left: number,
     top: number,
@@ -48,21 +17,6 @@ type TimeAxisAndSliderProps = {
     currentTime: number,
     seek: (newTime: number) => void
 }
-
-type TimeAxisProps = {
-    left: number,
-    top: number,
-    width: number,
-    height: number,
-    totalDuration: number,
-    minTicksDistance: number,
-}
-
-type SliderProps = { } & TimeAxisAndSliderProps
-
-type TimeProps = {
-    time: number
-} & React.SVGTextElementAttributes<SVGTextElement>
 
 const MINUTE = 60;
 const HOUR = MINUTE * 60;
@@ -84,7 +38,14 @@ const HIGHLIGHTED_TICKS_INTERVALS = [
     DAY, 2 * DAY
 ];
 
-export default function SceneTimeline({ scene, currentTime, className, seek, updateScene, updateVideo }: SceneTimelineProps) {
+export default function SceneTimeline(props: {
+    scene: VideoScene,
+    currentTime: number,
+    className?: string,
+    seek: (newTime: number) => void,
+    updateVideo: (index: number, video: Partial<Video>) => void,
+    updateScene: (scene: Partial<VideoScene>) => void,
+}) {
     const videoTimelineHeight = 30;
     const videoTimelineSpacing = 5;
     const sceneRangeHeight = 15;
@@ -94,22 +55,22 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
     const bottomPadding = 8;
     const outerDivRef = useRef<HTMLDivElement>(null);
     const dimensions = useDimensions(outerDivRef);
-    const totalDuration = getTotalSceneDuration(scene) || 10;
+    const totalDuration = getTotalSceneDuration(props.scene) || 10;
     const width = dimensions.width - (horizontalPadding * 2);
-    const height = ((videoTimelineHeight + videoTimelineSpacing) * scene.media.length) + videoTimelineSpacing + timeAxisHeight + sceneRangeHeight + timeAxisSceneSpacing;
+    const height = ((videoTimelineHeight + videoTimelineSpacing) * props.scene.media.length) + videoTimelineSpacing + timeAxisHeight + sceneRangeHeight + timeAxisSceneSpacing;
 
     return (
         <div
             ref={outerDivRef}
-            className={cn('relative isolate w-full h-full', className)}>
+            className={cn('relative isolate w-full h-full', props.className)}>
              <input
                 className='accent-on-surface-container sr-only'
                 type='range'
                 min={0}
                 max={totalDuration}
                 step={0.001}
-                value={currentTime}
-                onChange={(e) => seek(parseFloat(e.target.value))} />
+                value={props.currentTime}
+                onChange={(e) => props.seek(parseFloat(e.target.value))} />
 
             <svg
                 width={dimensions.width}
@@ -117,15 +78,15 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
                 className='w-full h-full'>
                 <SceneRange
                     totalDuration={totalDuration}
-                    sceneStart={scene.startTime}
-                    sceneEnd={scene.endTime}
+                    sceneStart={props.scene.startTime}
+                    sceneEnd={props.scene.endTime}
                     left={horizontalPadding}
                     top={timeAxisHeight + timeAxisSceneSpacing}
                     width={width}
                     height={sceneRangeHeight}
-                    updateScene={updateScene} />
+                    updateScene={props.updateScene} />
 
-                {scene.media.map((v, index) => 
+                {props.scene.media.map((v, index) => 
                     <VideoTimeline
                         key={v.index}
                         video={v}
@@ -134,24 +95,33 @@ export default function SceneTimeline({ scene, currentTime, className, seek, upd
                         top={timeAxisHeight + timeAxisSceneSpacing + sceneRangeHeight + videoTimelineSpacing + (videoTimelineHeight + videoTimelineSpacing) * index}
                         width={width}
                         height={videoTimelineHeight}
-                        updateVideo={updateVideo}
-                        displayCaption={scene.media.length > 1} />)}
+                        updateVideo={props.updateVideo}
+                        displayCaption={props.scene.media.length > 1} />)}
                 
                 <TimeAxisAndSlider
-                    currentTime={currentTime}
+                    currentTime={props.currentTime}
                     totalDuration={totalDuration}
                     left={horizontalPadding}
                     top={0}
                     width={width}
                     height={timeAxisHeight}
                     fullHeight={height}
-                    seek={seek} />
+                    seek={props.seek} />
             </svg>
         </div>
     )
 }
 
-function VideoTimeline({ width, height, left, top, video, totalDuration, displayCaption, updateVideo }: VideoTimelineProps) {
+function VideoTimeline(props: {
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    video: Video,
+    totalDuration: number,
+    displayCaption?: boolean,
+    updateVideo: (index: number, video: Partial<Video>) => void,
+}) {
     const gRef = useRef<SVGGElement>(null);
     const downXRef = useRef<number>(0);
     const downSceneOffsetRef = useRef<number>(0);
@@ -160,11 +130,11 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, display
     const isMovingRef = useRef<boolean>(false);
     const isMovingStartRef = useRef<boolean>(false);
     const isMovingEndRef = useRef<boolean>(false);
-    const videoWidth = width * (video.totalDuration / totalDuration);
-    const selectedVideoWidth = width * ((video.endTime - video.startTime) / totalDuration);
-    const videoOffset = width * (video.sceneOffset / totalDuration);
-    const selectedVideoOffset = videoOffset + (width * (video.startTime / totalDuration));
-    const selectedVideoX = left + selectedVideoOffset;
+    const videoWidth = props.width * (props.video.totalDuration / props.totalDuration);
+    const selectedVideoWidth = props.width * ((props.video.endTime - props.video.startTime) / props.totalDuration);
+    const videoOffset = props.width * (props.video.sceneOffset / props.totalDuration);
+    const selectedVideoOffset = videoOffset + (props.width * (props.video.startTime / props.totalDuration));
+    const selectedVideoX = props.left + selectedVideoOffset;
     const startEndHalfWidth = 5;
     const radius = 4;
     const [cursor, setCursor] = useState('');
@@ -200,9 +170,9 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, display
 
         const pointerX = getPointerX(gRef.current, e.clientX);
 
-        downSceneOffsetRef.current = video.sceneOffset;
-        downStartTimeRef.current = video.startTime;
-        downEndTimeRef.current = video.endTime;
+        downSceneOffsetRef.current = props.video.sceneOffset;
+        downStartTimeRef.current = props.video.startTime;
+        downEndTimeRef.current = props.video.endTime;
         downXRef.current = pointerX;
         
         if (isOverLeftThumb(pointerX)) {
@@ -223,7 +193,7 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, display
 
         const pointerX = getPointerX(gRef.current, e.clientX);
         const difference = pointerX - downXRef.current;
-        const offset = Math.round((totalDuration * (difference / width) * 100) * (1 + Number.EPSILON)) / 100;
+        const offset = Math.round((props.totalDuration * (difference / props.width) * 100) * (1 + Number.EPSILON)) / 100;
         
         if (isMovingRef.current) {
             const maxOffset = 1800;
@@ -233,13 +203,13 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, display
                     -maxOffset :
                     offset;
     
-            updateVideo(video.index, { sceneOffset: downSceneOffsetRef.current + sceneOffset });
+            props.updateVideo(props.video.index, { sceneOffset: downSceneOffsetRef.current + sceneOffset });
         }
         else if (isMovingStartRef.current) {
-            updateVideo(video.index, { startTime: downStartTimeRef.current + offset });
+            props.updateVideo(props.video.index, { startTime: downStartTimeRef.current + offset });
         }
         else if (isMovingEndRef.current) {
-            updateVideo(video.index, { endTime: downEndTimeRef.current + offset });
+            props.updateVideo(props.video.index, { endTime: downEndTimeRef.current + offset });
         }
     });
 
@@ -257,55 +227,64 @@ function VideoTimeline({ width, height, left, top, video, totalDuration, display
             <rect
                 className='stroke-secondary stroke-2 fill-transparent opacity-90'
                 strokeDasharray={5}
-                x={left} y={top}
-                width={Math.max(0, width)} height={height}
+                x={props.left} y={props.top}
+                width={Math.max(0, props.width)} height={props.height}
                 rx={radius} ry={radius} />
             <rect
                 className={cn('fill-secondary stroke-2 stroke-secondary opacity-40', cursor)}
-                x={left + videoOffset} y={top}
-                width={Math.max(0, videoWidth)} height={height}
+                x={props.left + videoOffset} y={props.top}
+                width={Math.max(0, videoWidth)} height={props.height}
                 rx={radius} ry={radius} />
             <rect
                 className={cn('fill-secondary stroke-2 stroke-secondary drop-shadow-lg transition-colors', (cursor === 'cursor-col-resize') && 'stroke-on-surface-container', cursor)}
-                x={selectedVideoX} y={top}
-                width={Math.max(0, selectedVideoWidth)} height={height}
+                x={selectedVideoX} y={props.top}
+                width={Math.max(0, selectedVideoWidth)} height={props.height}
                 rx={radius} ry={radius} />
             <rect
                 className={cn('fill-transparent stroke-2 stroke-transparent transition-colors', (cursor === 'cursor-move') && 'stroke-on-surface-container', cursor)}
-                x={left + videoOffset} y={top}
-                width={Math.max(0, videoWidth)} height={height}
+                x={props.left + videoOffset} y={props.top}
+                width={Math.max(0, videoWidth)} height={props.height}
                 rx={radius} ry={radius}
                 onPointerDown={onPointerDown}
                 onPointerMove={onPointerMove}
                 onPointerLeave={() => !isMoving() && setCursor('')} />
-            {displayCaption &&
+            {props.displayCaption &&
                 <OutlinedText
                     className='group-hover:opacity-50 pointer-events-none transition-opacity text-xs'
                     outlineClassName='stroke-surface-container'
                     fillClassName='fill-on-surface-container'
-                    x={left + 8} y={top + height - 6}
+                    x={props.left + 8} y={props.top + props.height - 6}
                     strokeWidth={3}
                     strokeLinecap='round'
                     strokeLinejoin='round'>
-                    {`Video #${video.index + 1}`}
+                    {`Video #${props.video.index + 1}`}
                 </OutlinedText>}
         </g>
     )
 }
 
-function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDuration, updateScene }: SceneRangeProps) {
+function SceneRange(props: {
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    sceneStart: number,
+    sceneEnd: number,
+    totalDuration: number,
+    updateScene: (scene: Partial<VideoScene>) => void,
+}) {
     const gRef = useRef<SVGRectElement>(null);
     const downXRef = useRef<number>(0);
     const downStartTimeRef = useRef<number>(0);
     const downEndTimeRef = useRef<number>(0);
     const isMovingStartRef = useRef<boolean>(false);
     const isMovingEndRef = useRef<boolean>(false);
-    const rangeWidth = width * ((sceneEnd - sceneStart) / totalDuration);
+    const rangeWidth = props.width * ((props.sceneEnd - props.sceneStart) / props.totalDuration);
     const rangeHeight = 4;
-    const rangeOffset = width * (sceneStart / totalDuration);
+    const rangeOffset = props.width * (props.sceneStart / props.totalDuration);
     const thumbWidth = 7;
-    const thumbHeight = height;
-    const x = left + rangeOffset;
+    const thumbHeight = props.height;
+    const x = props.left + rangeOffset;
 
     function onStartPointerDown(e: PointerEvent<SVGPolygonElement>) {
         if (!gRef.current) {
@@ -315,7 +294,7 @@ function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDurat
         const pointerX = getPointerX(gRef.current, e.clientX);
 
         downXRef.current = pointerX;
-        downStartTimeRef.current = sceneStart;
+        downStartTimeRef.current = props.sceneStart;
         isMovingStartRef.current = true;
     }
 
@@ -327,7 +306,7 @@ function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDurat
         const pointerX = getPointerX(gRef.current, e.clientX);
 
         downXRef.current = pointerX;
-        downEndTimeRef.current = sceneEnd;
+        downEndTimeRef.current = props.sceneEnd;
         isMovingEndRef.current = true;
     }
 
@@ -338,13 +317,13 @@ function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDurat
 
         const pointerX = getPointerX(gRef.current, e.clientX);
         const difference = pointerX - downXRef.current;
-        const offset = round(totalDuration * (difference / width), 2);
+        const offset = round(props.totalDuration * (difference / props.width), 2);
 
         if (isMovingStartRef.current) {
-            updateScene({ startTime: downStartTimeRef.current + offset });
+            props.updateScene({ startTime: downStartTimeRef.current + offset });
         }
         if (isMovingEndRef.current) {
-            updateScene({ endTime: downEndTimeRef.current + offset });
+            props.updateScene({ endTime: downEndTimeRef.current + offset });
         }
     });
 
@@ -358,27 +337,27 @@ function SceneRange({ width, height, left, top, sceneStart, sceneEnd, totalDurat
             <rect
                 ref={gRef}
                 className='fill-transparent'
-                x={left} y={top}
-                width={Math.max(0, width)} height={height} />
+                x={props.left} y={props.top}
+                width={Math.max(0, props.width)} height={props.height} />
             <polygon
                 onPointerDown={onStartPointerDown}
                 className='fill-on-surface-container drop-shadow-lg stroke-surface-container stroke-2'
                 strokeLinecap='round' strokeLinejoin='round'
                 points={`
-                    ${x - thumbWidth},${top} ${x},${top}
-                    ${x},${top + thumbHeight} ${x - thumbWidth},${top + (thumbHeight * 0.65)}`}/>
+                    ${x - thumbWidth},${props.top} ${x},${props.top}
+                    ${x},${props.top + thumbHeight} ${x - thumbWidth},${props.top + (thumbHeight * 0.65)}`}/>
             <rect
                 className='fill-on-surface-container-muted'
                 strokeDasharray={5}
-                x={x} y={top + (height - rangeHeight) / 2}
+                x={x} y={props.top + (props.height - rangeHeight) / 2}
                 width={Math.max(0, rangeWidth)} height={rangeHeight}/>
             <polygon
                 onPointerDown={onEndPointerDown}
                 className='fill-on-surface-container drop-shadow-lg stroke-surface-container stroke-2'
                 strokeLinecap='round' strokeLinejoin='round'
                 points={`
-                    ${x + rangeWidth},${top} ${x + rangeWidth + thumbWidth},${top}
-                    ${x + rangeWidth + thumbWidth},${top + (thumbHeight * 0.65)} ${x + rangeWidth},${top + thumbHeight}`}/>
+                    ${x + rangeWidth},${props.top} ${x + rangeWidth + thumbWidth},${props.top}
+                    ${x + rangeWidth + thumbWidth},${props.top + (thumbHeight * 0.65)} ${x + rangeWidth},${props.top + thumbHeight}`}/>
         </g>
     )
 }
@@ -406,7 +385,7 @@ function TimeAxisAndSlider({ width, height, fullHeight, left, top, currentTime, 
     )
 }
 
-function Slider({ width, height, fullHeight, left, top, currentTime, totalDuration, seek }: SliderProps) {
+function Slider({ width, height, fullHeight, left, top, currentTime, totalDuration, seek }: TimeAxisAndSliderProps) {
     const gRef = useRef<SVGGElement>(null);
     const isDownRef = useRef<boolean>(false);
     const thumbHalfWidth = 8;
@@ -463,9 +442,16 @@ function Slider({ width, height, fullHeight, left, top, currentTime, totalDurati
     )
 }
 
-function TimeAxis({ width, height, left, top, minTicksDistance, totalDuration }: TimeAxisProps) {
-    const ticks = useMemo(() => getTicks(width, totalDuration, minTicksDistance), [width, totalDuration, minTicksDistance]);
-    const ticksHeight = height / 3;
+function TimeAxis(props: {
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    totalDuration: number,
+    minTicksDistance: number,
+}) {
+    const ticks = useMemo(() => getTicks(props.width, props.totalDuration, props.minTicksDistance), [props.width, props.totalDuration, props.minTicksDistance]);
+    const ticksHeight = props.height / 3;
 
     return (
         <>
@@ -477,22 +463,24 @@ function TimeAxis({ width, height, left, top, minTicksDistance, totalDuration }:
                         className='stroke-on-surface-container'
                         strokeLinecap='round' strokeLinejoin='round'
                         style={{ opacity: tick.relativeHeight }}
-                        x1={left + tick.x} y1={top}
-                        x2={left + tick.x} y2={top + (ticksHeight * tick.relativeHeight)}/>)}
+                        x1={props.left + tick.x} y1={props.top}
+                        x2={props.left + tick.x} y2={props.top + (ticksHeight * tick.relativeHeight)}/>)}
             </g>
             <Time
                 time={0}
-                x={left} y={top + height}
+                x={props.left} y={props.top + props.height}
                 textAnchor='start' />
             <Time
-                time={totalDuration}
-                x={left + width} y={top + height}
+                time={props.totalDuration}
+                x={props.left + props.width} y={props.top + props.height}
                 textAnchor='end' />
         </>
     )
 }
 
-function Time({ time, ...rest }: TimeProps) {
+function Time({ time, ...rest }: {
+    time: number
+} & React.SVGTextElementAttributes<SVGTextElement>) {
     const seconds = time % 60;
     const minutes = ((time - seconds) / 60) % 60;
     const hours = ((time - seconds - (minutes * 60)) / 60) / 60;

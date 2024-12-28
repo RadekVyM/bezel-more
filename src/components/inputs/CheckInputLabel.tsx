@@ -1,10 +1,8 @@
 import { cn } from '../../utils/tailwind'
 
-type CheckInputLabelProps = {
+export default function CheckInputLabel({ className, ...props }: {
     className?: string
-} & React.LabelHTMLAttributes<HTMLLabelElement>
-
-export default function CheckInputLabel({ className, ...props }: CheckInputLabelProps) {
+} & React.LabelHTMLAttributes<HTMLLabelElement>) {
     return (
         <label
             {...props}

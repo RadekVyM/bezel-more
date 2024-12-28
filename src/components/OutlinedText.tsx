@@ -1,13 +1,11 @@
 import { cn } from '../utils/tailwind'
 
-type OutlinedTextProps = {
+export default function OutlinedText({ children, className, outlineClassName, fillClassName, ...rest }: {
     children: React.ReactNode,
     className?: string,
     outlineClassName?: string,
     fillClassName?: string,
-} & React.SVGTextElementAttributes<SVGTextElement>
-
-export default function OutlinedText({ children, className, outlineClassName, fillClassName, ...rest }: OutlinedTextProps) {
+} & React.SVGTextElementAttributes<SVGTextElement>) {
     return (
         <g>
             <text

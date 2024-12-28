@@ -13,16 +13,14 @@ import useIsLarge from '../../hooks/useIsLarge'
 import { AppStep } from '../../types/AppStep'
 import { MdOutlineCreateNewFolder } from 'react-icons/md'
 
-type MainScaffoldProps = {
+export default function MainScaffold(props: {
     edit: React.ReactNode,
     convert: React.ReactNode,
     scenePreviewer: React.ReactNode,
     resultPreviewer: React.ReactNode,
     resetValue?: any,
     onNewProjectClick: () => void,
-}
-
-export default function MainScaffold({ edit, convert, scenePreviewer: videoPreviewer, resultPreviewer, resetValue, onNewProjectClick }: MainScaffoldProps) {
+}) {
     const isLarge = useIsLarge();
     const [selectedStep, setSelectedStep] = useState<AppStep>('edit');
     const convertDialogState = useContentDialog(true);
@@ -42,7 +40,7 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
     
     useEffect(() => {
         setSelectedStep('edit');
-    }, [resetValue]);
+    }, [props.resetValue]);
 
     return (
         <main
@@ -66,7 +64,7 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
 
                 <Button
                     className='gap-2'
-                    onClick={onNewProjectClick}>
+                    onClick={props.onNewProjectClick}>
                     <MdOutlineCreateNewFolder className='w-4 h-4'/>
                     <span className='hidden sm:block'>New project</span>
                 </Button>
@@ -100,13 +98,13 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
                         <div
                             key='edit'
                             className='h-full max-h-full'>
-                            {edit}
+                            {props.edit}
                         </div>
                         <Container
                             key='convert'
                             className='flex flex-col h-full max-h-full overflow-auto thin-scrollbar py-7 px-5 flex-1'>
                             <SectionHeading>Convert</SectionHeading>
-                            {convert}
+                            {props.convert}
                         </Container>
                     </ComponentSwitch>
                 </div>
@@ -116,8 +114,8 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
                 className='h-full max-h-full overflow-hidden'>
                 <ComponentSwitch
                     selectedKey={selectedStep}>
-                    <div key='edit' className='h-full @container'>{videoPreviewer}</div>
-                    <div key='convert' className='h-full'>{resultPreviewer}</div>
+                    <div key='edit' className='h-full @container'>{props.scenePreviewer}</div>
+                    <div key='convert' className='h-full'>{props.resultPreviewer}</div>
                 </ComponentSwitch>
             </div>
 
@@ -137,7 +135,7 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
                         state={convertDialogState}
                         slideInFromBottom
                         heading={'Convert'}>
-                        {convert}
+                        {props.convert}
                     </ContentDialog>
 
                     <ContentDialog
@@ -145,7 +143,7 @@ export default function MainScaffold({ edit, convert, scenePreviewer: videoPrevi
                         state={editDialogState}
                         slideInFromBottom
                         heading={'Edit'}>
-                        {edit}
+                        {props.edit}
                     </ContentDialog>
                 </>
             }

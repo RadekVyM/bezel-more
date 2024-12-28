@@ -6,24 +6,6 @@ import Button from '../inputs/Button'
 import { AspectRatio } from '../../types/AspectRatio'
 import { Scene } from '../../types/Scene'
 
-type SceneAspectRatioSelectionProps = {
-    scene: Scene,
-    updateScene: (scene: Partial<Scene>) => void,
-    className?: string
-}
-
-type AspectRatioCardProps = {
-    checked: boolean,
-    children: React.ReactNode,
-    className?: string,
-    onClick: () => void
-}
-
-type CustomAspectRatioCardProps = {
-    requiredAspectRatio?: AspectRatio,
-    onChange: (aspectRatio: AspectRatio) => void
-}
-
 const PREDEFINED_ASPECT_RATIOS: Array<AspectRatio> = [
     { width: 16, height: 9, isCustom: false },
     { width: 9, height: 16, isCustom: false },
@@ -33,10 +15,14 @@ const PREDEFINED_ASPECT_RATIOS: Array<AspectRatio> = [
     { width: 3, height: 4, isCustom: false },
 ];
 
-export default function SceneAspectRatioSelection({ className, scene, updateScene }: SceneAspectRatioSelectionProps) {
+export default function SceneAspectRatioSelection(props: {
+    scene: Scene,
+    updateScene: (scene: Partial<Scene>) => void,
+    className?: string
+}) {
     return (
         <div
-            className={cn('', className)}
+            className={cn('', props.className)}
             aria-labelledby='scene-aspect-ratio-selection-legend'
             role='radiogroup'>
             <legend id='scene-aspect-ratio-selection-legend' className='block text-sm font-medium mb-2 select-none w-fit'>Aspect ratio</legend>
@@ -44,43 +30,46 @@ export default function SceneAspectRatioSelection({ className, scene, updateScen
             <div
                 className='grid grid-cols-[repeat(auto-fill,minmax(8rem,1fr))] gap-3'>
                 <AspectRatioCard
-                    checked={scene.requestedAspectRatio === undefined}
-                    onClick={() => updateScene({ requestedAspectRatio: undefined })}>
+                    checked={props.scene.requestedAspectRatio === undefined}
+                    onClick={() => props.updateScene({ requestedAspectRatio: undefined })}>
                     Adjust
                 </AspectRatioCard>
                 {PREDEFINED_ASPECT_RATIOS.map((aspectRatio) => 
                     <AspectRatioCard
                         key={aspectRatioToString(aspectRatio)}
-                        checked={!!scene.requestedAspectRatio && shallowEqual(aspectRatio, scene.requestedAspectRatio)}
-                        onClick={() => updateScene({ requestedAspectRatio: { ...aspectRatio } })}>
+                        checked={!!props.scene.requestedAspectRatio && shallowEqual(aspectRatio, props.scene.requestedAspectRatio)}
+                        onClick={() => props.updateScene({ requestedAspectRatio: { ...aspectRatio } })}>
                         <span>{aspectRatio.width} : {aspectRatio.height}</span>
                     </AspectRatioCard>)}
                 <CustomAspectRatioCard
-                    requiredAspectRatio={scene.requestedAspectRatio}
-                    onChange={(aspectRatio) => updateScene({ requestedAspectRatio: { ...aspectRatio, isCustom: true } })}/>
+                    requiredAspectRatio={props.scene.requestedAspectRatio}
+                    onChange={(aspectRatio) => props.updateScene({ requestedAspectRatio: { ...aspectRatio, isCustom: true } })}/>
             </div>
         </div>
     )
 }
 
-function CustomAspectRatioCard({ requiredAspectRatio, onChange }: CustomAspectRatioCardProps) {
-    const defaultCustomAspectRatio = requiredAspectRatio?.isCustom ? { ...requiredAspectRatio } : { width: 1, height: 1, isCustom: true };
+function CustomAspectRatioCard(props: {
+    requiredAspectRatio?: AspectRatio,
+    onChange: (aspectRatio: AspectRatio) => void
+}) {
+    const defaultCustomAspectRatio = props.requiredAspectRatio?.isCustom ? { ...props.requiredAspectRatio } : { width: 1, height: 1, isCustom: true };
     const lastValidCustomAspectRatio = useRef<AspectRatio>(defaultCustomAspectRatio);
     const [customAspectRatio, setCustomAspectRatio] = useState(aspectRatioToString(defaultCustomAspectRatio));
     const aspectRatioPattern = /^\s*(\d+)\s*:\s*(\d+)\s*$/;
-    const checked = !!requiredAspectRatio?.isCustom;
+    const checked = !!props.requiredAspectRatio?.isCustom;
 
     useEffect(() => {
-        if (requiredAspectRatio?.isCustom) {
-            lastValidCustomAspectRatio.current = { ...requiredAspectRatio };
+        if (props.requiredAspectRatio?.isCustom) {
+            lastValidCustomAspectRatio.current = { ...props.requiredAspectRatio };
             setCustomAspectRatio(aspectRatioToString(lastValidCustomAspectRatio.current));
         }
-    }, [requiredAspectRatio]);
+    }, [props.requiredAspectRatio]);
 
     return (
         <AspectRatioCard
             checked={checked}
-            onClick={() => onChange({ ...lastValidCustomAspectRatio.current })}>
+            onClick={() => props.onChange({ ...lastValidCustomAspectRatio.current })}>
             <input
                 className='flex-1
                     border border-outline rounded-md
@@ -97,7 +86,7 @@ function CustomAspectRatioCard({ requiredAspectRatio, onChange }: CustomAspectRa
                         if (match) {
                             lastValidCustomAspectRatio.current = { width: parseInt(match[1]), height: parseInt(match[2]) };
                             if (checked) {
-                                onChange({ ...lastValidCustomAspectRatio.current });
+                                props.onChange({ ...lastValidCustomAspectRatio.current });
                             }
                         }
                     }
@@ -111,17 +100,22 @@ function CustomAspectRatioCard({ requiredAspectRatio, onChange }: CustomAspectRa
     )
 }
 
-function AspectRatioCard({ className, checked, children, onClick }: AspectRatioCardProps) {
+function AspectRatioCard(props: {
+    checked: boolean,
+    children: React.ReactNode,
+    className?: string,
+    onClick: () => void
+}) {
     return (
         <Button
-            className={cn('flex justify-start gap-3 px-2 select-none h-11', className)}
-            onClick={onClick}
-            onKeyUp={(e) => e.key === 'Enter' && onClick()}
+            className={cn('flex justify-start gap-3 px-2 select-none h-11', props.className)}
+            onClick={props.onClick}
+            onKeyUp={(e) => e.key === 'Enter' && props.onClick()}
             tabIndex={0}
             role='radio'>
             <RadioCircle
-                checked={checked} />
-            {children}
+                checked={props.checked} />
+            {props.children}
         </Button>
     )
 }
