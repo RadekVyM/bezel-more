@@ -12,7 +12,7 @@ export default function useDialog(
     const show = useCallback(() => {
         setAnimationClass(openAnimation);
         setIsOpen(true);
-    }, []);
+    }, [openAnimation]);
 
     const hide = useCallback(() => {
         setAnimationClass(hideAnimation);
@@ -20,7 +20,7 @@ export default function useDialog(
             setIsOpen(false);
             clearTimeout(timeout);
         }, 150);
-    }, []);
+    }, [hideAnimation]);
 
     useEffect(() => {
         if (isOpen) {

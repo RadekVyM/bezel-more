@@ -1,7 +1,6 @@
 import { hexToHsva, HsvaColor, hsvaToHex, hsvaToHexa } from '@uiw/react-color'
 import { cn } from '../../utils/tailwind'
 import { useEffect, useRef, useState } from 'react'
-import { useCopyToClipboard } from 'usehooks-ts'
 import Button from './Button'
 import { MdCheck, MdContentPaste, MdOutlineContentCopy } from 'react-icons/md'
 
@@ -15,11 +14,10 @@ export default function HexColorInput(props: {
     color: HsvaColor,
     onColorChange: (newColor: HsvaColor) => void 
 }) {
-    const lastValidCustomAspectRatio = useRef<HsvaColor>();
+    const lastValidCustomAspectRatio = useRef<HsvaColor>(null);
     const colorPattern = props.hexa ? HEXA_PATTERN : HEX_PATTERN;
-    const [input, setInput] = useState("#00000000");
+    const [input, setInput] = useState('#00000000');
     const [copied, setCopied] = useState(false);
-    const [_, copy] = useCopyToClipboard();
 
     useEffect(() => {
         lastValidCustomAspectRatio.current = props.color;
@@ -30,7 +28,20 @@ export default function HexColorInput(props: {
     }, [props.color, props.hexa]);
 
     async function copyToClipboard() {
-        await copy(props.hexa ? hsvaToHexa(props.color) : hsvaToHex(props.color));
+        const value = props.hexa ? hsvaToHexa(props.color) : hsvaToHex(props.color);
+
+        if (!navigator?.clipboard) {
+            console.log('Clipboard not supported');
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(value);
+        } catch (error) {
+            console.log('Copy failed', error);
+            return;
+        }
+
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
     }

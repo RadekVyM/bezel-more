@@ -225,6 +225,7 @@ async function loadVideos(ffmpeg: FFmpeg, scene: VideoScene, onProgressStateChan
         throw new Error('Background could not be generated');
 
     let backgroundInputName;
+    // eslint-disable-next-line prefer-const
     ({ imageInputName: backgroundInputName, index } = await writeImageFile(ffmpeg, index, inputs, fileNames, 'background.png', background));
 
     onProgressStateChange(`Generating scene mask`);
@@ -233,6 +234,7 @@ async function loadVideos(ffmpeg: FFmpeg, scene: VideoScene, onProgressStateChan
         throw new Error('Scene mask could not be generated');
 
     let sceneMaskInputName;
+    // eslint-disable-next-line prefer-const
     ({ imageInputName: sceneMaskInputName, index } = await writeImageFile(ffmpeg, index, inputs, fileNames, 'scene-mask.png', sceneMask));
 
     onProgressStateChange(`Generating bezels`);
@@ -241,6 +243,7 @@ async function loadVideos(ffmpeg: FFmpeg, scene: VideoScene, onProgressStateChan
         throw new Error('Bezels image could not be generated');
 
     let bezelsImageInputName;
+    // eslint-disable-next-line prefer-const
     ({ imageInputName: bezelsImageInputName, index } = await writeImageFile(ffmpeg, index, inputs, fileNames, 'bezels-image.png', bezelsImage));
 
     return {

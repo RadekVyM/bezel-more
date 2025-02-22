@@ -1,4 +1,4 @@
-import { useMediaQuery } from 'usehooks-ts'
+import useMediaQuery from './useMediaQuery'
 
 export default function useIsLarge() {
     return useMediaQuery('(min-width: 60rem)');

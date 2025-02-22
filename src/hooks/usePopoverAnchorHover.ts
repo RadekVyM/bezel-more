@@ -26,7 +26,7 @@ export default function usePopoverAnchorHover(containerRef?: React.RefObject<HTM
         const y = clamp(idealY, 0, containerRect.height - popoverRect.height);
 
         setPosition({ x, y });
-    }, [setPosition, setIsHovered, popoverRef.current, containerRef?.current]);
+    }, [setPosition, setIsHovered, popoverRef, containerRef]);
 
     const onPointerLeave = useCallback(() => {
         setIsHovered(false);

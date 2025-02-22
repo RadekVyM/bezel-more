@@ -3,9 +3,9 @@ import { Video } from '../../types/Video'
 import { VideoScene, getTotalSceneDuration } from '../../types/VideoScene'
 import useDimensions from '../../hooks/useDimensions'
 import { cn } from '../../utils/tailwind'
-import { useEventListener } from 'usehooks-ts'
 import { round } from '../../utils/numbers'
 import OutlinedText from '../OutlinedText'
+import useEventListener from '../../hooks/useEventListener'
 
 type TimeAxisAndSliderProps = {
     left: number,
