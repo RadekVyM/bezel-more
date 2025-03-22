@@ -39,7 +39,7 @@ export default function useConvert(
 
                     updateProgress({ state: 'Loading ffmpeg' });
                     // When cache is used, it is alright to reload FFmpeg before each render
-                    await loadFFmpeg(ffmpeg, false);
+                    await loadFFmpeg(ffmpeg, !scene.useUnpkg);
 
                     updateProgress({ state: 'Generating final result' });
                     const data = (await convertVideo(
@@ -64,7 +64,7 @@ export default function useConvert(
 
                     updateProgress({ state: 'Loading ffmpeg' });
                     // When cache is used, it is alright to reload FFmpeg before each render
-                    await loadFFmpeg(ffmpeg, false);
+                    await loadFFmpeg(ffmpeg, !scene.useUnpkg);
 
                     const data = (await convertVideoSceneFFmpeg(ffmpeg, scene, (state) => updateProgress({ state }))) as any;
                     const resultUrl = URL.createObjectURL(new Blob([data.buffer], { type: format.type }));
@@ -127,8 +127,8 @@ async function loadFFmpeg(ffmpeg: FFmpeg, localSource?: boolean, useMultiThreadi
     const packageName = useMultiThreading ? 'core-mt' : 'core';
     const packageVersion = useMultiThreading ? '0.12.6' : '0.12.6';
     const baseURL = `https://unpkg.com/@ffmpeg/${packageName}@${packageVersion}/dist/esm`;
-    const coreURL = localSource ? `${ffmpegCoreJsUrl}.gz` : `${baseURL}/ffmpeg-core.js`;
-    const wasmURL = localSource ? `${ffmpegCoreWasmUrl}.gz` : `${baseURL}/ffmpeg-core.wasm`;
+    const coreURL = localSource ? `${ffmpegCoreJsUrl}` : `${baseURL}/ffmpeg-core.js`;
+    const wasmURL = localSource ? `${ffmpegCoreWasmUrl}` : `${baseURL}/ffmpeg-core.wasm`;
 
     // toBlobURL is used to bypass CORS issue, urls with the same
     // domain can be used directly.

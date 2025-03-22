@@ -12,6 +12,7 @@ export type VideoScene = {
     maxColors: number,
     isPrerenderingEnabled: boolean,
     useCanvas?: boolean,
+    useUnpkg?: boolean,
 } & DrawableScene
 
 export function getFirstVideo(scene: VideoScene): Video {

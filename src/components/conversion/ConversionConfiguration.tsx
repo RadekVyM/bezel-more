@@ -62,9 +62,11 @@ function VideoInputs(props: {
                     type='checkbox'
                     checked={!!props.scene.useCanvas}
                     onChange={(e) => props.updateScene({ useCanvas: e.currentTarget.checked })} />
-                <CheckInputLabel htmlFor='use-canvas-checkbox' className='pl-3'>Use canvas <span className='text-xs text-on-surface-container-muted'>(experimental)</span></CheckInputLabel>
+                <CheckInputLabel htmlFor='use-canvas-checkbox' className='pl-3'>
+                    Use canvas <span className='text-xs text-on-surface-container-muted'>(experimental)</span>
+                </CheckInputLabel>
             </div>
-            
+
             {!props.scene.useCanvas &&
                 <>
                     <div
@@ -91,6 +93,19 @@ function VideoInputs(props: {
                         This ensures that there are no missing frames and leads to the expected result. However, it takes much longer to render the video.
                     </Popover>
                 </>}
+                
+            <div
+                className='w-fit sm:col-span-2'>
+                <CheckInput
+                    id='use-unpkg-checkbox'
+                    className='rounded'
+                    type='checkbox'
+                    checked={!!props.scene.useUnpkg}
+                    onChange={(e) => props.updateScene({ useUnpkg: e.currentTarget.checked })} />
+                <CheckInputLabel htmlFor='use-unpkg-checkbox' className='pl-3'>
+                    Download ffmpeg from unpkg
+                </CheckInputLabel>
+            </div>
         </div>
     )
 }
