@@ -1,6 +1,6 @@
 # bezel-more
 
-Simple **video to GIF/WebP** converter that allows you to add a **device bezel** to your screen recordings.
+**bezel-more** is a simple, privacy-friendly **video to GIF/WebP converter** that allows you to add a **device bezel** around your screen recordings. All processing is performed locally in your browser—no uploads or server-side video handling.
 
 <p align="center">
     <a href="https://radekvym.github.io/bezel-more/">
@@ -20,8 +20,14 @@ Simple **video to GIF/WebP** converter that allows you to add a **device bezel**
     </a>
 </p>
 
-The application can be found on [radekvym.github.io/bezel-more](https://radekvym.github.io/bezel-more/).
+**Try the app:** [radekvym.github.io/bezel-more](https://radekvym.github.io/bezel-more/)
+
 
 ## Features
 
-Video processing is provided using the [ffmpeg library](https://ffmpeg.org/) via [Web Assembly](https://github.com/ffmpegwasm/ffmpeg.wasm). All the video processing is done on the client side. UI is built using [React](https://react.dev/) in combination with [Tailwind CSS](https://tailwindcss.com/).
+- **Convert videos to GIF or WebP** formats directly in your browser
+- **Add device bezels** (iPhones and selected Android phones) for polished, professional screen recordings
+- **Privacy-first:** all processing happens client-side—your videos never leave your computer
+- **No installation required:** runs completely in the browser
+- **Powered by [ffmpeg.wasm](https://github.com/ffmpegwasm/ffmpeg.wasm)**—WebAssembly port of ffmpeg
+- UI is built using [React](https://react.dev/) in combination with [Tailwind CSS](https://tailwindcss.com/)
