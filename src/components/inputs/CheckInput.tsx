@@ -6,6 +6,7 @@ export default function CheckInput({ className, ...props }: {
     return (
         <input
             {...props}
-            className={cn('w-4 h-4 text-on-surface-container-muted bg-surface-container border-outline', className)} />
+            type='checkbox'
+            className={cn('form-checkbox rounded w-4 h-4 text-on-surface-container-muted bg-surface-container border-outline', className)} />
     )
 }

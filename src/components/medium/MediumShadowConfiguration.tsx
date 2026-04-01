@@ -21,8 +21,6 @@ export default function MediumShadowConfiguration(props: {
                 className='mb-4'>
                 <CheckInput
                     id='use-shadow-checkbox'
-                    className='rounded'
-                    type='checkbox'
                     defaultChecked={props.medium.withShadow}
                     onChange={(e) => props.updateMedium({ withShadow: e.target.checked })} />
                 <CheckInputLabel htmlFor='use-shadow-checkbox' className='pl-3'>Use shadow</CheckInputLabel>

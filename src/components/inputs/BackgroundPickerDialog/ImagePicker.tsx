@@ -23,8 +23,6 @@ export default function ImagePicker(props: {
             <div>
                 <CheckInput
                     id='aspect-fill-checkbox'
-                    className='rounded'
-                    type='checkbox'
                     checked={props.currentBackground.aspectFill}
                     onChange={(e) => props.onPick(createImageBackground(props.currentBackground.image, e.currentTarget.checked))} />
                 <CheckInputLabel htmlFor='aspect-fill-checkbox' className='pl-3'>Keep aspect ratio</CheckInputLabel>

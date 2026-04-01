@@ -20,8 +20,6 @@ export default function BezelSelection(props: {
                 className='mb-6'>
                 <CheckInput
                     id='use-bezel-check'
-                    className='rounded'
-                    type='checkbox'
                     defaultChecked={props.medium.withBezel}
                     onChange={(e) => props.updateMedium({ withBezel: e.target.checked })} />
                 <CheckInputLabel htmlFor='use-bezel-check' className='pl-3'>Use bezel</CheckInputLabel>
@@ -75,7 +73,7 @@ function BezelCardSelection(props: {
                 className='
                     grid grid-cols-[1fr_auto] mb-4
                     border border-outline rounded-md bg-surface-container text-on-surface-container disabled:text-on-surface-muted overflow-clip
-                    focus-within:outline focus-within:outline-2'>
+                    focus-within:outline-2'>
                 <input
                     className='border-0 px-2 py-1.5 border-transparent'
                     type='text'

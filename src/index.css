@@ -1,6 +1,73 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+@theme {
+  /* Custom Colors mapped to your existing CSS variables */
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-dim: var(--secondary-dim);
+  --color-on-secondary-dim: var(--on-secondary-dim);
+
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-muted: var(--on-surface-muted);
+
+  --color-surface-dim: var(--surface-dim);
+  --color-on-surface-dim: var(--on-surface-dim);
+  --color-on-surface-dim-muted: var(--on-surface-dim-muted);
+
+  --color-surface-container: var(--surface-container);
+  --color-on-surface-container: var(--on-surface-container);
+  --color-on-surface-container-muted: var(--on-surface-container-muted);
+
+  --color-surface-dim-container: var(--surface-dim-container);
+  --color-on-surface-dim-container: var(--on-surface-dim-container);
+  --color-on-surface-dim-container-muted: var(--on-surface-dim-container-muted);
+
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-danger: var(--danger);
+  --color-on-danger: var(--on-danger);
+  --color-danger-dim: var(--danger-dim);
+  --color-on-danger-dim: var(--on-danger-dim);
+
+  --color-backdrop: var(--backdrop);
+
+  --animate-fadeIn: fade-in 150ms ease-in-out forwards;
+  --animate-fadeOut: fade-out 150ms ease-in-out forwards;
+  --animate-slideUpIn: slide-up-in 150ms ease-in-out forwards;
+  --animate-slideLeftIn: slide-left-in 150ms ease-in-out forwards;
+  --animate-slideDownOut: slide-down-out 150ms ease-in-out forwards;
+  --animate-slideRightOut: slide-right-out 150ms ease-in-out forwards;
+
+  @keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes fade-out {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes slide-up-in {
+    0% { transform: translateY(50%); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes slide-left-in {
+    0% { transform: translateX(50%); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slide-down-out {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(50%); opacity: 0; }
+  }
+  @keyframes slide-right-out {
+    0% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(50%); opacity: 0; }
+  }
+}
 
 html {
   padding: 0;
@@ -22,10 +89,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
   box-sizing: border-box;
-}
-
-body,
-dialog {
   @apply text-on-surface-container bg-surface-container;
 }
 
@@ -72,5 +135,4 @@ dialog {
   background-position: 0 0, 0.4rem 0.4rem;
   background-image: linear-gradient(45deg, var(--surface-dim) 25%, transparent 25%, transparent 75%, var(--surface-dim) 75%, var(--surface-dim)),
                     linear-gradient(45deg, var(--surface-dim) 25%, transparent 25%, transparent 75%, var(--surface-dim) 75%, var(--surface-dim));
-
 }

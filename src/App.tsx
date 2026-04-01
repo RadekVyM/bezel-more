@@ -1,4 +1,3 @@
-import './App.css'
 import { useEffect, useState } from 'react'
 import ScenePreviewer from './components/scene/ScenePreviewer'
 import Loading from './components/Loading'

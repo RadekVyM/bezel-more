@@ -5,7 +5,7 @@ import './index.css'
 import './colors.css'
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+    <StrictMode>
+        <App />
+    </StrictMode>,
+);

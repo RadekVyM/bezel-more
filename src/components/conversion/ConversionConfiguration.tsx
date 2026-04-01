@@ -8,6 +8,7 @@ import usePopoverAnchorHover from '../../hooks/usePopoverAnchorHover'
 import Popover from '../Popover'
 import { FaQuestionCircle } from 'react-icons/fa'
 import { Scene } from '../../types/Scene'
+import RadioInput from '../inputs/RadioInput'
 
 export default function ConversionConfiguration(props: {
     scene: Scene,
@@ -58,8 +59,6 @@ function VideoInputs(props: {
                 className='w-fit sm:col-span-2'>
                 <CheckInput
                     id='use-canvas-checkbox'
-                    className='rounded'
-                    type='checkbox'
                     checked={!!props.scene.useCanvas}
                     onChange={(e) => props.updateScene({ useCanvas: e.currentTarget.checked })} />
                 <CheckInputLabel htmlFor='use-canvas-checkbox' className='pl-3'>
@@ -73,8 +72,6 @@ function VideoInputs(props: {
                         className='w-fit sm:col-span-2'>
                         <CheckInput
                             id='prerendering-checkbox'
-                            className='rounded'
-                            type='checkbox'
                             checked={props.scene.isPrerenderingEnabled}
                             onChange={(e) => props.updateScene({ isPrerenderingEnabled: e.currentTarget.checked })} />
                         <CheckInputLabel htmlFor='prerendering-checkbox' className='pl-3'>Use prerendering</CheckInputLabel>
@@ -98,8 +95,6 @@ function VideoInputs(props: {
                 className='w-fit sm:col-span-2'>
                 <CheckInput
                     id='use-unpkg-checkbox'
-                    className='rounded'
-                    type='checkbox'
                     checked={!!props.scene.useUnpkg}
                     onChange={(e) => props.updateScene({ useUnpkg: e.currentTarget.checked })} />
                 <CheckInputLabel htmlFor='use-unpkg-checkbox' className='pl-3'>
@@ -128,8 +123,7 @@ function FormatSelection(props: {
                 <div
                     key={f.key}
                     className='mb-2'>
-                    <CheckInput
-                        type='radio'
+                    <RadioInput
                         name='format'
                         id={f.key}
                         value={f.key}

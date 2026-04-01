@@ -19,7 +19,10 @@ export const Dialog = forwardRef<HTMLDialogElement, DialogProps>(({ state, class
                     e.preventDefault();
                     state.hide();
                 }}
-                className={cn(className, state.animationClass, 'backdrop:bg-[rgba(15,23,42,0.5)] dark:backdrop:bg-[rgba(15,23,42,0.85)] border border-outline')}>
+                className={cn(
+                    'm-auto backdrop:bg-[rgba(15,23,42,0.5)] dark:backdrop:bg-[rgba(15,23,42,0.85)] border border-outline',
+                    className,
+                    state.animationClass)}>
                 {children}
             </dialog>,
             document.querySelector('body') as Element)

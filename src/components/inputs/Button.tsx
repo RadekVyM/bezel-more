@@ -9,6 +9,7 @@ export default function Button({ children, className, href, download, ...rest }:
     const styling = `
         rounded-md text-sm font-semibold px-4 py-2 box-border
         grid place-content-center items-center grid-flow-col
+        cursor-pointer
         text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none
         bg-surface-container text-on-surface-container border border-outline hover:bg-surface-dim-container hover:text-on-surface-dim-container`;
 
